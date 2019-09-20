@@ -61,7 +61,7 @@ class Admin {
 	 * Admin class constructor
 	 * Sets up GUI and gets the current tool
 	 */
-	function Admin($tool) {
+	function __construct($tool) {
 		$this->pager = CmnFns::getNewPager();
 		$this->pager->setTextStyle('font-size: 10px;');
 		$this->pager->setTbClass('textbox');
@@ -191,11 +191,12 @@ class Admin {
 
 
 		if (isset($_GET['searchUsers'])) {					// Search for users or get all users?
-			$first_name = trim($_GET['firstName']);
-			$last_name = trim($_GET['lastName']);
-			$num   = $this->db->get_num_search_recs($first_name, $last_name);
+			$first_name = trim(filter_input(INPUT_GET, 'firstName'));
+			$last_name = trim(filter_input(INPUT_GET, 'lastName'));
+			$show_deleted = trim(filter_input(INPUT_GET, 'show_deleted'));
+			$num   = $this->db->get_num_search_recs($first_name, $last_name, $show_deleted);
 			$pager->setTotRecords($num);
-			$users = $this->db->search_users($first_name, $last_name, $pager, $orders);
+			$users = $this->db->search_users($first_name, $last_name, $show_deleted, $pager, $orders);
 		}
 		else {		// Default
 			$num = $this->db->get_num_admin_recs('user');	// Get number of records

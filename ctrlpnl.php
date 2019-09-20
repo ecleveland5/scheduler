@@ -42,7 +42,7 @@ showQuickLinks();		// Print out My Quick Links
 startDataDisplayCol();
 
 $order = array('number');
-$announcements = $db->get_announcements(mktime());
+$announcements = $db->get_announcements(time());
 
 showAnnouncementTable( $announcements, $db->get_err() );
 

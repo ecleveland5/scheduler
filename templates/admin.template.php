@@ -427,8 +427,8 @@ function print_manage_users(&$pager, $users, $err) {
 <p align="center"><?php print_last_name_links(); ?></p>
 <br />
 <p align="center"><?php echo translate('First Name')?> <input type="text"
-	name="firstName" class="textbox" /> <?php echo translate('Last Name')?> <input
-	type="text" name="lastName" class="textbox" /> <input type="hidden"
+	name="firstName" class="textbox" value="<?php echo filter_input(INPUT_GET, 'firstName');?>" /> <?php echo translate('Last Name')?> <input
+	type="text" name="lastName" class="textbox" value="<?php echo filter_input(INPUT_GET, 'lastName');?>" /> <input type="hidden"
 	name="searchUsers" value="true" /> <input type="hidden" name="tool"
 	value="<?php echo getTool()?>" /> <input type="hidden"
 	name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" /> <?php if (isset($_GET['order'])) { ?>
@@ -436,7 +436,9 @@ function print_manage_users(&$pager, $users, $err) {
 			<?php if (isset($_GET['vert'])) { ?> <input type="hidden" name="vert"
 	value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?> <input type="submit"
 	name="searchUsersBtn" value="<?php echo translate('Search Users')?>"
-	class="button" /></p>
+	class="button" />
+	<input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if(filter_input(INPUT_GET, 'show_deleted')==="1") echo "checked";?>><label for="show_deleted">Show Deleted Users?</label>
+	</p>
 </form>
 
 <form name="manageUser" method="post" action="admin_update.php"
@@ -493,7 +495,11 @@ function print_manage_users(&$pager, $users, $err) {
 				. '<td>' . '<a href="admin_update.php?fn=adminToggle&amp;' . $admin_link . '">' . $admin_text . '</a></td>'
 				. '<td>' . $link->getLink("admin.php?tool=perms&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
 				. '<td>' . $link->getLink("admin.php?tool=user_accounts&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
-				. '<td><input type="checkbox" name="user_id[]" value="' . $cur['user_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"/></td>\n"
+				. '<td><input type="checkbox" name="user_id[]" value="' . $cur['user_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
+				if ($cur['deleted'] === "1" || $cur['archived'] === "1") {
+				    echo " checked=checked";
+				}
+				echo "/></td>\n"
 				. "</tr>\n";
 			}
 

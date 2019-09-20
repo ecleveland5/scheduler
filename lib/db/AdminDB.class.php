@@ -497,9 +497,15 @@ class AdminDB extends DBEngine {
 	 * @param string $first_name first name to search for
 	 * @return number of records found
 	 */
-	function get_num_search_recs($first_name, $last_name) {
-		$result = $this->db->getRow('SELECT COUNT(*) AS num FROM ' . $this->get_table('user')
-			. ' WHERE first_name LIKE "' . $first_name . '%" AND last_name LIKE "' . $last_name . '%" AND deleted=0');
+	function get_num_search_recs($first_name, $last_name, $show_deleted = null) {
+		$sql = 'SELECT COUNT(*) AS num FROM ' . $this->get_table('user')
+			. ' WHERE first_name LIKE "' . $first_name . '%" AND last_name LIKE "' . $last_name . '%"';
+		
+		if ($show_deleted !== '1') {
+			$sql .= ' AND deleted=0';
+		}
+		
+		$result = $this->db->getRow($sql);
 
 		$this->check_for_error($result);
 		return $result['num'];
@@ -523,16 +529,17 @@ class AdminDB extends DBEngine {
 		$this->check_for_error($result);
 		return $result['num'];
 	}
-
+	
 	/**
 	 * Search for users matching this first and last name and return the results in an array
 	 * @param string $first_name first name to search for
 	 * @param string $last_name last name to search for
+	 * @param $show_deleted
 	 * @param object $pager pager object
 	 * @param array $orders order to print results in
 	 * @return array of user data
 	 */
-	function search_users($first_name, $last_name, &$pager, $orders) {
+	function search_users($first_name, $last_name, $show_deleted, &$pager, $orders) {
 		$return = array();
 
 		$order = CmnFns::get_value_order($orders);
@@ -544,8 +551,12 @@ class AdminDB extends DBEngine {
 		// Set up query to get neccessary records ordered by user request first, then logical order
 		$query = 'SELECT l.*'
 			. ' FROM ' . $this->get_table('user') . ' as l'
-			. '	WHERE first_name LIKE "' . $first_name . '%" AND last_name LIKE "' . $last_name . '%" AND deleted=0'
-			. ' ORDER BY ' . $order . ' ' . $vert . ', l.last_name, l.first_name';
+			. '	WHERE first_name LIKE "' . $first_name . '%" AND last_name LIKE "' . $last_name . '%"';
+		
+		if ($show_deleted !== '1') {
+			$query .= ' AND deleted=0';
+		}
+		$query .= ' ORDER BY ' . $order . ' ' . $vert . ', l.last_name, l.first_name';
 
 		$result = $this->db->limitQuery($query, $pager->getOffset(), $pager->getLimit());
 
