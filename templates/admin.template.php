@@ -441,10 +441,8 @@ function print_manage_users(&$pager, $users, $err) {
 	</p>
 </form>
 
-<form name="manageUser" method="post" action="admin_update.php"
-	onsubmit="return checkAdminForm();">
-<table width="100%" border="0" cellspacing="0" cellpadding="1"
-	align="center">
+<form name="manageUser" method="post" action="admin_update.php" onsubmit="return checkAdminForm();">
+<table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">
 		<table width="100%" border="0" cellspacing="1" cellpadding="0">
@@ -459,7 +457,7 @@ function print_manage_users(&$pager, $users, $err) {
 				<td width="5%"><?php echo translate('Admin')?></td>
 				<td width="10%">Equipment <?php echo translate('Permissions')?></td>
 				<td width="10%">Account <?php echo translate('Permissions')?></td>
-				<td width="6%"><?php echo translate('Delete')?></td>
+				<td width="6%"><?php echo translate('Archive')?></td>
 			</tr>
 			<tr class="cellColor0" style="text-align: center;">
 				<td><?php printDescLink($pager, 'last_name', 'last name') ?>
@@ -487,9 +485,13 @@ function print_manage_users(&$pager, $users, $err) {
 
 				$admin_link = "user_id={$cur['user_id']}&amp;status=" . (($cur['is_admin'] == 1) ? '0' : '1');
 				$admin_text = (($cur['is_admin'] == 1) ? translate('Yes') : translate('No'));
-
-				echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n"
-				. '<td style="text-align:left;">' . $link->getLink("javascript: viewUser('". $cur['user_id'] . "');", $first_name . ' ' . $last_name, '', '', translate('View information about', $first_name_last_name)) . "</td>\n"
+				
+				if ($cur['deleted'] === "1" || $cur['archived'] === "1") {
+				    echo "<tr class=\"cellColorArchived\" align=\"center\" id=\"tr$i\">\n";
+				} else {
+				    echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n";
+				}
+				echo '<td style="text-align:left;">' . $link->getLink("javascript: viewUser('". $cur['user_id'] . "');", $first_name . ' ' . $last_name, '', '', translate('View information about', $first_name_last_name)) . "</td>\n"
 				. '<td style="text-align:left;">' . $link->getLink("mailto:$email", $email, '', '', translate('Send email to', array($first_name, $last_name))) . "</td>\n"
 				. '<td>' . $link->getLink("admin.php?tool=pwreset&amp;user_id=" . $cur['user_id'], translate('Reset'), '', '', translate('Reset password for', $first_name_last_name)) .  "</td>\n"
 				. '<td>' . '<a href="admin_update.php?fn=adminToggle&amp;' . $admin_link . '">' . $admin_text . '</a></td>'
@@ -509,10 +511,9 @@ function print_manage_users(&$pager, $users, $err) {
 		</td>
 	</tr>
 </table>
-<br />
-<?php
-echo submit_button(translate('Delete')) . hidden_fn('deleteUsers') . '</form>';
-?>
+<div style="text-align: right;margin: 15px 0;">
+<?php echo submit_button(translate('Update')) . hidden_fn('deleteUsers') . '</form>'; ?>
+</div>
 <!--
 <form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
 <p align="center"><?php print_last_name_links(); ?></p>
@@ -757,7 +758,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 
 <form name="search_accounts_form" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
 <p align="center">FRS#:
-	<input type="text" name="frs" class="textbox" value="<?php echo $_GET['frs']?>" />
+	<input type="text" name="frs" class="textbox" value="<?php echo filter_input(INPUT_GET, 'kfs'); ?>" />
 	<input type="hidden" name="tool" value="<?php echo getTool()?>" />
 	<input type="hidden" name="searchAccounts" value="true" />
 	<input type="hidden" name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" />
@@ -794,7 +795,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 							<tr class="rowHeaders">
 								<td></td>
 								<td>Name</td>
-								<td>FRS #</td>
+								<td>KFS #</td>
 								<td>PI</td>
 								<td>Last Update</td>
 								<td>Edit</td>
@@ -1002,17 +1003,24 @@ function print_manage_account_users_old(&$pager, $account, $users, $err){
  * @param object $pager Pager object
  */
 function print_account_admin_edit($rs, $users, $edit, &$pager, $account_types = array()) {
-	global $conf;
-	$start = 0;
-	$end   = 1440;
-	$mins = array(0, 10, 15, 30);
-	$disabled = ($edit && $rs['allow_multi'] == 1) ? 'disabled="disabled"' : '';
+	$disabled = ($edit && array_key_exists('allow_multi', $rs) && $rs['allow_multi'] == 1) ? 'disabled="disabled"' : '';
 
 	if ($edit) {
-		$minH = intval($rs['minRes'] / 60);
-		$minM = intval($rs['minRes'] % 60);
-		$maxH = intval($rs['maxRes'] / 60);
-		$maxM = intval($rs['maxRes'] % 60);
+	    if (array_key_exists('minRes', $rs) && is_numeric($rs['minRes'])) {
+	        $minH = intval($rs['minRes'] / 60);
+		    $minM = intval($rs['minRes'] % 60);
+	    } else {
+	        $minH = null;
+	        $minM = null;
+	    }
+
+	    if (array_key_exists('maxRes', $rs) && is_numeric($rs['maxRes'])) {
+	        $maxH = intval($rs['maxRes'] / 60);
+		    $maxM = intval($rs['maxRes'] % 60);
+	    } else {
+	        $maxH = null;
+	        $maxM = null;
+	    }
 	}
 	else {
 		$maxH = 24;
@@ -1034,11 +1042,11 @@ function print_account_admin_edit($rs, $users, $edit, &$pager, $account_types = 
 								</td>
 							</tr>
 							<tr>
-								<td class="formNames">FRS #</td>
+								<td class="formNames">KFS #</td>
 								<td class="cellColor"><input type="text" name="FRS"
 									class="textbox" onkeyup="javascript: check_frs(this);"
 									onchange="javascript: check_frs(this);"
-									value="<?php echo  isset($rs['FRS']) ? $rs['FRS'] : '' ?>" size="8" />
+									value="<?php echo  isset($rs['FRS']) ? $rs['FRS'] : '' ?>" size="18" />
 								</td>
 							</tr>
 							<tr>
@@ -1046,12 +1054,16 @@ function print_account_admin_edit($rs, $users, $edit, &$pager, $account_types = 
 								<td class="cellColor"><input type="text" name="sub_FRS"
 									class="textbox"
 									value="<?php echo  isset($rs['sub_FRS']) ? $rs['sub_FRS'] : '' ?>"
-									size="8" /></td>
+									size="18" /></td>
 							</tr>
 							<tr>
 								<td class="formNames">Account Type</td>
 								<td class="cellColor">
-									<?php print_account_type_select_box('account_type', $account_types, $rs['account_type']); ?>
+									<?php
+									if (array_key_exists('account_type', $rs)) {
+									    print_account_type_select_box('account_type', $account_types, $rs['account_type']);
+									}
+									?>
 								</td>
 							</tr>
 							<tr>
