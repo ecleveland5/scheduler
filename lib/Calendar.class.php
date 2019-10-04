@@ -43,7 +43,7 @@ class Calendar {
     * colors, font sizes, and other attributes
     * @param none
     */
-    function Calendar($isPopup = true, $month = null, $year = null, $weekstart = null) {
+    function __construct($isPopup = true, $month = null, $year = null, $weekstart = null) {
 		//$this->setupStyleRules();
 		global $months_full;
 		global $conf;

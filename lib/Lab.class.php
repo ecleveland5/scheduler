@@ -57,7 +57,7 @@ class Lab {
      * @param int $labType type of lab to print out
      * @param User $user current logged in user object
      */
-    function Lab($lab_id, $labType = ALL) {
+    function __construct($lab_id, $labType = ALL) {
         $this->lab_id = $lab_id;
         $this->labType = $labType;                // Set lab type
         $this->db = new LabDB($lab_id, $labType);            // Set database class

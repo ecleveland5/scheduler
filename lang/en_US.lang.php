@@ -224,6 +224,7 @@ $strings['View information about'] = 'View information about %s %s';
 $strings['Send email to'] = 'Send email to %s %s';
 $strings['Reset password for'] = 'Reset password for %s %s';
 $strings['Edit permissions for'] = 'Edit permissions for %s %s';
+$strings['Edit lab permissions'] = 'Edit permissions for %s';
 $strings['Position'] = 'Position';
 $strings['Password (6 char min)'] = 'Password (%s char min)';	// @since 1.1.0
 $strings['Re-Enter Password'] = 'Re-Enter Password';

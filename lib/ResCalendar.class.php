@@ -48,7 +48,7 @@ class ResCalendar extends MyCalendar {
 	* @param int MyCalendarType type for this calendar
 	* @param int $actualDate todays date
 	*/
-	function ResCalendar($userid = null, $type = null, $actualDate = null, $machid = null, $lab_id = null) {
+	function __construct($userid = null, $type = null, $actualDate = null, $machid = null, $lab_id = null) {
 		$this->machid = $machid;
 		$this->lab_id = $lab_id;
 

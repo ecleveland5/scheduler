@@ -64,28 +64,44 @@ function print_manage_labs(&$pager, $labs, $err) {
 
 			for ($i = 0; is_array($labs) && $i < count($labs); $i++) {
 				$cur = $labs[$i];
-				echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n"
-				. '<td style="text-align:left" title="'.$cur['labTitle'].'">' . $cur['nickname'] . "</td>\n"
-				. '<td style="text-align:left">';
+				echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n";
+				echo '<td style="text-align:left" title="';
+				echo $cur['labTitle'];
+				echo '">';
+				echo $cur['nickname'];
+				echo "</td>\n";
+				echo '<td style="text-align:left">';
 				echo CmnFns::formatTime($cur['dayStart']);
-				echo "</td>\n"
-				. '<td style="text-align:left">';
+				echo "</td>\n";
+				echo '<td style="text-align:left">';
 				echo CmnFns::formatTime($cur['dayEnd']);
-				echo "</td>\n"
-				. '<td style="text-align:left">';
+				echo "</td>\n";
+				echo '<td style="text-align:left">';
 				echo CmnFns::minutes_to_hours($cur['timeSpan']);
-				echo "</td>\n"
-				. '<td style="text-align:left">';
+				echo "</td>\n";
+				echo '<td style="text-align:left">';
 				echo CmnFns::get_day_name($cur['weekDayStart'], 0);
-				echo "</td>\n"
-				. '<td style="text-align:left">';
+				echo "</td>\n";
+				echo '<td style="text-align:left">';
 				echo $cur['adminEmail'];
-				echo "</td>\n"
-				. '<td><input type="radio" value="' . $labs[$i]['lab_id'] . "\" name=\"isDefault\"" . ($labs[$i]['isDefault'] == 1 ? ' checked="checked"' : '') . ' onclick="javacript: setLab(\'' . $labs[$i]['lab_id'] . '\');" /></td>'
-				. '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['labTitle']))) . "</td>\n"
-				. '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", "tool=lab_permissions") . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), "Permissions", '', '', translate('Edit permissions for', array($cur['labTitle']))) . "</td>\n"
-				. "<td><input type=\"checkbox\" name=\"lab_id[]\" value=\"" . $cur['lab_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"/></td>\n"
-				. "</tr>\n";
+				echo "</td>\n";
+				echo '<td><input type="radio" value="';
+				echo $labs[$i]['lab_id'];
+				echo "\" name=\"isDefault\"";
+				echo ($labs[$i]['isDefault'] == 1 ? ' checked="checked"' : '');
+				echo ' onclick="javacript: setLab(\'';
+				echo $labs[$i]['lab_id'];
+				echo '\');" /></td>';
+				echo '<td>';
+				echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['labTitle'])));
+				echo "</td>\n";
+				echo '<td>';
+				echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Permissions'), '', '', translate('Edit lab permissions', array($cur['labTitle'])));
+				echo "</td>\n";
+				echo "<td><input type=\"checkbox\" name=\"lab_id[]\" value=\"";
+				echo $cur['lab_id'];
+				echo "\" onclick=\"adminRowClick(this,'tr$i',$i);\"/></td>\n";
+				echo "</tr>\n";
 			}
 
 			// Close table
@@ -486,8 +502,8 @@ function print_manage_users(&$pager, $users, $err) {
 				$admin_link = "user_id={$cur['user_id']}&amp;status=" . (($cur['is_admin'] == 1) ? '0' : '1');
 				$admin_text = (($cur['is_admin'] == 1) ? translate('Yes') : translate('No'));
 				
-				if ($cur['deleted'] === "1" || $cur['archived'] === "1") {
-				    echo "<tr class=\"cellColorArchived\" align=\"center\" id=\"tr$i\">\n";
+				if ($cur['deleted'] === "1") {
+				    echo "<tr class=\"cellColorDeleted\" align=\"center\" id=\"tr$i\">\n";
 				} else {
 				    echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n";
 				}
@@ -498,7 +514,7 @@ function print_manage_users(&$pager, $users, $err) {
 				. '<td>' . $link->getLink("admin.php?tool=perms&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
 				. '<td>' . $link->getLink("admin.php?tool=user_accounts&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
 				. '<td><input type="checkbox" name="user_id[]" value="' . $cur['user_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
-				if ($cur['deleted'] === "1" || $cur['archived'] === "1") {
+				if ($cur['deleted'] === "1") {
 				    echo " checked=checked";
 				}
 				echo "/></td>\n"
@@ -1480,8 +1496,11 @@ function print_equipment_edit($rs, $labs, $usersList, $rateCategories, $resource
 										<td class="formNames">'.$rcat['label'].' Rate</td>
 										<td class="cellColor">
 											$<input type="text" class="textbox"
-												name="resource_rate:'.$rcat['id'].'"
-												value="'.$resourceRates[$rcat['id']]['rate'].'" size="4">
+												name="resource_rate:'.$rcat['id'].'"';
+								if (array_key_exists($rcat['id'], $resourceRates)) {
+								    echo 'value="'.$resourceRates[$rcat['id']]['rate'].'"';
+								}
+								echo ' size="4">
 										</td>
 									</tr>
 									';
@@ -1511,36 +1530,8 @@ function print_equipment_edit($rs, $labs, $usersList, $rateCategories, $resource
 								<td class="formNames"><?php echo "Cancellation/Modify Horizon";?></td>
 								<td class="cellColor"><input type="text" class="textbox"
 									name="edit_horizon"
-									value="<?php if($rs['edit_horizon']!=''){ echo $rs['edit_horizon'];}else{ echo "0"; } ?>"
+									value="<?php if(isset($rs['edit_horizon']) && $rs['edit_horizon']!=''){ echo $rs['edit_horizon'];}else{ echo "0"; } ?>"
 									size="4" />hrs</td>
-							</tr>
-							<tr>
-								<td class="formNames">Linked Resource</td>
-								<td class="cellColor">
-									<div id="linked_resources">
-								<?php
-									$linked_resource_id = 0;
-									if (is_array($rs['linked_resources'])) {
-										foreach ($rs['linked_resources'] as $r) {
-											$linked_resource_id++;
- 								?>
-									<select name="linked_resource" id="linked_resource_<?php echo $linked_resource_id;?>">
-										<?php
-											foreach ($equipment_list as $e) {
-										?>
-										<option value="<?php echo $e['machid'];?>" <?php echo ($e['machid'] === $r['child_resource_id']) ? 'selected' : '';?>><?php echo $e['name'];?></option>
-										<?php
-											}
-										?>
-									</select>
-									<input type="button" onclick="delete_resource_link('#linked_resource_<?php echo $linked_resource_id;?>');" value="X"> <br>
-									<?php
-										}
-									}
- 								?>
- 									</div>
-									<input type="button" onclick="add_resource_link('#linked_resource_<?php echo $linked_resource_id+1;?>');" value="Link Another">
-								</td>
 							</tr>
 						</table>
 						</td>
@@ -1990,8 +1981,8 @@ function print_announce_edit($rs, $labs, $edit, &$pager) {
 	$start_date_ok = (isset($rs['start_datetime']) && !empty($rs['start_datetime']));
 	$end_date_ok = (isset($rs['end_datetime']) && !empty($rs['end_datetime']));
 
-	$start_date = ($start_date_ok) ? $rs['start_datetime'] : mktime();
-	$end_date = ($end_date_ok) ? $rs['end_datetime'] : mktime();
+	$start_date = ($start_date_ok) ? $rs['start_datetime'] : time();
+	$end_date = ($end_date_ok) ? $rs['end_datetime'] : time();
 	?>
 				<form name="addAnnouncement" method="post" action="admin_update.php"
 				<?php echo $edit ? "" : "onsubmit=\"return checkAddAnnouncement();\"" ?>>
@@ -2483,8 +2474,8 @@ function hidden_fn($value) {
 
 function print_admin_jscalendar_setup($start = null, $end = null) {
 	global $dates;
-	if ($start == null) { $start = mktime(); }
-	if ($end == null) { $end = mktime(); }
+	if ($start == null) { $start = time(); }
+	if ($end == null) { $end = time(); }
 	?>
 
 	<script type="text/javascript">
