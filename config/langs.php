@@ -160,12 +160,13 @@ function set_language($lang) {
 }
 
 /**
-* Translate the given string into the current lanaguage
-* If the trasnlation does not exist, returns the default
-*  lanaguage translation
-* @param string $str string to translate
-* @param array $vars optional array of variables to pass to a sprintf translation string
-*/
+ * Translate the given string into the current lanaguage
+ * If the translation does not exist, returns the default
+ * language translation
+ * @param string $str string to translate
+ * @param array $args optional array of variables to pass to a sprintf translation string
+ * @return string translated string
+ */
 function translate($str, $args = array()) {
 	global $strings;
 	

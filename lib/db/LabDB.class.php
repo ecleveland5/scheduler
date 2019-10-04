@@ -31,7 +31,7 @@ class LabDB extends DBEngine {
 	var $labType;
 	var $lab_id;
 
-	function LabDB($lab_id, $labType) {
+	function __construct($lab_id, $labType) {
 		$this->DBEngine();				// Call parent constructor
 		$this->labType = $labType;
 		$this->lab_id = $lab_id;
@@ -41,10 +41,9 @@ class LabDB extends DBEngine {
 	* Get all reservation data
 	* This function gets all reservation data
 	* between a given start and end date
-	* @param int $firstDay beginning date to return reservations from
-	* @param int $lastDay beginning date to return reservations from
-	* @param int $s_time start time of this labs day
-	* @param int $e_time end time of this labs day
+	* @param int $start_date beginning date to return reservations from
+	* @param int $end_date beginning date to return reservations from
+	* @param int $machids start time of this labs day
 	* @return array of reservation data formatted: $array[date|machid][#] = array of data
 	*  or an empty array
 	*/

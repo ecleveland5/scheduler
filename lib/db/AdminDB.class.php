@@ -156,13 +156,13 @@ class AdminDB extends DBEngine {
 				FROM accounts
 				JOIN `user` on accounts.pi=`user`.user_id';
 			if (!$getAll){
-				$query .= ' WHERE archived=0';
+				$query .= ' WHERE deleted = 0';
 			}
 			$query .= ' ORDER BY `user`.last_name ' . $vert . ', FRS';
 		}else{
 			$query = 'SELECT * FROM accounts ';
 			if (!$getAll){
-				$query .= ' WHERE archived = 0';
+				$query .= ' WHERE deleted = 0';
 			}
 			$query .= ' ORDER BY ' . $order . ' ' . $vert;
 		}
@@ -200,7 +200,7 @@ class AdminDB extends DBEngine {
 		// Set up query to get neccessary records ordered by user request first, then logical order
 		$query = 'SELECT rs.*, s.labTitle, s.nickname
 			FROM ' . $this->get_table('resources') . ' as rs, ' . $this->get_table('labs') . ' as s
-			WHERE rs.lab_id = s.lab_id AND rs.archived = 0
+			WHERE rs.lab_id = s.lab_id AND rs.deleted = 0
 			ORDER BY ' . $order . ' ' . $vert;
 
 		$result = $this->db->limitQuery($query, $pager->getOffset(), $pager->getLimit());
@@ -242,7 +242,7 @@ class AdminDB extends DBEngine {
 		} else {
 			$query .= ' WHERE ';
 		}
-		$query .= 'archived = 0';
+		$query .= 'deleted = 0';
 		// Get # of records
 		$result = $this->db->getRow($query);
 
@@ -515,14 +515,14 @@ class AdminDB extends DBEngine {
 	 * Return the number of account records found in a search
 	 * for use in paging
 	 * @param string $frs FRS to search for
-	 * @param boolean $getArchived flag for getting archived accounts.
+	 * @param boolean $getDeleted flag for getting deleted accounts.
 	 * @return number of records found
 	 */
-	function get_num_account_search_recs($frs, $getArchived = false) {
+	function get_num_account_search_recs($frs, $getDeleted = false) {
 		$sql = 'SELECT COUNT(*) AS num FROM ' . $this->get_table('accounts')
 			. ' WHERE FRS LIKE "%' . $frs . '%"';
-		if (!$getArchived){
-			$sql .= 'AND archived = 0';
+		if (!$getDeleted){
+			$sql .= 'AND deleted = 0';
 		}
 
 		$result = $this->db->getRow($sql);
@@ -826,17 +826,17 @@ class AdminDB extends DBEngine {
 
 		// Delete out of the reservation_users table
 		//$result = $this->db->query('DELETE FROM ' . $this->get_table('reservation_users') . ' WHERE resid IN (' . $resids . ')');
-		//$result = $this->db->query('UPDATE ' . $this->get_table('reservation_users') . ' SET archived = 1 WHERE resid IN (' . $resids . ')');
+		//$result = $this->db->query('UPDATE ' . $this->get_table('reservation_users') . ' SET deleted = 1 WHERE resid IN (' . $resids . ')');
 		//$this->check_for_error($result);
 
 		// Delete out of the reservations table
 		//$result = $result = $this->db->query('DELETE FROM ' . $this->get_table('reservations') . ' WHERE machid IN (' . $rs_list . ')');
-		$result = $this->db->query('UPDATE ' . $this->get_table('reservations') . ' SET archived = 1 WHERE machid IN (' . $rs_list . ')');
+		$result = $this->db->query('UPDATE ' . $this->get_table('reservations') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
 		$this->check_for_error($result);
 
 		// Delete resources
 		//$result = $this->db->query('DELETE FROM ' . $this->get_table('resources') . ' WHERE machid IN (' . $rs_list . ')');
-		$result = $this->db->query('UPDATE ' . $this->get_table('resources') . ' SET archived = 1 WHERE machid IN (' . $rs_list . ')');
+		$result = $this->db->query('UPDATE ' . $this->get_table('resources') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
 		$this->check_for_error($result);
 
 		// Delete all reservations and the associated record in reservation_users using these resources
@@ -1030,7 +1030,7 @@ class AdminDB extends DBEngine {
 			$first = false;
 		}
 
-		$sql = 'UPDATE accounts SET archived = IF(account_id IN ('.$accounts_to_delete_sql_string.'), 1, 0) ' .
+		$sql = 'UPDATE accounts SET deleted = IF(account_id IN ('.$accounts_to_delete_sql_string.'), 1, 0) ' .
 			'WHERE account_id IN ('.$account_list_shown_sql_string.')';
 
 		$values = array_merge($rs, $account_list_shown);
@@ -1432,7 +1432,7 @@ class AdminDB extends DBEngine {
 	 * @param string $frs   FRS # of account to retrieve
 	 * @param Pager  $pager Pager object
 	 * @param string $orders string sort order of columns
-	 * @param bool $getAll flag for retrieving archived data
+	 * @param bool $getAll flag for retrieving deleted data
 	 * @return array array of account data
 	 **/
 	public function get_account_data_by_frs_admin($frs, &$pager, $orders, $getAll = false) {
@@ -1448,7 +1448,7 @@ class AdminDB extends DBEngine {
 					WHERE FRS LIKE "%'.$frs.'%"';
 
 			if (!$getAll) {
-				$query .= ' AND archived = 0';
+				$query .= ' AND deleted = 0';
 			}
 
 			$query .= ' ORDER BY `user`.last_name ' . $vert . ', FRS';
@@ -1458,7 +1458,7 @@ class AdminDB extends DBEngine {
 			$query = 'SELECT * FROM accounts WHERE FRS LIKE "%'.$frs.'%"';
 
 			if (!$getAll) {
-				$query .= ' AND archived = 0';
+				$query .= ' AND deleted = 0';
 			}
 
 			$query .= ' ORDER BY ' . $order . ' ' . $vert;
