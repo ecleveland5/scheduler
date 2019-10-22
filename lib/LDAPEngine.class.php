@@ -40,7 +40,7 @@ class LDAPEngine {
 	* @param string $uid user id
 	* @param string $password password associated with uid
 	*/
-	function LDAPEngine( $uid, $password ) {
+	function __construct( $uid, $password ) {
 	   global $conf;
 	   
 	   $this->connected = false;

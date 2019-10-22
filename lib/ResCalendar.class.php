@@ -53,7 +53,7 @@ class ResCalendar extends MyCalendar {
 		$this->lab_id = $lab_id;
 
 		$this->db = new ResCalendarDB();
-		parent::MyCalendar($userid, $type, $actualDate, false);
+		parent::__construct($userid, $type, $actualDate, false);
 		
 		$this->resources = $this->db->get_resources($userid, $lab_id);		// Used to provide a pull down to change resources
 		$this->labs = $this->db->get_lab_list();		// Used in resource pull down and to determine start/end/interval times

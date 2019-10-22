@@ -82,7 +82,7 @@ class User {
 	* Sets the userid variable
 	* @param string $userid users id
 	*/
-	function User($userid = null) {		
+	function __construct($userid = null) {
 		$this->userid = $userid;
 		$this->db = new UserDB();
 		

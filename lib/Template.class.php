@@ -31,7 +31,7 @@ class Template {
 	* @param string $title title of page
 	* @param int $depth depth of the current page relative to phpScheduleIt root
 	*/
-	function Template($title = '', $depth = 0) {
+	function __construct($title = '', $depth = 0) {
 		global $conf;
 		
 		$this->title = (!empty($title)) ? $title : $conf['ui']['welcome'];

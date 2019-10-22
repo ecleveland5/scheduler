@@ -437,7 +437,14 @@ echo submit_button(translate('Update')) . hidden_fn('editLabUsers') . '</form>';
  */
 function print_manage_users(&$pager, $users, $err) {
 	global $link;
-
+	$initial_archived_users = array();
+	foreach ($users as $u) {
+	    if (array_key_exists('deleted', $u)) {
+	        if ($u['deleted'] === "1") {
+	            array_push($initial_archived_users, $u['user_id']);
+	        }
+	    }
+	}
 	?>
 <form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
 <p align="center"><?php print_last_name_links(); ?></p>
@@ -458,6 +465,12 @@ function print_manage_users(&$pager, $users, $err) {
 </form>
 
 <form name="manageUser" method="post" action="admin_update.php" onsubmit="return checkAdminForm();">
+<!-- <input type="hidden" name="initial_archived_users" value="<?php echo implode(",", $initial_archived_users); ?>"> -->
+<?php
+    foreach ($initial_archived_users as $u) {
+        echo "<input type=\"hidden\" name=\"initial_archived_users[]\" value=\"" . $u . "\">\r\n";
+    }
+ ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">
@@ -784,8 +797,8 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 	<?php if (isset($_GET['vert'])) { ?>
 	<input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
 	<?php } ?>
-	<input type="checkbox" name="getArchived" id="getArchived" value="1" <?php echo (isset($_GET['getArchived'])) ? 'checked="checked"' : '';?>>
-	<label for="getArchived">Show Archived Data?</label>
+	<input type="checkbox" name="getDeleted" id="getDeleted" value="1" <?php echo (isset($_GET['getDeleted'])) ? 'checked="checked"' : '';?>>
+	<label for="getDeleted">Show Deleted Data?</label>
 	<input type="submit" name="searchAcctsBtn" value="Update" class="button" />
 </p>
 </form>
@@ -847,13 +860,13 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								//var_dump($accounts);
 
 								echo "<tr class=\"cellColor" . ($i%2);
-								if ($cur['archived']) {
-									echo ' archived';
+								if ($cur['deleted']) {
+									echo ' deleted';
 								}
 
 								echo "\" align=\"center\" id=\"tr$i\">\n"
 								. "<td><input type=\"checkbox\" name=\"account_id[]\" value=\"" . $cur['account_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
-								if ($cur['archived']) {
+								if ($cur['deleted']) {
 									echo ' checked="checked"';
 								}
 								echo "/></td>\n"

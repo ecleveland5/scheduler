@@ -47,7 +47,7 @@ class Auth {
 	*  and start the session
 	* @param none
 	*/
-	function Auth() {
+	function __construct() {
 		$this->db = new AuthDB();
 	}
 

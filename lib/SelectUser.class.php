@@ -34,9 +34,12 @@ class SelectUser {
 	var $javascript = '';
 	
 	/**
-	* Sets up initial variable values
-	*/
-	function SelectUser($first_name = '', $last_name = '') {
+	 * Sets up initial variable values
+	 * @param string $first_name
+	 * @param string $last_name
+	 * @param bool $show_deleted
+	 */
+	function __construct($first_name = '', $last_name = '', $show_deleted = false) {
 		$orders = array('last_name', 'first_name', 'email');
 		$this->db = new AdminDB();
 		$this->pager = new Pager(0, 10);
@@ -45,7 +48,7 @@ class SelectUser {
 		if (!empty($first_name) || !empty($last_name)) {
 			$num   = $this->db->get_num_search_recs($first_name, $last_name);
 			$this->pager->setTotRecords($num);
-			$this->users = $this->db->search_users($first_name, $last_name, $this->pager, $orders);	
+			$this->users = $this->db->search_users($first_name, $last_name, $show_deleted,$this->pager, $orders);
 		}
 		else {
 			$num = $this->db->get_num_admin_recs('user');	// Get number of records

@@ -32,7 +32,7 @@ class LabDB extends DBEngine {
 	var $lab_id;
 
 	function __construct($lab_id, $labType) {
-		$this->DBEngine();				// Call parent constructor
+		parent::__construct();				// Call parent constructor
 		$this->labType = $labType;
 		$this->lab_id = $lab_id;
 	}
