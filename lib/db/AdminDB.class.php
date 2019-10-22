@@ -647,14 +647,12 @@ class AdminDB extends DBEngine {
 	function del_users($users) {
 		$uids = $this->make_del_list($users);
 
-
 		/* Update 2-20-2009
 		 * To maintain historical records, deletion will be replaced by a flag in the user table
 		 */
 
 		$result = $this->db->query('UPDATE `' . $this->get_table('user') . '` SET deleted=1 WHERE user_id IN (' . $uids . ')');
 		$this->check_for_error($result);
-
 
 		/*		// Delete users
 		 $result = $this->db->query('DELETE FROM ' . $this->get_table('user') . ' WHERE user_id IN (' . $uids . ')');
@@ -680,6 +678,14 @@ class AdminDB extends DBEngine {
 			$result = $this->db->query('DELETE FROM ' . $this->get_table('permission') . ' WHERE user_id IN (' . $uids . ')');
 			$this->check_for_error($result);
 			*/
+	}
+	
+	public function undelete_users(array $user_ids) {
+		$q_marks = implode(',', array_fill(0, count($user_ids), '?'));
+		$sql = 'UPDATE ' . $this->get_table('user') . ' SET deleted=0 WHERE user_id IN ('.$q_marks.')';
+		$p = $this->db->prepare($sql);
+		$result = $this->db->execute($p, $user_ids);
+		$this->check_for_error($result);
 	}
 
 	/**

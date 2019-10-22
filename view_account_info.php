@@ -27,8 +27,9 @@ global $link;
 $t = new Template();
 $auth = new Auth();
 $user = new User($auth->getCurrentID());
-$account = new Account($_GET['account_id']);
-$view = $_POST['view'];
+$account_id = filter_input(INPUT_GET, 'account_id');
+$account = new Account($account_id);
+$view = filter_input(INPUT_POST, 'view');
 
 // To Do: set up translate
 $t->set_title("Account Info");
@@ -48,7 +49,6 @@ print_account_details($account);
 
 // Get billing data
 $billing_data = $account->get_billing_data();
-//var_dump($billing_data);
 ?>
 <!--
 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" name="billing_view">
@@ -69,46 +69,28 @@ $billing_data = $account->get_billing_data();
 </style>
 
 <?php
-
-if ($view=='by_user') {
 	$month_totals = array();
-
-	foreach ($billing_data as $bill) {
-		$month_totals[$bill['billed']]['total'] += $bill['Amount Billed'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']]['total'] += $bill['Amount Billed'];
-		$count = count($month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']]);
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['id'] = $bill['id'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['lab'] = $bill['Lab'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['equipment'] = $bill['Equipment'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['rate'] = $bill['Rate'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['hours'] = $bill['Amt Used'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['amount'] = $bill['Amount Billed'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['resid'] = $bill['Transaction ID'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['notes'] = $bill['notes'];
+	if (!empty($billing_data)) {
+        foreach ($billing_data as $bill) {
+            $month_totals[$bill['billed']] = array();
+	        $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']] = array();
+	        $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']] = array();
+	        $month_totals[$bill['billed']]['total'] = 0;
+	        $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']]['total'] = 0;
+	        $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']]['total'] = 0;
+            $month_totals[$bill['billed']]['total'] += $bill['Amount Billed'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']]['total'] += $bill['Amount Billed'];
+            $count = count($month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']]);
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['id'] = $bill['id'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['lab'] = $bill['Lab'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['equipment'] = $bill['Equipment'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['rate'] = $bill['Rate'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['hours'] = $bill['Amt Used'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['amount'] = $bill['Amount Billed'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['resid'] = $bill['Transaction ID'];
+            $month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['notes'] = $bill['notes'];
+        }
 	}
-	//print_r($month_totals);
-?>
-
-
-
-<?php
-}else{
-	$month_totals = array();
-
-	foreach ($billing_data as $bill) {
-		$month_totals[$bill['billed']]['total'] += $bill['Amount Billed'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']]['total'] += $bill['Amount Billed'];
-		$count = count($month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']]);
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['id'] = $bill['id'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['lab'] = $bill['Lab'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['equipment'] = $bill['Equipment'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['rate'] = $bill['Rate'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['hours'] = $bill['Amt Used'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['amount'] = $bill['Amount Billed'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['resid'] = $bill['Transaction ID'];
-		$month_totals[$bill['billed']][$bill['User Last Name'].', '.$bill['User First Name']][$bill['date']][$count+1]['notes'] = $bill['notes'];
-	}
-	//print_r($month_totals);
 ?>
 
 <table width="100%">
@@ -243,7 +225,7 @@ if ($view=='by_user') {
 							</tr>
 						</table>
 					<?php
-						}else{
+						} else {
 							echo "No Billing Data";
 						}
 					?>
@@ -254,8 +236,6 @@ if ($view=='by_user') {
 	</tr>
 </table>
 <?php
-}
-
 
 // End main table
 $t->endMain();

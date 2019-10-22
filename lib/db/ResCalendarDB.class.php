@@ -25,8 +25,8 @@ include_once(BASE_DIR . '/lib/DBEngine.class.php');
 */
 class ResCalendarDB extends DBEngine {
 	
-	function ResCalendarDB() {
-		$this->DBEngine();				// Call parent constructor
+	function __construct() {
+		parent::__construct();				// Call parent constructor
 	}
 	
 	/**

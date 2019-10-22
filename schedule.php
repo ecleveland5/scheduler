@@ -28,10 +28,9 @@ if (!Auth::is_logged_in()) {
 }
 $user = new User(Auth::getCurrentID());
 $t = new Template('Make a Reservation');
-if (!isset($_GET['lab_id'])) {
-	$_GET['lab_id'] = $user->get_lab_pref();
-}
-$s = new Lab($_GET['lab_id']);
+$lab_id = $user->get_lab_pref();
+$lab_id = filter_input(INPUT_GET, 'lab_id');
+$s = new Lab($lab_id);
 
 // Print HTML headers
 $t->printHTMLHeader();

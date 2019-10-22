@@ -100,7 +100,7 @@ class Stats {
 	
 	var $graph_title;
 	
-	function Stats() {
+	function __construct() {
 		global $months_abbr;
 		global $days_abbr;
 		

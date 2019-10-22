@@ -89,7 +89,7 @@ class Pager {
 	* @param string $page_var optional name of var to use in querystring for page value
 	* @param string $limit_var optional name of var to use in querystring for limit value
 	*/
-	function Pager($tot_records=0, $limit=50, $page_var='page', $limit_var='limit') {
+	function __construct($tot_records=0, $limit=50, $page_var='page', $limit_var='limit') {
 		$this->tot_records = $tot_records;
 		$this->limit = $limit;
 		$this->page_var = $page_var;

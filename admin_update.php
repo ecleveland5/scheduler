@@ -197,13 +197,21 @@ function del_announcement() {
  */
 function del_users() {
 	global $db;
-
+	$user_ids = filter_input(INPUT_POST, 'user_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+	$initial_archived_users = filter_input(INPUT_POST, 'initial_archived_users', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+	$undelete_users = array_diff($initial_archived_users, $user_ids);
+	
 	// Make sure user_ids are checked
-	if (empty($_POST['user_id']))
+	if (empty($user_ids)) {
 		print_fail(translate('You did not select any members to delete.') . '<br />');
-
-	$db->del_users($_POST['user_id']);
-	CmnFns::write_log('Users deleted. ' . join(', ', $_POST['user_id']), $_SESSION['sessionID']);
+	}
+	
+	if (!empty($undelete_users)) {
+		$db->undelete_users($undelete_users);
+	}
+	
+	$db->del_users($user_ids);
+	CmnFns::write_log('Users deleted. ' . join(', ', $user_ids), $_SESSION['sessionID']);
 	print_success();
 }
 
