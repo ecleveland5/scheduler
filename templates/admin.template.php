@@ -465,12 +465,14 @@ function print_manage_users(&$pager, $users, $err) {
 </form>
 
 <form name="manageUser" method="post" action="admin_update.php" onsubmit="return checkAdminForm();">
-<!-- <input type="hidden" name="initial_archived_users" value="<?php echo implode(",", $initial_archived_users); ?>"> -->
+<input type="hidden" name="initial_archived_users" value="<?php echo implode(",", $initial_archived_users); ?>">
 <?php
+/*
     foreach ($initial_archived_users as $u) {
         echo "<input type=\"hidden\" name=\"initial_archived_users[]\" value=\"" . $u . "\">\r\n";
     }
- ?>
+*/
+?>
 <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">
