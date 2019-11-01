@@ -159,7 +159,7 @@ $strings['phpScheduleIt Statistics'] = 'phpScheduleIt Statistics';
 $strings['User Info'] = 'User Info:';
 
 $strings['Could not determine tool'] = 'Could not determine tool. Please return to My Control Panel and try again later.';
-$strings['This is only accessable to the administrator'] = 'This is only accessible to the administrator';
+$strings['This is only accessible to the administrator'] = 'This is only accessible to the administrator';
 $strings['Back to My Control Panel'] = 'Back to My Control Panel';
 $strings['That lab is not available.'] = 'That lab is not available.';
 $strings['You did not select any labs to delete.'] = 'You did not select any labs to delete.';
