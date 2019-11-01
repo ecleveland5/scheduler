@@ -28,7 +28,7 @@ if (!Auth::is_logged_in()) {
 }
 
 if (!Auth::isAdmin()) {
-    CmnFns::do_error_box(translate('This is only accessable to the administrator') . '<br />'
+    CmnFns::do_error_box(translate('This is only accessible to the administrator') . '<br />'
         . '<a href="ctrlpnl.php">' . translate('Back to My Control Panel') . '</a>');
 }else if (Auth::isAdmin()){
 	if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && isset($_POST['fn'])) {

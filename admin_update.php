@@ -198,7 +198,7 @@ function del_announcement() {
 function del_users() {
 	global $db;
 	$user_ids = filter_input(INPUT_POST, 'user_id', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
-	$initial_archived_users = filter_input(INPUT_POST, 'initial_archived_users', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+	$initial_archived_users = explode(",", filter_input(INPUT_POST, 'initial_archived_users', FILTER_DEFAULT));
 	$undelete_users = array_diff($initial_archived_users, $user_ids);
 	
 	// Make sure user_ids are checked
