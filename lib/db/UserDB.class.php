@@ -120,7 +120,7 @@ class UserDB extends DBEngine {
 	* @param int $user_id the id of the user
 	*/
 	function get_accounts_list($user_id) {
-		$result = $this->db->query('SELECT au.account_id , a.status, a.FRS, a.pi_last_name, a.pi, u.last_name as pi_ln, a.name, au.is_admin FROM account_users as au LEFT JOIN accounts AS a ON au.account_id = a.account_id LEFT JOIN `user` AS u ON a.pi = u.user_id WHERE au.user_id=? AND au.status=1 AND a.archived=0', array($user_id));
+		$result = $this->db->query('SELECT au.account_id , a.status, a.FRS, a.pi_last_name, a.pi, u.last_name as pi_ln, a.name, au.is_admin FROM account_users as au LEFT JOIN accounts AS a ON au.account_id = a.account_id LEFT JOIN `user` AS u ON a.pi = u.user_id WHERE au.user_id=? AND au.status=1 AND a.deleted=0', array($user_id));
 		$this->check_for_error($result);
 		while ($rs = $result->fetchRow())
             $return[] = $this->cleanRow($rs);
