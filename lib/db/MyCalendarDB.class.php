@@ -25,8 +25,8 @@ include_once(BASE_DIR . '/lib/DBEngine.class.php');
 */
 class MyCalendarDB extends DBEngine {
 	
-	function MyCalendarDB() {
-		$this->DBEngine();				// Call parent constructor
+	function __construct() {
+		parent::__construct();				// Call parent constructor
 	}
 	
 	/**

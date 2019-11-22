@@ -70,7 +70,7 @@ class Account {
 	* @param string $id id of account to load
 	* @param bool $status if this is a active or not
 	*/
-	function Account($id = null, $status = false) {
+	function __construct($id = null, $status = false) {
 		$this->db = new AccountDB();
 
 		if (!empty($id) && $id!=0) {

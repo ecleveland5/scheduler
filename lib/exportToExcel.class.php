@@ -28,10 +28,11 @@ class ExportToExcel
     }
     function exportWithQuery($qry,$excel_file_name,$conn)//to export with query
     {
-        $tmprst=mysql_query($qry,$conn);
-        $header="<center><table border=1px><th>Personal Details</th>";
-        $num_field=mysql_num_fields($tmprst);
-        while($row=mysql_fetch_array($tmprst,MYSQL_BOTH))
+        $body = "";
+        $tmprst=mysqli_query($qry,$conn);
+        $header="<table border=1px><th>Personal Details</th>";
+        $num_field=mysqli_num_fields($tmprst);
+        while($row=mysqli_fetch_array($tmprst,MYSQLI_BOTH))
         {
             $body.="<tr>";
             for($i=0;$i<$num_field;$i++)
