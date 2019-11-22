@@ -23,14 +23,16 @@ if (!Auth::is_logged_in()) {
     Auth::print_login_msg();
 }
 
-$first_name = $last_name = null;
+$first_name = null;
+$last_name = null;
+$show_deleted = false;
 
 if (isset($_GET['searchUsers'])) {					// Search for users or get all users?
-	$first_name = trim($_GET['firstName']);
-	$last_name = trim($_GET['lastName']);
+	$first_name = filter_input(INPUT_GET, 'firstName');
+	$last_name = filter_input(INPUT_GET, 'lastName');
 }
 
-$selectUserControl = new SelectUser($first_name, $last_name);
+$selectUserControl = new SelectUser($first_name, $last_name, $show_deleted);
 $selectUserControl->javascript = 'selectUserForReservation';
 
 $t = new Template(translate('Select User'));

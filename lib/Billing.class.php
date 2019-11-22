@@ -32,7 +32,7 @@ class Billing {
 	* Sets the account status type
 	* @param string $id id of account to load
 	*/
-	function Billing($id = null) {
+	function __construct($id = null) {
 		$this->db = new BillingDB();
 		
 		if (!empty($id)) {

@@ -195,14 +195,14 @@ function print_account_edit($rs, $users, $edit=false) {
 	  if($canCreateAccount){
 
     ?>
-    <font class="required">Items in red are required</font>
+    <span class="required">Items in red are required</span>
 <form name="addAccount" method="post" action="<?php echo $_SERVER['PHP_SELF']?>" onsubmit="javascript: return checkAccount();">
 <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
   <tr>
     <td class="tableBorder">
       <table width="100%" border="0" cellspacing="1" cellpadding="0">
         <tr>
-          <td width="200" class="formNames"><font class="required">Account Nickname</font></td>
+          <td width="200" class="formNames"><span class="required">Account Nickname</span></td>
           <td class="cellColor"><input type="text" name="name" class="textbox" value="<?php echo (isset($rs['name']) ? $rs['name'] : '')?>" size="50" />
           </td>
         </tr>
@@ -211,17 +211,17 @@ function print_account_edit($rs, $users, $edit=false) {
 	if($isUMD) {
 ?>
         <tr>
-          <td class="formNames"><font class="required">Account # (FRS #)</font></td>
+          <td class="formNames"><span class="required">Account # (KFS #)</span></td>
           <td class="cellColor"><input type="text" name="FRS" class="textbox" value="<?php echo (isset($rs['FRS']) ? $rs['FRS'] : '')?>" size="20" />
 		  </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Sub Acount # (Sub-FRS #)</font></td>
+          <td class="formNames"><span class="required">Sub Acount # (Sub-FRS #)</span></td>
           <td class="cellColor"><input type="text" name="sub_FRS" class="textbox" value="<?php echo (isset($rs['sub_FRS']) ? $rs['sub_FRS'] : '')?>" size="20" />
 		  </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="">Federal ID # (only for commercial accounts)</font></td>
+          <td class="formNames"><span class="">Federal ID # (only for commercial accounts)</span></td>
           <td class="cellColor"><input type="text" name="fed_id" class="textbox" value="<?php echo (isset($rs['fed_id']) ? $rs['fed_id'] : '')?>" size="50"  />
           </td>
         </tr>
@@ -229,7 +229,7 @@ function print_account_edit($rs, $users, $edit=false) {
 	}
 ?>
 		<tr>
-			<td class="formNames"><font class="required">Account Owner (PI)</font></td>
+			<td class="formNames"><span class="required">Account Owner (PI)</span></td>
 			<td class="cellColor">
 				<select name="pi" class="textbox">
 					<option value="">-- Select Owner/PI --</option>
@@ -266,38 +266,38 @@ function print_account_edit($rs, $users, $edit=false) {
 			</td>
 		</tr>
         <tr>
-          <td class="formNames"><font class="required">Organization</font></td>
+          <td class="formNames"><span class="required">Organization</span></td>
           <td class="cellColor"><input type="text" name="organization" class="textbox" value="<?php echo (isset($rs['organization']) ? $rs['organization'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Billing Address 1</font></td>
+          <td class="formNames"><span class="required">Billing Address 1</span></td>
           <td class="cellColor"><input type="text" name="billing_address1" class="textbox" value="<?php echo (isset($rs['billing_address1']) ? $rs['billing_address1'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Billing Address 2</font></td>
+          <td class="formNames"><span class="required">Billing Address 2</span></td>
           <td class="cellColor"><input type="text" name="billing_address2" class="textbox" value="<?php echo (isset($rs['billing_address2']) ? $rs['billing_address2'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Billing City</font></td>
+          <td class="formNames"><span class="required">Billing City</span></td>
           <td class="cellColor"><input type="text" name="billing_city" class="textbox" value="<?php echo (isset($rs['billing_city']) ? $rs['billing_city'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Billing State</font></td>
+          <td class="formNames"><span class="required">Billing State</span></td>
           <td class="cellColor"><input type="text" name="billing_state" class="textbox" value="<?php echo (isset($rs['billing_state']) ? $rs['billing_state'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
-          <td class="formNames"><font class="required">Billing Zip</font></td>
+          <td class="formNames"><span class="required">Billing Zip</span></td>
           <td class="cellColor"><input type="text" name="billing_zip" class="textbox" value="<?php echo (isset($rs['billing_zip']) ? $rs['billing_zip'] : '')?>" size="50"  />
           </td>
         </tr>
         <tr>
           <td class="formNames">Start Date</td>
-          <td class="cellColor"><input type="text" name="start_date" class="textbox" value="<?php echo (isset($rs['start_date']) ? $rs['start_date'] : '')?>" />
+          <td class="cellColor"><input type="date" name="start_date" class="textbox" value="<?php echo (isset($rs['start_date']) ? $rs['start_date'] : '')?>" />
 <?php
             echo '<input type="hidden" id="hdn_start_date" name="start_date" value="' . date('m' . INTERNAL_DATE_SEPERATOR . 'd' . INTERNAL_DATE_SEPERATOR . 'Y', $start_date) . '" onchange="checkCalendarDates();"/>';
 			//if ($allow_multi) {
@@ -309,7 +309,7 @@ function print_account_edit($rs, $users, $edit=false) {
         </tr>
         <tr>
           <td class="formNames">End Date</td>
-          <td class="cellColor"><input type="text" name="end_date" class="textbox" value="<?php echo (isset($rs['end_date']) ? $rs['end_date'] : '')?>" />
+          <td class="cellColor"><input type="date" name="end_date" class="textbox" value="<?php echo (isset($rs['end_date']) ? $rs['end_date'] : '')?>" />
           </td>
         </tr>
         <tr>

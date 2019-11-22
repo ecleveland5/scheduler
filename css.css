@@ -139,6 +139,12 @@ td.cellColor1, .cellColor1 td, .cellColor1 {
 	background-color: #F8FAEA;
     font-size: 12px;
 }
+td.cellColorDeleted, .cellColorDeleted td, .cellColorDeleted {
+	padding: 2px;
+	background-color: #cdcdcd;
+	font-size: 12px;
+	color: #333333;
+}
 /*
 Table data row heading settings
 */
