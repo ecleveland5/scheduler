@@ -191,7 +191,8 @@ class Pager {
 	* @param none
 	*/
 	function initCurPage() {
-		$this->cur_page = isset($_GET[$this->page_var]) ? intval(filter_input(INPUT_GET, $this->page_var, FILTER_SANITIZE_NUMBER_INT)) : 1;
+		$cur_page = filter_input(INPUT_GET, $this->page_var, FILTER_VALIDATE_INT);
+		$this->cur_page = isset($cur_page) ? $cur_page : 1;
 	}
 
 	/**

@@ -34,11 +34,11 @@ function print_lab_list($links, $currentid) {
 ?>
 <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" style="padding-bottom: 5px;">
 <tr><td style="text-align: center; width: 100%;">
-<p style="font-weight: bold; text-align: center;"><?=translate('View lab')?>
+<p style="font-weight: bold; text-align: center;"><?php echo translate('View lab')?>
 <select name="choose_lab" class="textbox" onchange="javascript: changeLab(this);">
 <?php
 if (isset($_GET['date'])) {
-	$dateStr = '&date='.filter_input(INPUT_GET, 'date', FILTER_SANITIZE_SPECIAL_CHARS);
+	$dateStr = '&date='.filter_input(INPUT_GET, 'date',FILTER_SANITIZE_STRING);
 } else {
 	$dateStr = '';
 }
@@ -63,12 +63,12 @@ function print_color_key() {
 ?>
 <table align="center" cellpadding="5" cellspacing="10">
   <tr style="font-size: 10px; font-weight: bold; text-align: center; vertical-align: center;">
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['my_res'][0]['color']?>; color:#<?=$conf['ui']['my_res'][0]['text']?>; border: 2px #000000 solid;"><?=translate('My Reservations')?></td>
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['my_past_res'][0]['color']?>; color:#<?=$conf['ui']['my_past_res'][0]['text']?>; border: 2px #000000 solid;"><?=translate('My Past Reservations')?></td>
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['other_res'][0]['color']?>; color:#<?=$conf['ui']['other_res'][0]['text']?>; border: 2px #000000 solid;"><?=translate('Other Reservations')?></td>
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['other_past_res'][0]['color']?>; color:#<?=$conf['ui']['other_past_res'][0]['text']?>; border: 2px #000000 solid;"><?=translate('Other Past Reservations')?></td>
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['pending'][0]['color']?>; color:#<?=$conf['ui']['pending'][0]['text']?>; border: 2px #000000 solid;"><?=translate('Pending Approval')?></td>
-    <td style="width: 75px; height: 38px; background-color:#<?=$conf['ui']['blackout'][0]['color']?>; color:#<?=$conf['ui']['blackout'][0]['text']?>; border: 2px #000000 solid;"><?=translate('Blacked Out Time')?></td>  </tr>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['my_res'][0]['color']?>; color:#<?php echo $conf['ui']['my_res'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('My Reservations')?></td>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['my_past_res'][0]['color']?>; color:#<?php echo $conf['ui']['my_past_res'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('My Past Reservations')?></td>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['other_res'][0]['color']?>; color:#<?php echo $conf['ui']['other_res'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('Other Reservations')?></td>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['other_past_res'][0]['color']?>; color:#<?php echo $conf['ui']['other_past_res'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('Other Past Reservations')?></td>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['pending'][0]['color']?>; color:#<?php echo $conf['ui']['pending'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('Pending Approval')?></td>
+    <td style="width: 75px; height: 38px; background-color:#<?php echo $conf['ui']['blackout'][0]['color']?>; color:#<?php echo $conf['ui']['blackout'][0]['text']?>; border: 2px #000000 solid;"><?php echo translate('Blacked Out Time')?></td>  </tr>
 </table>
 <?php
 }
