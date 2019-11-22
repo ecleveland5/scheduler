@@ -188,20 +188,20 @@ class Admin {
 	function manageUsers() {
 		$pager = $this->pager;
 		$orders = array('last_name', 'email', 'institution');
-
-
+		$show_deleted = filter_input(INPUT_GET, 'show_deleted');
+		
 		if (isset($_GET['searchUsers'])) {					// Search for users or get all users?
 			$first_name = trim(filter_input(INPUT_GET, 'firstName'));
 			$last_name = trim(filter_input(INPUT_GET, 'lastName'));
-			$show_deleted = trim(filter_input(INPUT_GET, 'show_deleted'));
 			$num   = $this->db->get_num_search_recs($first_name, $last_name, $show_deleted);
 			$pager->setTotRecords($num);
 			$users = $this->db->search_users($first_name, $last_name, $show_deleted, $pager, $orders);
 		}
 		else {		// Default
-			$num = $this->db->get_num_admin_recs('user');	// Get number of records
+			$num = $this->db->get_num_admin_recs('user', $show_deleted);	// Get number of records
 			$pager->setTotRecords($num);
-			$users = $this->db->get_all_admin_data($pager, 'user', $orders, true);
+			$users = $this->db->get_users_list($pager, $orders, $show_deleted);
+			//$users = $this->db->get_all_admin_data($pager, 'user', $orders, true);
 		}
 		$pager->printPages();						// Print pages
 		print_manage_users($pager, $users, $this->db->get_err());		// Print table of users

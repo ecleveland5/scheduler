@@ -33,7 +33,7 @@ class AdminDB extends DBEngine {
 	 */
 	function get_all_admin_data(&$pager, $table, $orders, $limit = false) {
 		$return = array();
-
+		$lim = 0;
 		if ($limit) {
 			$lim = $pager->getLimit();
 			$offset = $pager->getOffset();
@@ -220,14 +220,15 @@ class AdminDB extends DBEngine {
 
 		return $return;
 	}
-
+	
 	/**
 	 * Returns the number of records from a given table
 	 *  (for paging purposes)
 	 * @param string $table table to count
+	 * @param bool $show_deleted show deleted records
 	 * @return number of records in the table
 	 */
-	function get_num_admin_recs($table) {
+	function get_num_admin_recs($table, $show_deleted = false) {
 		$reservation_table = false;
 
 		$query = 'SELECT COUNT(*) as num FROM ' . $this->get_table($table);
@@ -236,13 +237,16 @@ class AdminDB extends DBEngine {
 			$query .= ' WHERE is_blackout <> 1';
 			$reservation_table = true;
 		}
-
-		if ($reservation_table) {
-			$query .= ' AND ';
-		} else {
-			$query .= ' WHERE ';
+		
+		if ($show_deleted === false || $show_deleted === null) {
+			if ($reservation_table) {
+				$query .= ' AND ';
+			} else {
+				$query .= ' WHERE ';
+			}
+			$query .= 'deleted = 0';
 		}
-		$query .= 'deleted = 0';
+		
 		// Get # of records
 		$result = $this->db->getRow($query);
 
@@ -548,7 +552,7 @@ class AdminDB extends DBEngine {
 		if ($order == 'date' && !isset($_GET['vert']))		// Default the date to DESC
 			$vert = 'DESC';
 
-		// Set up query to get neccessary records ordered by user request first, then logical order
+		// Set up query to get necessary records ordered by user request first, then logical order
 		$query = 'SELECT l.*'
 			. ' FROM ' . $this->get_table('user') . ' as l'
 			. '	WHERE first_name LIKE "' . $first_name . '%" AND last_name LIKE "' . $last_name . '%"';
@@ -1532,5 +1536,16 @@ class AdminDB extends DBEngine {
 		return $return;
 	}
 
+	function get_users_list(Pager $pager, $orders = '', $show_deleted = false) {
+		$lim = $pager->getLimit();
+		$offset = $pager->getOffset();
+		$show_deleted_clause = null;
+		$show_deleted_value = array();
+		if ($show_deleted === false || $show_deleted === null) {
+			$show_deleted_clause = ' WHERE deleted = ? ';
+			$show_deleted_value = array('0');
+		}
+		return $this->get_table_data($this->get_table('user'), array('*'), $orders, $lim, $offset, $show_deleted_clause, $show_deleted_value);
+	}
 
 }
