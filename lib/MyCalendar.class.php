@@ -46,7 +46,7 @@ class MyCalendar {
 	* @param int MyCalendarType type for this calendar
 	* @param int $actualDate todays date
 	*/
-	function MyCalendar($userid, $type = null, $actualDate = null, $load_reservations = true) {
+	function __construct($userid, $type = null, $actualDate = null, $load_reservations = true) {
 		$this->userid = ($userid == null) ? Auth::getCurrentID() : $userid;
 		$this->type = ($type == null) ? MYCALENDARTYPE_DAY : $type;
 		

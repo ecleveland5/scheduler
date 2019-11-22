@@ -45,7 +45,7 @@ class DBEngine {
     * DBEngine constructor to initialize object
     * @param none
     */
-    function DBEngine() {
+    function __construct() {
         $this->prefix = $GLOBALS['conf']['db']['pk_prefix'];
         $this->dbs = array ($GLOBALS['conf']['db']['dbName']);
         
@@ -332,7 +332,7 @@ class DBEngine {
         
         $sql = 'SELECT machid, name, status, approval FROM ' . $this->get_table('resources');
         if ($lab_id != null) {
-            $sql .= ' WHERE lab_id = ? AND archived = 0';
+            $sql .= ' WHERE lab_id = ? AND deleted = 0';
             $values = array($lab_id);
         }
         $sql .= ' ORDER BY name';

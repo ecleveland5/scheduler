@@ -89,7 +89,7 @@ class Pager {
 	* @param string $page_var optional name of var to use in querystring for page value
 	* @param string $limit_var optional name of var to use in querystring for limit value
 	*/
-	function Pager($tot_records=0, $limit=50, $page_var='page', $limit_var='limit') {
+	function __construct($tot_records=0, $limit=50, $page_var='page', $limit_var='limit') {
 		$this->tot_records = $tot_records;
 		$this->limit = $limit;
 		$this->page_var = $page_var;
@@ -191,7 +191,8 @@ class Pager {
 	* @param none
 	*/
 	function initCurPage() {
-		$this->cur_page = isset($_GET[$this->page_var]) ? intval(filter_input(INPUT_GET, $this->page_var, FILTER_SANITIZE_NUMBER_INT)) : 1;
+		$cur_page = filter_input(INPUT_GET, $this->page_var, FILTER_VALIDATE_INT);
+		$this->cur_page = isset($cur_page) ? $cur_page : 1;
 	}
 
 	/**
