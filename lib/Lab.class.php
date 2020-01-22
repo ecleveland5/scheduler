@@ -360,8 +360,7 @@ class Lab {
     * @param none
     */
     function print_jump_links() {
-        global $conf;
-        print_jump_links($this->_date['firstDayTs'], $this->viewDays, ($this->viewDays != 7));
+        print_jump_links($this->_date['firstDayTs'], $this->viewDays, ($this->viewDays != 7), $this->lab_id);
     }
 
     /**

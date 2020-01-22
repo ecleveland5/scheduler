@@ -339,27 +339,22 @@ function print_summary_div() {
 <div id="summary" class="summary_div" style="width: 150px;"></div>
 <?php
 }
-
-/**
-* Print links to jump to new dates
-* This function prints out the HTML links to allow
-*  users to navigate back/forward one week.
-* It also prints the form for users to jump to
-*  any given week.
-* @param int $_date timestamp of first day of week on lab
-* @param bool $printAllCols whether or not to print the 5 column jump
-*/
-function print_jump_links($_date, $viewDays, $printAllCols) {
+	
+	/**
+	 * Print links to jump to new dates
+	 * This function prints out the HTML links to allow
+	 *  users to navigate back/forward one week.
+	 * It also prints the form for users to jump to
+	 *  any given week.
+	 * @param int $_date timestamp of first day of week on lab
+	 * @param $viewDays
+	 * @param bool $printAllCols whether or not to print the 5 column jump
+	 * @param $lab_id
+	 */
+function print_jump_links($_date, $viewDays, $printAllCols, $lab_id) {
     global $link;
     global $dates;
-
-    if (isset($_GET['lab_id'])){
-        $lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_SPECIAL_CHARS);
-    }else{
-        $lab_id = '';
-    }
-    $lab_id = 'lab_id=' . $lab_id;        // Make querystring part
-
+    
     $date = getdate($_date);
     $m = $date['mon'];
     $d = $date['mday'];
@@ -371,15 +366,15 @@ function print_jump_links($_date, $viewDays, $printAllCols) {
 
     <table width="100%" border="0" cellspacing="0" cellpadding="5" align="center">
      <tr>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - 7, $y)) . "&amp;$lab_id", translate('Prev Week'), '', '', translate('Jump 1 week back')) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - 7, $y)) . "&amp;lab_id=$lab_id", translate('Prev Week'), '', '', translate('Jump 1 week back')) ?></h5></td>
       <?php if ($printAllCols) { ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - $viewDays, $y)) . "&amp;$lab_id", translate('Prev days', array($viewDays)), '', '', translate('Previous days', array($viewDays))) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - $viewDays, $y)) . "&amp;lab_id=$lab_id", translate('Prev days', array($viewDays)), '', '', translate('Previous days', array($viewDays))) ?></h5></td>
       <?php } ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?$lab_id", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?lab_id=$lab_id", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td>
       <?php if ($printAllCols) { ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + $viewDays, $y)) . "&amp;$lab_id", translate('Next days', array($viewDays))) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + $viewDays, $y)) . "&amp;lab_id=$lab_id", translate('Next days', array($viewDays))) ?></h5></td>
       <?php } ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + 7, $y)) . "&amp;$lab_id", translate('Next Week'), '', '', 'Jump 1 week ahead') ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + 7, $y)) . "&amp;lab_id=$lab_id", translate('Next Week'), '', '', 'Jump 1 week ahead') ?></h5></td>
      </tr>
      <tr>
       <td align="center" colspan="<?php echo (($printAllCols) ? '5' : '3') ?>">
@@ -395,7 +390,6 @@ function print_jump_links($_date, $viewDays, $printAllCols) {
       </td>
      </tr>
     </table>
-    <h5 align="center"><?php $link->doLink("javascript: window.open('popCalendar.php?$lab_id','calendar','width=260,height=250,scrollbars=no,location=no,menubar=no,toolbar=no,resizable=yes'); void(0);", translate('View Monthly Calendar'), '', '', translate('Open up a navigational calendar'))?></h5>
 <?php
 }
 
