@@ -28,8 +28,10 @@ if (!Auth::is_logged_in()) {
 }
 $user = new User(Auth::getCurrentID());
 $t = new Template('Make a Reservation');
-$lab_id = $user->get_lab_pref();
 $lab_id = filter_input(INPUT_GET, 'lab_id');
+if (is_null($lab_id)) {
+	$lab_id = $user->get_lab_pref();
+}
 $s = new Lab($lab_id);
 
 // Print HTML headers
@@ -49,13 +51,14 @@ ob_start();		// The lab may take a long time to print out, so buffer all of that
 
 if ($s->isValid) {
 	$s->print_jump_links();
-    $filters = array(); //$user->get_resource_filters($s->lab_id);
+    $filters = array();
+    // TODO: let users filter what tools to see on schedule.
+    //$user->get_resource_filters($s->lab_id);
 	$s->print_lab($filters);
 
 	// Print out links to jump to new date
 	$s->print_jump_links();
-}
-else {
+} else {
 	$s->print_error();
 }
 
@@ -63,10 +66,11 @@ ob_end_flush();	// Write all of the HTML out
 
 // End main table
 $t->endMain();
-
+/*
 list($e_sec, $e_msec) = explode(' ', microtime());		// End execution timer
 $tot = ((float)$e_sec + (float)$e_msec) - ((float)$s_sec + (float)$s_msec);
 echo '<!--Lab printout time: ' . sprintf('%.16f', $tot) . ' seconds-->';
+*/
 // Print HTML footer
 $t->printHTMLFooter();
 ?>
