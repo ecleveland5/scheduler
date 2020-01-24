@@ -460,7 +460,7 @@ function print_manage_users(&$pager, $users, $err) {
 	value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?> <input type="submit"
 	name="searchUsersBtn" value="<?php echo translate('Search Users')?>"
 	class="button" />
-	<input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if(filter_input(INPUT_GET, 'show_deleted')==="1") echo "checked";?>><label for="show_deleted">Show Deleted Users?</label>
+	<input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if(filter_input(INPUT_GET, 'show_deleted')==="1") echo "checked";?>><label for="show_deleted">Show Archived Users?</label>
 	</p>
 </form>
 

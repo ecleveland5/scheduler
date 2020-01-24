@@ -102,6 +102,7 @@ class Reservation {
 
         $this->word = $is_blackout ? 'blackout' : 'reservation';
         $this->lab_data = $this->db->get_lab_data($this->lab_id);
+        $this->errors = array();
     }
 
     /**
@@ -246,6 +247,7 @@ class Reservation {
         $this->account_id 	    = $account_id;
         $this->billing_note     = '';
         $this->technical_note   = '';
+        
         // Store the original dates because they will be changed if we repeat
         $orig_start_date 	    = $this->start_date;
         $orig_end_date 		    = $this->end_date;
@@ -253,7 +255,7 @@ class Reservation {
         $dates 				    = array();
         $tmp_valid 			    = false;
 
-        echo $this->start_date . '<br>' . $this->end_date;
+        //echo $this->start_date . '<br>' . $this->end_date;
 
         if (!$this->is_blackout) {
             $user = new User($this->user_id);	// Set up a new User object
@@ -377,7 +379,7 @@ class Reservation {
         $accept_code = $this->db->get_new_id();
 
         if ($del) {						// First, check if this should be deleted
-            $this->del_res($mod_recur, mktime(0,0,0));
+            $this->del_res($mod_recur);
             return;
         }
 
@@ -417,7 +419,7 @@ class Reservation {
 
         if (!$this->is_blackout) {
             $user = new User($this->user_id);		// Set up a User object
-            $this->check_perms($user);				  // Check permissions
+            $this->check_perms($user);		    // Check permissions
             $this->check_min_max($min, $max);		// Check min/max reservation times
         }
 
@@ -427,12 +429,12 @@ class Reservation {
         $dates = array();
 
         // First, modify the current reservation
-        if ($this->has_errors())			// Print any errors generated above and kill app
+        if ($this->has_errors())        // Print any errors generated above and kill app
             $this->print_all_errors(true);
 
         $tmp_valid = false;
 
-        if ($this->is_repeat) {		// Check and place all recurring reservations
+        if ($this->is_repeat) {         // Check and place all recurring reservations
             $recurs = $this->db->get_recur_ids($this->parent_id, mktime(0,0,0));
             for ($i = 0; $i < count($recurs); $i++) {
                 $this->id   = $recurs[$i]['resid'];		// Load reservation data
@@ -441,18 +443,17 @@ class Reservation {
                     // End date will always be the same as the start date for recurring reservations
                     $this->end_date = $this->start_date;
                 }
-                $is_valid   = $this->check_res();			// Check overlap (dont kill)
+                $is_valid   = $this->check_res();       // Check overlap (dont kill)
 
                 if ($is_valid) {
-                    $tmp_valid = true;						// Only one recurring needs to pass
+                    $tmp_valid = true;          // Only one recurring needs to pass
                     $this->db->mod_res($this, $users_to_add, $users_to_remove, $accept_code, $account_id);		// And place the reservation
                     array_push($dates, $this->start_date);
                     CmnFns::write_log($this->word . ' ' . $this->id . ' modified.  machid:' . $this->mach_id .', dates:' . $this->start_date . ' - ' . $this->end_date . ', start:' . $this->start . ', end:' . $this->end, $this->user_id, $_SERVER['REMOTE_ADDR']);
                 }
             }
-        }
-        else {
-            if ($this->check_res()) {											// Check overlap
+        } else {
+            if ($this->check_res()) {       // Check overlap
                 $this->db->mod_res($this, $users_to_add, $users_to_remove, $accept_code, $account_id);		// And place the reservation
                 array_push($dates, $this->start_date);
             }
@@ -461,23 +462,27 @@ class Reservation {
         // Restore original reservation dates
         $this->start_date = $orig_start_date;
         $this->end_date = $orig_end_date;
-
-        if ($this->has_errors())		// Print any errors generated when adding the reservations
+	
+	    // Print any errors generated when adding the reservations
+	    if ($this->has_errors())
             $this->print_all_errors(!$this->is_repeat);
-
-        if (!$this->is_blackout) {		// Notify the user if they want
+        
+	    // Notify the user of blackout per their email settings.
+        if (!$this->is_blackout) {
             $this->send_email('e_mod', $user, null, $unchanged_users);
         }
 
-        // Send out invites, if needed
+        // Notify users who were added
         if (!$this->is_pending && count($email_to_add) > 0) {
             $this->invite_users($email_to_add, $dates, $user, $accept_code);
         }
-
+        
+        // Notify users who were removed
         if (!$this->is_pending && count($email_to_remove) > 0) {
             $this->remove_users_email($email_to_remove, $dates, $user);
         }
 
+        // Show reservation modification success
         if (!$this->is_repeat || $tmp_valid)
             $this->print_success('modified', $dates);
     }
