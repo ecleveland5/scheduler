@@ -75,34 +75,37 @@ $t->printHTMLFooter();
 * @param string $fn function to perform
 */
 function process_reservation($fn) {
-    $success = false;
-    global $Class;
+	global $Class;
+	$success = false;
+	$minRes = 0;
+	$maxRes = 1440;
+    $machid = filter_input(INPUT_POST, 'machid');
     $is_pending = filter_input(INPUT_POST, 'pending');
-    $minRes = 0;
-    $maxRes = 1440;
-
-    if (isset($_POST['start_date'])) {
-        //$start_date = eval('return mktime(0,0,0, \'' . $_POST['start_date'] . '\');');
-        //$end_date = eval('return mktime(0,0,0, \'' . $_POST['end_date'] . '\');');
-        $start_date = strtotime($_POST['start_date']);
-        $end_date = strtotime($_POST['end_date']);
+    $resid = filter_input(INPUT_POST, 'resid');
+    if (is_null($resid)) {
+    	$resid = filter_input(INPUT_GET, 'resid');
     }
-
-    if (isset($_POST['resid'])) {
-        $res = new $Class($_POST['resid'], false, $is_pending);
-
-    } else if (isset($_GET['resid'])) {
-		$res = new $Class($_GET['resid'], false, $is_pending);
-
-    } else {
+    $start_date = filter_input(INPUT_POST, 'start_date');
+    $end_date = filter_input(INPUT_POST, 'end_date');
+	$repeat_day = filter_input(INPUT_POST, 'repeat_day');
+	$week_number = filter_input(INPUT_POST, 'week_number');
+	$repeat_until = filter_input(INPUT_POST, 'repeat_until');
+	$interval = filter_input(INPUT_POST, 'interval');
+	$frequency = filter_input(INPUT_POST, 'frequency');
+	$machid = filter_input(INPUT_POST, 'machid');
+    
+    if (!is_null($start_date)) {
+        $start_date = strtotime($start_date);
+        $end_date = strtotime($end_date);
+    }
+	
+	$res = new $Class($resid, false, $is_pending);
+    if (is_null($resid)) {
 		// New reservation
-		$res = new $Class(null, false, $is_pending);
-		if (array_key_exists('interval', $_POST) && $_POST['interval'] != 'none') {		// Check for reservation repetition
+		if (!is_null($interval) && $interval !== 'none') {		// Check for reservation repetition
 			if ($start_date === $end_date) {
 				$res->is_repeat = true;
-				$days = isset($_POST['repeat_day']) ? $_POST['repeat_day'] : NULL;
-				$week_num = isset($_POST['week_number']) ? $_POST['week_number'] : NULL;
-				$repeat = get_repeat_dates($start_date, $_POST['interval'], $days, $_POST['repeat_until'], $_POST['frequency'], $week_num);
+				$repeat = get_repeat_dates($start_date, $interval, $repeat_day, $repeat_until, $frequency, $week_number);
 			} else {
 				// Cannot repeat multi-day reservations
 				$repeat = array($start_date);
@@ -113,8 +116,10 @@ function process_reservation($fn) {
 			$res->is_repeat = false;
 		}
 	}
-	
-	$resource = new Equipment($res->get_machid());
+	if (is_null($machid)) {
+		$machid = $res->get_machid();
+	}
+	$resource = new Equipment($machid);
 	$minRes = filter_input(INPUT_POST, 'minRes');
     $maxRes = filter_input(INPUT_POST, 'maxRes');
 	if (is_null($minRes)) {
