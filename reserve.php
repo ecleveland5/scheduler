@@ -77,22 +77,9 @@ $t->printHTMLFooter();
 function process_reservation($fn) {
     $success = false;
     global $Class;
-    $is_pending = (isset($_POST['pending']) && $_POST['pending']);
-
-
-    $machid = filter_input(INPUT_POST, 'machid');
-    $resource = new Equipment($machid);
-    $minRes = $resource->get_field('minRes');
-    $maxRes = $resource->get_field('maxRes');
-
-/*
+    $is_pending = filter_input(INPUT_POST, 'pending');
     $minRes = 0;
     $maxRes = 1440;
-    if (isset($_POST['minRes'])) {
-        $minRes = $_POST['minRes'];
-        $maxRes = $_POST['maxRes'];
-    }
-*/
 
     if (isset($_POST['start_date'])) {
         //$start_date = eval('return mktime(0,0,0, \'' . $_POST['start_date'] . '\');');
@@ -125,6 +112,16 @@ function process_reservation($fn) {
 			$repeat = array($start_date);
 			$res->is_repeat = false;
 		}
+	}
+	
+	$resource = new Equipment($res->get_machid());
+	$minRes = filter_input(INPUT_POST, 'minRes');
+    $maxRes = filter_input(INPUT_POST, 'maxRes');
+	if (is_null($minRes)) {
+		$minRes = $resource->get_field('minRes');
+	}
+	if (is_null($maxRes)) {
+		$maxRes = $resource->get_field('maxRes');
 	}
 	
 	$invited_users = (isset($_POST['invited_users'])) ? $_POST['invited_users'] : array();
@@ -178,33 +175,27 @@ function getResInfo() {
 
 	// Determine title and set needed variables
 	$res_info['type'] = filter_input(INPUT_GET, 'type');
+	$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 	switch($res_info['type']) {
 		case 'reserve' :
 			$res_info['title'] = "New $Class";
-			$res_info['resid']	= null;
 			break;
 		case 'modify' :
 			$res_info['title'] = "Modify $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
 		case 'delete' :
 			$res_info['title'] = "Delete $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
         case 'approve' :
 			$res_info['title'] = "Approve $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
         case 'sign-in' :
 			$res_info['title'] = "Sign In $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
         case 'sign-out' :
 			$res_info['title'] = "Sign Out $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
         default : $res_info['title'] = "View $Class";
-			$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 			break;
 	}
 

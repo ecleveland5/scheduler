@@ -23,13 +23,15 @@ include_once('db/ResDB.class.php');
 include_once('Reservation.class.php');
 
 class Blackout extends Reservation {
-
+	
 	/**
-	* Constructor calls parent constructor, telling it is a blackout
-	* @param string $id id of this blackout
-	*/
-	function __construct($id = null, $is_blackout = false, $is_pending = false, $lab_id = null) {
-		$this->Reservation($id, true, false, $lab_id);
+	 * Constructor calls parent constructor, telling it is a blackout
+	 * @param string $id id of this blackout
+	 * @param bool $is_blackout
+	 * @param bool $is_pending
+	 * @param null $lab_id
+	 */
+	function __construct($id = null, $is_blackout = true, $is_pending = false, $lab_id = null) {
+		Parent::__construct($id, $is_blackout, $is_pending, $lab_id);
 	}
 }
-?>

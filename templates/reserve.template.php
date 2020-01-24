@@ -420,13 +420,13 @@ function print_equipment_data(&$rs, $colspan = 1) {
 * @global $conf
 */
 function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false) {
-	global $conf;
 
 	$type = $res->get_type();
 	$interval = $res->lab_data['timeSpan'];
 	$startDay = $res->lab_data['dayStart'];
 	$endDay	  = $res->lab_data['dayEnd'];
 ?>
+    <div style="display:none;"><?php var_dump($res);?></div>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
      <tr class="tableBorder">
       <td>
@@ -492,7 +492,7 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
             echo "<select name=\"startTime\" class=\"textbox\">\n";
             // Start at startDay time, end 30 min before endDay
             //var_dump($res);
-            echo $endDay;//+$interval-(int)$rs['minRes'];
+            //echo $endDay;//+$interval-(int)$rs['minRes'];
             for ($i = $startDay; $i < $endDay+$interval-$rs['minRes']; $i+=$interval) {
                 echo '<option value="' . $i . '"';
                 // If this is a modification, select current time
@@ -890,7 +890,7 @@ function print_recur_checkbox($parentid) {
 
 function print_del_checkbox() {
 ?>
-	<p align="left"><input type="checkbox" name="del" value="true" /><?php echo translate('Delete?')?></p>
+    <p align="left"><input type="checkbox" name="del" id="del_checkbox" value="true" /><label for="del_checkbox"><?php echo translate('Delete?')?></label></p>
 <?php
 }
 
