@@ -160,7 +160,7 @@ class Lab {
 
         $current_date = $this->_date['current'];        // Store current_date so we dont have to access the array every time
         //var_dump($this->res);
-        // Repeat this whole process for each resource in the database
+        // Repeat this whole process for each resource
         for ($count = 0; $count < count($this->machids); $count++) {
             $prevTime = $this->startDay;        // Previous time holder
             $totCol = intval(($this->endDay - $this->startDay) / $this->timeSpan);    // Total columns holder
@@ -170,7 +170,6 @@ class Lab {
             $name = $this->machids[$count]['name'];
             $status = $this->machids[$count]['status'];
             $approval = $this->machids[$count]['approval'];
-
             $show = false;        // Default resource visibility to not shown
 
             // If the date has not passed, resource is active and user has permission,
@@ -197,8 +196,7 @@ class Lab {
                     $rs = $this->res[$index][$i];
                     //var_dump($rs);
                     // If it doesnt start sometime today, end sometime today, or surround today, just skip over it
-
-
+	                
                     if (
                         !(($rs['start_date'] >= $current_date && $rs['start_date'] <= $current_date)
                         || ($rs['end_date'] >= $current_date && $rs['end_date'] <= $current_date)
@@ -266,20 +264,22 @@ class Lab {
     */
     function get_date_vars() {
         $default = false;
-
+        $getDate = filter_input(INPUT_GET, 'date');
+        $jumpMonth = filter_input(INPUT_POST, 'jumpMonth');
+	    $jumpDay = filter_input(INPUT_POST, 'jumpDay');
+	    $jumpYear = filter_input(INPUT_POST, 'jumpYear');
         $dv = array();
 
         // For Back, Current, Next Week clicked links
         //    pull values into an array month,day,year
-        $indate = (isset($_GET['date'])) ? explode('-',$_GET['date']) : array(date("m"), date("d"), date("Y"));
+        $indate = (!is_null($getDate)) ? explode('-',$getDate) : array(date("m"), date("d"), date("Y"));
 
         // Set date values if a date has been passed in (these will always be set to a valid date)
         if ( !empty($indate) || isset($_POST['jumpForm']) ) {
-            $dv['month']  = (isset($_POST['jumpMonth'])) ? date('m', mktime(0,0,0,$_POST['jumpMonth'],1)) : date('m', mktime(0,0,0,$indate[0],1));
-            $dv['day']    = (isset($_POST['jumpDay'])) ? date('d', mktime(0,0,0,$dv['month'], $_POST['jumpDay'])) : date('d', mktime(0,0,0, $dv['month'], $indate[1]));
-            $dv['year']   = (isset($_POST['jumpYear'])) ? date('Y', mktime(0,0,0, $dv['month'], $dv['day'], $_POST['jumpYear'])) : date('Y', mktime(0,0,0, $dv['month'], $dv['day'], $indate[2]));
-        }
-        else {
+            $dv['month']  = (!is_null($jumpMonth)) ? date('m', mktime(0,0,0,$jumpMonth,1)) : date('m', mktime(0,0,0,$indate[0],1));
+            $dv['day']    = (!is_null($jumpDay)) ? date('d', mktime(0,0,0,$dv['month'], $jumpDay)) : date('d', mktime(0,0,0, $dv['month'], $indate[1]));
+            $dv['year']   = (!is_null($jumpYear)) ? date('Y', mktime(0,0,0, $dv['month'], $dv['day'], $jumpYear)) : date('Y', mktime(0,0,0, $dv['month'], $dv['day'], $indate[2]));
+        } else {
             // Else set values to user defined starting day of week
             $d = getdate();
             $dv['month']  = $d['mon'];
@@ -360,8 +360,7 @@ class Lab {
     * @param none
     */
     function print_jump_links() {
-        global $conf;
-        print_jump_links($this->_date['firstDayTs'], $this->viewDays, ($this->viewDays != 7));
+        print_jump_links($this->_date['firstDayTs'], $this->viewDays, ($this->viewDays != 7), $this->lab_id);
     }
 
     /**
