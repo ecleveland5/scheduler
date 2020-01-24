@@ -204,10 +204,9 @@ class User {
 	}
 	
 	/**
-	* Whether the user wants html or plain text emails
-	* @param none
-	* @return whether they want html email or not
-	*/
+	 * Whether the user wants html or plain text emails
+	 * @return bool whether they want html email or not
+	 */
 	function wants_html() {
 		return ($this->emails['e_html'] == 'y');
 	}
@@ -215,7 +214,7 @@ class User {
 	
 	/**
  	* The lab preference of the user
- 	* @return the lab id of the prefered lab 
+ 	* @return string lab id of the preferred lab
  	*/
 	function get_lab_pref() {
 		return ($this->lab_pref);
@@ -235,10 +234,9 @@ class User {
 	}
 	
 	/**
-	* Return all user data in an array
-	* @param none
-	* @return assoc array of all user data
-	*/
+	 * Return all user data in an array
+	 * @return array array of all user data
+	 */
 	function get_user_data() {
 		return array (
 				'user_id' 							=> $this->userid,
@@ -296,9 +294,10 @@ class User {
 	}
 	
 	/**
-	* Returns an array of attributes based on the array of field names.
-	* @param array $attr_list array of field names.
-	*/
+	 * Returns an array of attributes based on the array of field names.
+	 * @param array $attr_list array of field names.
+	 * @return array
+	 */
 	function get_user_attribute($attr_list = array()) {
 		$return = array();
 		if (!empty($attr_list) && is_array($attr_list)) {
