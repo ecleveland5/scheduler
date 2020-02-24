@@ -220,7 +220,7 @@ function print_blank_cols($cols, $start, $span, $ts, $machid, $lab_id, $labType,
 	  //$color_str = empty($color) ? '': "style=\"background-color: $color;\"";
 
     $js = '';
-    $tstart = '';
+    $tstart = 0;
     for ($i = 0; $i <= $cols; $i++) {
         if ($labType != READ_ONLY && ($clickable || $is_blackout)) {
             $tstart = $start + ($i * $span);
@@ -292,16 +292,17 @@ function write_reservation($colspan, $color_select, $mod_view, $resid, $summary 
     echo "<td colspan=\"$colspan\" style=\"overflow:hidden;color: $text; background-color: $color;\" $js>"
     	. "<div style=\"overflow:hidden;width:".($colspan*13)."px \">$summary_text</div></td>";
 }
-
-/**
-* Writes out the blackout cell
-* @param int $colspan column span of the blackout
-* @param bool $edit if the user can edit it
-* @param string $blackoutid id of this blackout
-* @param string $summary blackout summary text
-* @param int $show_summary whether to show the summary or not
-*/
-function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0) {
+	
+	/**
+	 * Writes out the blackout cell
+	 * @param int $colspan column span of the blackout
+	 * @param $viewable
+	 * @param string $blackoutid id of this blackout
+	 * @param string $summary blackout summary text
+	 * @param int $show_summary whether to show the summary or not
+	 * @param string $lab_id
+	 */
+function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0, $lab_id = null) {
     global $conf;
     $color = '#' . $conf['ui']['blackout'][0]['color'];
     $hover = '#' . $conf['ui']['blackout'][0]['hover'];
@@ -310,7 +311,7 @@ function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_s
     $js = '';
 
     if ($viewable) {
-        $js = "onclick=\"reserve('".RES_TYPE_MODIFY."','','','$blackoutid','','1');\" ";
+        $js = "onclick=\"reserve('".RES_TYPE_MODIFY."','','','$blackoutid','$lab_id','1');\" ";
         if ($show_summary && $summary != '')
             $js .= "onmouseover=\"resOver(this, '$hover'); showSummary('summary', event, '" . preg_replace("/[\n\r]+/", '<br/>', addslashes($summary)) . "');\" onmouseout=\"resOut(this, '$color'); hideSummary('summary');\" onmousemove=\"moveSummary('summary', event);\"";
         else
