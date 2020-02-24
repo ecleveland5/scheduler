@@ -18,26 +18,40 @@
 include_once('lib/Template.class.php');
 include_once('lib/Equipment.class.php');
 
-$is_blackout = filter_input(INPUT_GET, 'is_blackout');
+global $reservation_type_text;
+
+$is_blackout = filter_input(INPUT_POST, 'is_blackout');
+if (is_null($is_blackout)) {
+	$is_blackout = filter_input(INPUT_GET, 'is_blackout');
+}
+
+$is_pending = filter_input(INPUT_POST, 'is_pending');
+if (is_null($is_pending)) {
+	$is_pending = filter_input(INPUT_GET, 'is_pending');
+}
+
+$reservation_type_text = $is_blackout ? 'Blackout' : 'Reservation';
+$resid = filter_input(INPUT_POST, 'resid');
+if (is_null($resid)) {
+	$resid = filter_input(INPUT_GET, 'resid');
+}
+$fn = filter_input(INPUT_POST, 'fn');
+
+$lab_id = filter_input(INPUT_POST, 'lab_id');
+if (is_null($lab_id)) {
+	$lab_id = filter_input(INPUT_GET, 'lab_id');
+}
 
 if ($is_blackout) {
 	// Make sure user is logged in
 	if (!Auth::is_logged_in()) {
 		Auth::print_login_msg();
 	}
-	/**
-	* Blackout class
-	*/
 	include_once('lib/Blackout.class.php');
-	$Class = 'Blackout';
-	$_POST['minRes'] = $_POST['maxRes'] = null;
-}
-else {
-	/**
-	* Reservation class
-	*/
+	$res = new Blackout($resid);
+} else {
 	include_once('lib/Reservation.class.php');
-	$Class = 'Reservation';
+	$res = new Reservation($resid, false, $is_pending, $lab_id);
 }
 
 if ((!isset($_GET['read_only']) || !$_GET['read_only']) && $conf['app']['readOnlyDetails']) {
@@ -49,19 +63,19 @@ if ((!isset($_GET['read_only']) || !$_GET['read_only']) && $conf['app']['readOnl
 
 $t = new Template();
 
-if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && isset($_POST['fn'])) {
-	$t->set_title(translate("Processing $Class"));
+if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && !is_null($fn)) {
+	$t->set_title(translate("Processing $reservation_type_text"));
 	$t->printHTMLHeader();
 	$t->startMain();
 	
-	process_reservation($_POST['fn']);
+	process_reservation($res, $fn);
 } else {
 	$res_info = getResInfo();
 	$t->set_title($res_info['title']);
     $t->printHTMLHeader();
     $t->startMain();
     
-    present_reservation($res_info['resid']);
+    present_reservation($res);
 }
 
 // End main table
@@ -69,17 +83,17 @@ $t->endMain();
 
 // Print HTML footer
 $t->printHTMLFooter();
-
-/**
-* Processes a reservation request (add/del/edit)
-* @param string $fn function to perform
-*/
-function process_reservation($fn) {
-	global $Class;
+	
+	/**
+	 * Processes a reservation request (add/del/edit)
+	 * @param $res Reservation Object
+	 * @param string $fn function to perform
+	 */
+function process_reservation(Reservation $res, $fn) {
 	$success = false;
-	$minRes = 0;
-	$maxRes = 1440;
-    $machid = filter_input(INPUT_POST, 'machid');
+	$minRes = 0;        // default min number of minutes a reservation can be.
+	$maxRes = 1440;     // default max number of minutes a reservation can be.
+	$repeat = array();  // array of timestamps for repeated dates
     $is_pending = filter_input(INPUT_POST, 'pending');
     $resid = filter_input(INPUT_POST, 'resid');
     if (is_null($resid)) {
@@ -87,19 +101,28 @@ function process_reservation($fn) {
     }
     $start_date = filter_input(INPUT_POST, 'start_date');
     $end_date = filter_input(INPUT_POST, 'end_date');
+    $start_time = filter_input(INPUT_POST, 'startTime');
+    $end_time = filter_input(INPUT_POST, 'endTime');
 	$repeat_day = filter_input(INPUT_POST, 'repeat_day');
 	$week_number = filter_input(INPUT_POST, 'week_number');
 	$repeat_until = filter_input(INPUT_POST, 'repeat_until');
 	$interval = filter_input(INPUT_POST, 'interval');
 	$frequency = filter_input(INPUT_POST, 'frequency');
+	$user_id = filter_input(INPUT_POST, 'user_id');
 	$machid = filter_input(INPUT_POST, 'machid');
-    
+	$summary = filter_input(INPUT_POST, 'summary');
+	$lab_id = filter_input(INPUT_POST, 'lab_id');
+	$account_id = filter_input(INPUT_POST, 'account_id');
+    $del = filter_input(INPUT_POST, 'del');
+    $mod_recur = filter_input(INPUT_POST, 'mod_recur');
+	
     if (!is_null($start_date)) {
-        $start_date = strtotime($start_date);
+	    $start_date = strtotime($start_date);
+    }
+    if (!is_null($end_date)) {
         $end_date = strtotime($end_date);
     }
 	
-	$res = new $Class($resid, false, $is_pending);
     if (is_null($resid)) {
 		// New reservation
 		if (!is_null($interval) && $interval !== 'none') {		// Check for reservation repetition
@@ -133,29 +156,25 @@ function process_reservation($fn) {
 	$removed_users = (isset($_POST['removed_users'])) ? $_POST['removed_users'] : array();
 
 	if ($fn == RES_TYPE_ADD)
-		$res->add_res($_POST['machid'], $invited_users, $_POST['user_id'], $start_date, $end_date, $_POST['startTime'], $_POST['endTime'], $repeat, $minRes, $maxRes, stripslashes($_POST['summary']), $_POST['lab_id'], $_POST['account_id']);
+		$res->add_res($machid, $invited_users, $user_id, $start_date, $end_date, $start_time, $end_time, $repeat, $minRes, $maxRes, $summary, $lab_id, $account_id);
 	else if ($fn == RES_TYPE_MODIFY)
-		$res->mod_res($_REQUEST['user_id'], $invited_users, $removed_users, $start_date, $end_date, $_POST['startTime'], $_POST['endTime'], isset($_POST['del']), $minRes, $maxRes, isset($_POST['mod_recur']), $_POST['account_id'], str_replace("\n", "", $_POST['summary']));
+		$res->mod_res($user_id, $invited_users, $removed_users, $start_date, $end_date, $start_time, $end_time, !is_null($del), $minRes, $maxRes, !is_null($mod_recur), $account_id, str_replace("\n", "", $summary));
 	else if ($fn == RES_TYPE_DELETE)
-		$res->del_res(isset($_POST['mod_recur']));
+		$res->del_res(!is_null($mod_recur));
 	else if ($fn == RES_TYPE_APPROVE) 
-		$res->approve_res(isset($_POST['mod_recur']));
+		$res->approve_res(!is_null($mod_recur));
 	else if ($fn == RES_TYPE_VIEW)
 		$res->print_res();
 }
-
-/**
-* Prints out reservation info depending on what parameters
-*  were passed in through the query string
-* @param string $res_id id of the reservation, null if new reservation
-*/
-function present_reservation($res_id) {
-	global $Class;
 	
-	// Get info about this reservation
-	$res = new $Class($res_id, false, false, filter_input(INPUT_GET, 'lab_id'));
-
-	if ($res_id == null) {
+	/**
+	 * Prints out reservation info depending on what parameters
+	 *  were passed in through the query string
+	 * @param Reservation $res Reservation object
+	 */
+function present_reservation(Reservation $res) {
+	
+	if ($res->get_id() === null) {
 		$res->mach_id 	    = filter_input(INPUT_GET, 'machid');
 		$res->start_date    = filter_input(INPUT_GET, 'start_date');
 		$res->end_date      = filter_input(INPUT_GET, 'start_date');
@@ -167,40 +186,41 @@ function present_reservation($res_id) {
 	$res->set_type(filter_input(INPUT_GET, 'type'));
 	$res->print_res();
 }
-
-
-/**
-* Return array of data from query string about this reservation
-*  or about a new reservation being created
-* @param none
-*/
+	
+	
+	/**
+	 * Return array of data from query string about this reservation
+	 *  or about a new reservation being created
+	 * @param none
+	 * @return array
+	 */
 function getResInfo() {
 	$res_info = array();
-	global $Class;
+	global $reservation_type_text;
 
 	// Determine title and set needed variables
 	$res_info['type'] = filter_input(INPUT_GET, 'type');
 	$res_info['resid'] = filter_input(INPUT_GET, 'resid');
 	switch($res_info['type']) {
 		case 'reserve' :
-			$res_info['title'] = "New $Class";
+			$res_info['title'] = "New $reservation_type_text";
 			break;
 		case 'modify' :
-			$res_info['title'] = "Modify $Class";
+			$res_info['title'] = "Modify $reservation_type_text";
 			break;
 		case 'delete' :
-			$res_info['title'] = "Delete $Class";
+			$res_info['title'] = "Delete $reservation_type_text";
 			break;
         case 'approve' :
-			$res_info['title'] = "Approve $Class";
+			$res_info['title'] = "Approve $reservation_type_text";
 			break;
         case 'sign-in' :
-			$res_info['title'] = "Sign In $Class";
+			$res_info['title'] = "Sign In $reservation_type_text";
 			break;
         case 'sign-out' :
-			$res_info['title'] = "Sign Out $Class";
+			$res_info['title'] = "Sign Out $reservation_type_text";
 			break;
-        default : $res_info['title'] = "View $Class";
+        default : $res_info['title'] = "View $reservation_type_text";
 			break;
 	}
 

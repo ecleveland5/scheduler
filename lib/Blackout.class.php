@@ -26,12 +26,11 @@ class Blackout extends Reservation {
 	
 	/**
 	 * Constructor calls parent constructor, telling it is a blackout
-	 * @param string $id id of this blackout
-	 * @param bool $is_blackout
-	 * @param bool $is_pending
-	 * @param null $lab_id
+	 * @param string $res_id reservation id for the blackout
 	 */
-	function __construct($id = null, $is_blackout = true, $is_pending = false, $lab_id = null) {
-		Parent::__construct($id, $is_blackout, $is_pending, $lab_id);
+	function __construct($res_id = null) {
+		$is_pending = false;
+		$is_blackout = true;
+		Parent::__construct($res_id, $is_blackout, $is_pending);
 	}
 }

@@ -142,14 +142,15 @@ class ResDB extends DBEngine {
 		return ($result['num'] > 0);	// Return if there are already reservations
 
 	}
-
+	
 	/**
-	* Add a new reservation to the database
-	* @param Object $res reservation that we are placing
-	* @param boolean $is_parent if this is the parent reservation of a group of recurring reservations
-	* @param array $userinfo array of users to invite
-	* @param string $accept_code acceptance code to be used for reservation accept/decline
-	*/
+	 * Add a new reservation to the database
+	 * @param Object $res reservation that we are placing
+	 * @param boolean $is_parent if this is the parent reservation of a group of recurring reservations
+	 * @param array $userinfo array of users to invite
+	 * @param string $accept_code acceptance code to be used for reservation accept/decline
+	 * @return string $id New reservation id
+	 */
 	function add_res(&$res, $is_parent, $userinfo, $accept_code) {
 		$id = $this->get_new_id();
 
@@ -161,10 +162,10 @@ class ResDB extends DBEngine {
 					$res->get_end_date(),
 					$res->get_start(),
 					$res->get_end(),
-					mktime(),
+					time(),
 					null,
 					($is_parent ? $id : $res->get_parentid()),
-					intval($res->is_blackout),
+					$res->is_blackout,
 					$res->get_pending(),
 					$res->get_summary(),
 					0,
