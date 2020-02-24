@@ -62,7 +62,7 @@ class Lab {
         $this->labType = $labType;                // Set lab type
         $this->db = new LabDB($lab_id, $labType);            // Set database class
 
-        if ($lab_id == null) {
+        if ($lab_id === null) {
             $this->lab_id = $this->db->get_default_id();
             $this->db->lab_id = $this->lab_id;
         }

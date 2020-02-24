@@ -22,7 +22,11 @@ include_once('lib/Lab.class.php');
 
 $user = new User(Auth::getCurrentID());
 $t = new Template(translate('Manage Blackout Times'));
-$s = new Lab((isset($_GET['lab_id']) ? $_GET['lab_id'] : $user->get_lab_pref()), BLACKOUT_ONLY);
+$lab_id = filter_input(INPUT_GET, 'lab_id');
+if (is_null($lab_id)) {
+    $lab_id = $user->get_lab_pref();
+}
+$s = new Lab($lab_id, BLACKOUT_ONLY);
 
 // Print HTML headers
 $t->printHTMLHeader();
@@ -42,6 +46,7 @@ startQuickLinksCol();
 showQuickLinks();		// Print out My Quick Links
 startDataDisplayCol();
 $filter = array();
+$s->print_jump_links();
 $s->print_lab($filter);
 
 // Print out links to jump to new date
