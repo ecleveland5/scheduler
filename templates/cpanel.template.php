@@ -359,7 +359,7 @@ function showTrainingTable($per, $err, $res_in_use=NULL, $mach_reserved=NULL) {
 
       echo '<td>';
       if ($rs['status'] == 'a') {
-      	$link->doLink("javascript: reserve('".RES_TYPE_ADD."', '".$rs['machid']."','".mktime()."', '', '".$rs['lab_id']."', '0', '0', '');", 'Make Reservation', '', '','Make a Reservation');
+      	$link->doLink("javascript: reserve('".RES_TYPE_ADD."', '".$rs['machid']."','".time()."', '', '".$rs['lab_id']."', '0', '0', '');", 'Make Reservation', '', '','Make a Reservation');
       }
       echo '</td>'
 				//. '<td>' . $rs['rphone'] . '</td>'
