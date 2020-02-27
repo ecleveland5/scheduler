@@ -48,7 +48,7 @@ if ($is_blackout) {
 		Auth::print_login_msg();
 	}
 	include_once('lib/Blackout.class.php');
-	$res = new Blackout($resid);
+	$res = new Blackout($resid, $lab_id);
 } else {
 	include_once('lib/Reservation.class.php');
 	$res = new Reservation($resid, false, $is_pending, $lab_id);

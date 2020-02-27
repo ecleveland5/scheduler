@@ -46,6 +46,7 @@ startQuickLinksCol();
 showQuickLinks();		// Print out My Quick Links
 startDataDisplayCol();
 $filter = array();
+    echo "<h2>" . translate('Manage Blackout Times') . "</h2>";
 $s->print_jump_links();
 $s->print_lab($filter);
 
