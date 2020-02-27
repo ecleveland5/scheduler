@@ -60,9 +60,9 @@ class Lab {
     function __construct($lab_id, $labType = ALL) {
         $this->lab_id = $lab_id;
         $this->labType = $labType;                // Set lab type
-        $this->db = new LabDB($lab_id, $labType);            // Set database class
+	    $this->db = new LabDB($lab_id, $labType);            // Set database class
 
-        if ($lab_id === null) {
+        if (is_null($lab_id) || empty($lab_id)) {
             $this->lab_id = $this->db->get_default_id();
             $this->db->lab_id = $this->lab_id;
         }
