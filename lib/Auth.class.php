@@ -16,6 +16,7 @@
 /**
 * Include AuthDB class
 */
+
 include_once('db/AuthDB.class.php');
 /**
 * Include User class
@@ -49,6 +50,7 @@ class Auth {
 	*/
 	function __construct() {
 		$this->db = new AuthDB();
+		
 	}
 
 	/**

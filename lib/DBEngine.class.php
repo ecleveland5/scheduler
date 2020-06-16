@@ -51,6 +51,7 @@ class DBEngine {
         
         $this->db_connect();
         $this->define_tables();
+        
     }
     
     /**

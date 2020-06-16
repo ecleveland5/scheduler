@@ -352,7 +352,7 @@ class DB
      * @see DB::parseDSN(), DB_common::setOption(), DB::isError()
      * @access public
      */
-    static function &connect($dsn, $options = array())
+    static function connect($dsn, $options = array())
     {
         $dsninfo = DB::parseDSN($dsn);
         $type = $dsninfo['phptype'];
@@ -380,7 +380,7 @@ class DB
             return $tmp;
         }
 
-        @$obj = new $classname;
+        $obj = new $classname;
 
         foreach ($options as $option => $value) {
             $test = $obj->setOption($option, $value);
@@ -390,6 +390,7 @@ class DB
         }
 
         $err = $obj->connect($dsninfo, $obj->getOption('persistent'));
+        
         if (DB::isError($err)) {
             $err->addUserInfo($dsn);
             return $err;
@@ -706,8 +707,8 @@ class DB
         if (!extension_loaded($name)) {
             $dlext = OS_WINDOWS ? '.dll' : '.so';
             $dlprefix = OS_WINDOWS ? 'php_' : '';
-            @dl($dlprefix . $name . $dlext);
-            return extension_loaded($name);
+            //@dl($dlprefix . $name . $dlext);
+            //return extension_loaded($name);
         }
         return true;
     }
