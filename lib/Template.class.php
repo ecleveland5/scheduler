@@ -28,8 +28,8 @@ class Template {
 	
 	/**
 	* Set the page's title
-	* @param string $title title of page
-	* @param int $depth depth of the current page relative to phpScheduleIt root
+	* @param string $title Title of page
+	* @param int $depth Depth of the current page relative to root
 	*/
 	function __construct($title = '', $depth = 0) {
 		global $conf;
@@ -44,7 +44,7 @@ class Template {
 	* This function prints the HTML header code, CSS link, and JavaScript link
 	*
 	* DOCTYPE is XHTML 1.0 Transitional
-	* @param none
+	* @param string $title Title of page.
 	*/
 	function printHTMLHeader($title='') {
 		global $conf;
@@ -53,7 +53,6 @@ class Template {
 		global $charset;
 		
 		$path = $this->dir_path;
-		//echo "<?xml version=\"1.0\" encoding=\"$charset\"?" . ">\n";
 	?>
 	<!DOCTYPE html>
 	<html>
@@ -63,12 +62,8 @@ class Template {
         <link rel="shortcut icon" href="/favicon.gif">
         <script language="JavaScript" type="text/javascript" src="<?php echo $path?>functions.js"></script>
         <style type="text/css">
-        @import url(<?php echo $path?>jscalendar/calendar-blue-custom.css);
         @import url(<?php echo $path?>css.css);
         </style>
-        <script type="text/javascript" src="<?php echo $path; ?>jscalendar/calendar.js"></script>
-        <script type="text/javascript" src="<?php echo $path; ?>jscalendar/lang/<?php echo get_jscalendar_file(); ?>"></script>
-        <script type="text/javascript" src="<?php echo $path; ?>jscalendar/calendar-setup.js"></script>
         <script>
           var _gaq = _gaq || [];
           _gaq.push(['_setAccount', 'UA-85113-1']);
@@ -80,11 +75,6 @@ class Template {
             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
           })();
         </script>
-            <!--
-            <link href="<?php echo $path;?>/lib/js/jquery/css/ui-lightness/jquery-ui-1.8.5.custom.css" rel="stylesheet" type="text/css"/>
-            <script src="<?php echo $path;?>/lib/js/jquery/js/jquery-1.4.2.min.js" language="JavaScript" type="text/javascript"></script>
-            <script src="<?php echo $path;?>/lib/js/jquery/js/jquery-ui-1.8.5.custom.min.js" language="JavaScript" type="text/javascript"></script>
-            -->
             <script src="<?php echo $path;?>/lib/js/jquery/js/jquery-3.1.1.min.js" language="JavaScript" type="text/javascript"></script>
             <script src="<?php echo $path;?>/lib/js/jquery/jquery-ui-1.12.1/jquery-ui.min.js" language="JavaScript" type="text/javascript"></script>
             <link href="<?php echo $path;?>/lib/js/jquery/jquery-ui-1.12.1/jquery-ui.css" rel="stylesheet" type="text/css"/>
@@ -247,7 +237,7 @@ class Template {
 	* @param string $vert ascending or descending order
 	*/
 	function print_asc_desc_link(&$pager, $order, $text, $vert) {
-		global $link;
+		global $link;      
 		
 		$tool = getTool();
 		$page = $pager->getPageNum();
@@ -259,26 +249,26 @@ class Template {
 		
 		// Fix up the query string
 		$query =  $_SERVER['QUERY_STRING'];
-		if (eregi('(\?|&)' . $pager->getLimitVar() . "=[0-9]*", $query))
-			$query = eregi_replace('(\?|&)' . $pager->getLimitVar() . "=[0-9]*", $limit_str, $query);
-		else
+		if (preg_match('(\?|&)' . $pager->getLimitVar() . "=[0-9]*", $query)) {
+			$query = preg_replace('(\?|&)' . $pager->getLimitVar() . "=[0-9]*", $limit_str, $query);
+		} else {
 			$query .= $limit_str;
-		
-		if (eregi('(\?|&)' . $pager->getPageVar() . "=[0-9]*", $query))
-			$query = eregi_replace('(\?|&)' . $pager->getPageVar() . "=[0-9]*", $page_str, $query);
-		else
-			$query .= $page_str;	
-		
-		if (eregi("(\?|&)vert=[a-zA-Z]*", $query))
-			$query = eregi_replace("(\?|&)vert=[a-zA-Z]*", $vert_str, $query);
-		else
+		}
+		if (preg_match('(\?|&)' . $pager->getPageVar() . "=[0-9]*", $query)) {
+			$query = preg_replace('(\?|&)' . $pager->getPageVar() . "=[0-9]*", $page_str, $query);
+		} else {
+			$query .= $page_str;
+		}
+		if (preg_match("(\?|&)vert=[a-zA-Z]*", $query)) {
+			$query = preg_replace("(\?|&)vert=[a-zA-Z]*", $vert_str, $query);
+		} else {
 			$query .= $vert_str;
-	
-		if (eregi("(\?|&)order=[a-zA-Z]*", $query))
-			$query = eregi_replace("(\?|&)order=[a-zA-Z_]*", "&amp;order=$order", $query);
-		else
+		}
+		if (preg_match("(\?|&)order=[a-zA-Z]*", $query)) {
+			$query = preg_replace("(\?|&)order=[a-zA-Z_]*", "&amp;order=$order", $query);
+		} else {
 			$query .= "&amp;order=$order";
-			
+		}
 		$link->doLink($_SERVER['PHP_SELF'] . '?' . $query, $plus_minus, '', '', $text);
 	}	
 }
