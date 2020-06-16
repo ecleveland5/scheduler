@@ -225,7 +225,7 @@ class UsageDB extends DBEngine {
 		$return = array();
 		$mach_ids = $this->make_del_list($machids);
 		$in = ($machids[0] != 'all') ? ' WHERE machid IN (' . $mach_ids . ') AND' : ' WHERE ';
-		$query = 'SELECT sum(((end_date/60)+endTime)-((start_date/60)+startTime)) as sum, machid, is_blackout FROM ' . $this->get_table('reservations') . $in . ' (is_blackout <> 1) AND (is_pending <> 1) GROUP BY machid';
+		$query = 'SELECT sum(((end_date/60)+endTime)-((start_date/60)+startTime)) as sum, machid FROM ' . $this->get_table('reservations') . $in . ' (is_blackout <> 1) AND (is_pending <> 1) GROUP BY machid';
 		$result = $this->db->query($query);
 		
 		$this->check_for_error($result);

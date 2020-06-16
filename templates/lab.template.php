@@ -220,7 +220,7 @@ function print_blank_cols($cols, $start, $span, $ts, $machid, $lab_id, $labType,
 	  //$color_str = empty($color) ? '': "style=\"background-color: $color;\"";
 
     $js = '';
-    $tstart = '';
+    $tstart = 0;
     for ($i = 0; $i <= $cols; $i++) {
         if ($labType != READ_ONLY && ($clickable || $is_blackout)) {
             $tstart = $start + ($i * $span);
@@ -292,16 +292,17 @@ function write_reservation($colspan, $color_select, $mod_view, $resid, $summary 
     echo "<td colspan=\"$colspan\" style=\"overflow:hidden;color: $text; background-color: $color;\" $js>"
     	. "<div style=\"overflow:hidden;width:".($colspan*13)."px \">$summary_text</div></td>";
 }
-
-/**
-* Writes out the blackout cell
-* @param int $colspan column span of the blackout
-* @param bool $edit if the user can edit it
-* @param string $blackoutid id of this blackout
-* @param string $summary blackout summary text
-* @param int $show_summary whether to show the summary or not
-*/
-function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0) {
+	
+	/**
+	 * Writes out the blackout cell
+	 * @param int $colspan column span of the blackout
+	 * @param $viewable
+	 * @param string $blackoutid id of this blackout
+	 * @param string $summary blackout summary text
+	 * @param int $show_summary whether to show the summary or not
+	 * @param string $lab_id
+	 */
+function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0, $lab_id = null) {
     global $conf;
     $color = '#' . $conf['ui']['blackout'][0]['color'];
     $hover = '#' . $conf['ui']['blackout'][0]['hover'];
@@ -310,7 +311,7 @@ function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_s
     $js = '';
 
     if ($viewable) {
-        $js = "onclick=\"reserve('".RES_TYPE_MODIFY."','','','$blackoutid','','1');\" ";
+        $js = "onclick=\"reserve('".RES_TYPE_MODIFY."','','','$blackoutid','$lab_id','1');\" ";
         if ($show_summary && $summary != '')
             $js .= "onmouseover=\"resOver(this, '$hover'); showSummary('summary', event, '" . preg_replace("/[\n\r]+/", '<br/>', addslashes($summary)) . "');\" onmouseout=\"resOut(this, '$color'); hideSummary('summary');\" onmousemove=\"moveSummary('summary', event);\"";
         else
@@ -339,27 +340,22 @@ function print_summary_div() {
 <div id="summary" class="summary_div" style="width: 150px;"></div>
 <?php
 }
-
-/**
-* Print links to jump to new dates
-* This function prints out the HTML links to allow
-*  users to navigate back/forward one week.
-* It also prints the form for users to jump to
-*  any given week.
-* @param int $_date timestamp of first day of week on lab
-* @param bool $printAllCols whether or not to print the 5 column jump
-*/
-function print_jump_links($_date, $viewDays, $printAllCols) {
+	
+	/**
+	 * Print links to jump to new dates
+	 * This function prints out the HTML links to allow
+	 *  users to navigate back/forward one week.
+	 * It also prints the form for users to jump to
+	 *  any given week.
+	 * @param int $_date timestamp of first day of week on lab
+	 * @param $viewDays
+	 * @param bool $printAllCols whether or not to print the 5 column jump
+	 * @param $lab_id
+	 */
+function print_jump_links($_date, $viewDays, $printAllCols, $lab_id) {
     global $link;
     global $dates;
-
-    if (isset($_GET['lab_id'])){
-        $lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_SPECIAL_CHARS);
-    }else{
-        $lab_id = '';
-    }
-    $lab_id = 'lab_id=' . $lab_id;        // Make querystring part
-
+    
     $date = getdate($_date);
     $m = $date['mon'];
     $d = $date['mday'];
@@ -371,15 +367,15 @@ function print_jump_links($_date, $viewDays, $printAllCols) {
 
     <table width="100%" border="0" cellspacing="0" cellpadding="5" align="center">
      <tr>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - 7, $y)) . "&amp;$lab_id", translate('Prev Week'), '', '', translate('Jump 1 week back')) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - 7, $y)) . "&amp;lab_id=$lab_id", translate('Prev Week'), '', '', translate('Jump 1 week back')) ?></h5></td>
       <?php if ($printAllCols) { ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - $viewDays, $y)) . "&amp;$lab_id", translate('Prev days', array($viewDays)), '', '', translate('Previous days', array($viewDays))) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d - $viewDays, $y)) . "&amp;lab_id=$lab_id", translate('Prev days', array($viewDays)), '', '', translate('Previous days', array($viewDays))) ?></h5></td>
       <?php } ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?$lab_id", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . "?lab_id=$lab_id", translate('This Week'), '', '', translate('Jump to this week')) ?></h5></td>
       <?php if ($printAllCols) { ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + $viewDays, $y)) . "&amp;$lab_id", translate('Next days', array($viewDays))) ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + $viewDays, $y)) . "&amp;lab_id=$lab_id", translate('Next days', array($viewDays))) ?></h5></td>
       <?php } ?>
-      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + 7, $y)) . "&amp;$lab_id", translate('Next Week'), '', '', 'Jump 1 week ahead') ?></h5></td>
+      <td align="center"><h5><?php $link->doLink($_SERVER['PHP_SELF'] . '?date=' . date('m-d-Y',mktime(0,0,0,$m, $d + 7, $y)) . "&amp;lab_id=$lab_id", translate('Next Week'), '', '', 'Jump 1 week ahead') ?></h5></td>
      </tr>
      <tr>
       <td align="center" colspan="<?php echo (($printAllCols) ? '5' : '3') ?>">
@@ -395,7 +391,6 @@ function print_jump_links($_date, $viewDays, $printAllCols) {
       </td>
      </tr>
     </table>
-    <h5 align="center"><?php $link->doLink("javascript: window.open('popCalendar.php?$lab_id','calendar','width=260,height=250,scrollbars=no,location=no,menubar=no,toolbar=no,resizable=yes'); void(0);", translate('View Monthly Calendar'), '', '', translate('Open up a navigational calendar'))?></h5>
 <?php
 }
 

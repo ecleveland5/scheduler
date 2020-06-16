@@ -43,7 +43,7 @@ class LabDB extends DBEngine {
 	* between a given start and end date
 	* @param int $start_date beginning date to return reservations from
 	* @param int $end_date beginning date to return reservations from
-	* @param int $machids start time of this labs day
+	* @param array $machids machids to filter
 	* @return array of reservation data formatted: $array[date|machid][#] = array of data
 	*  or an empty array
 	*/

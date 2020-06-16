@@ -23,8 +23,7 @@ include_once('db/EquipmentDB.class.php');
 class Equipment {
 	var $machid;
 	var $name;
-	var $nickname;
-	var $umd_id;
+	var $short_name;
 	var $serial_id;
 	var $model;
 	var $usage;
@@ -47,7 +46,7 @@ class Equipment {
 	var $lab_id;
 	var $status;
 	var $minRes;
-	var $maxRex;
+	var $maxRes;
 	var $autoAssign;
 	var $approval;
 	var $allow_multi;
@@ -56,11 +55,6 @@ class Equipment {
 	var $notes;
 	
 	function __construct($id=NULL) {
-		global $conf;
-		
-		//$this->title = (!empty($title)) ? $title : $conf['ui']['welcome'];
-		//$this->dir_path = str_repeat('../', $depth);
-		//$this->link = CmnFns::getNewLink();
 		
 		if(!is_null($id)) {
 			$this->db = new EquipmentDB();
@@ -70,12 +64,11 @@ class Equipment {
 	}
 	
 	function load_by_id() {
-		$equipment = $this->db->get_equipment_data($this->machid);	// Get values from DB
+		$equipment = $this->db->get_equipment_data($this->machid);
 		
 		$this->machid			= $equipment['machid'];
 		$this->name				= $equipment['name'];
-		$this->nickname			= $equipment['nickname'];
-		$this->umd_id			= $equipment['umd_id'];
+		$this->short_name		= $equipment['short_name'];
 		$this->serial_id		= $equipment['serial_id'];
 		$this->model			= $equipment['model'];
 		$this->usage			= $equipment['usage'];
@@ -111,6 +104,6 @@ class Equipment {
 	    if (array_key_exists($fieldName, get_object_vars($this))) {
 	        return $this->$fieldName;
         }
+	    return null;
     }
 }
-?>

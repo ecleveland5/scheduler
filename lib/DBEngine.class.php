@@ -398,11 +398,11 @@ class DBEngine {
     * @return string lab_id of default lab
     */
     function get_default_id() {
-        $result = $this->db->getOne('SELECT lab_id FROM ' . $this->get_table('labs') . ' WHERE isDefault = 1 AND isHidden = 0');
+        $result = $this->db->getOne('SELECT lab_id FROM ' . $this->get_table('labs') . ' WHERE isDefault = 1 AND isHidden = 0 AND scheduler = 1');
         $this->check_for_error($result);
 
         if (empty($result)) {    // If default is hidden
-            $result = $this->db->getOne('SELECT lab_id FROM ' . $this->get_table('labs') . ' WHERE isHidden = 0');
+            $result = $this->db->getOne('SELECT lab_id FROM ' . $this->get_table('labs') . ' WHERE isHidden = 0 AND scheduler = 1');
             $this->check_for_error($result);
         }
 
