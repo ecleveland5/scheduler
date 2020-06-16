@@ -18,6 +18,7 @@ include_once('lib/Template.class.php');
 /**
 * Include control panel-specific output functions
 */
+
 include_once('templates/cpanel.template.php');
 include_once('lib/ResCalendar.class.php');
 include_once('lib/Account.class.php');
