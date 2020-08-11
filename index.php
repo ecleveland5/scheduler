@@ -16,11 +16,12 @@
 include_once('lib/Template.class.php');
 
 // Auth included in Template.php
+	global $conf;
 $auth = new Auth();
 $t = new Template();
 $msg = '';
 
-$resume = (isset($_POST['resume'])) ? $_POST['resume'] : '/scheduler/ctrlpnl.php';
+$resume = (isset($_POST['resume'])) ? $_POST['resume'] : $conf['app']['weburi'].'/ctrlpnl.php';
 $_SESSION['resume'] = $resume;
 // Logging user out
 if (isset($_GET['logout'])) {

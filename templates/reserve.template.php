@@ -955,7 +955,7 @@ function print_repeat_box($month, $year) {
 	<div id="until" style="position: relative;">
 		<p>
 		<?php echo translate('Repeat until date')?>
-        <input type="date" id="repeat_until" value="" />
+        <input type="date" name="repeat_until" id="repeat_until" value="" />
 		</p>
 	</div>
 	</td>

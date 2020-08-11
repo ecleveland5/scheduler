@@ -7,7 +7,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+#@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * ResDB class
 */

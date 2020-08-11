@@ -26,11 +26,11 @@ include_once(BASE_DIR . '/lib/DBEngine.class.php');
 class AuthDB extends DBEngine {
 	
 	/**
-	* Returns whether a user exists or not
-	* @param string $email users email address
-	* @param bool $use_logonname if we are using a logonname instead of the email address for logon
-	* @return user's id or false if user does not exist
-	*/
+	 * Returns whether a user exists or not
+	 * @param string $uname
+	 * @param bool $use_logonname if we are using a logonname instead of the email address for logon
+	 * @return false|mixed user's id or false if user does not exist
+	 */
 	function userExists($uname, $use_logonname = false) {
 		$data = array (strtolower($uname));
 		if ($use_logonname) {
@@ -43,20 +43,20 @@ class AuthDB extends DBEngine {
 			$where = '(email=?)';
 		}
 		$email_or_login = ($use_logonname) ? 'logon_name' : 'email';
-		$result = $this->db->getRow('SELECT user_id FROM ' . $this->get_table('user') . " WHERE $where AND deleted=0", $data);
+		$result = $this->db->getRow('SELECT user_id FROM ' . $this->get_table('user') . " WHERE $where AND archived=0", $data);
 		$this->check_for_error($result);
 
 		return (!empty($result['user_id'])) ? $result['user_id'] : false;
 	}
 	
 	/**
-	* Returns whether the password associated with this username
-	*  is correct or not
-	* @param string $uname user name
-	* @param string $pass password
-	* @param bool $use_logonname if we are using a logonname instead of the email address for logon
-	* @return bool whether password is correct or not
-	*/
+	 * Returns whether the password associated with this username
+	 *  is correct or not
+	 * @param string $uname user name
+	 * @param string $password
+	 * @param bool $use_logonname if we are using a logonname instead of the email address for logon
+	 * @return bool whether password is correct or not
+	 */
 	function isPassword($uname, $password, $use_logonname = false) {
 		$valid = false;
 		$pass = $this->make_password($password);
@@ -95,7 +95,7 @@ class AuthDB extends DBEngine {
 	/**
 	* Inserts a new user into the database
 	* @param array $data user information to insert
-	* @return new users id
+	* @return string new users id
 	*/
 	function insertMember($data) {
 		//$id = $this->get_new_id();
