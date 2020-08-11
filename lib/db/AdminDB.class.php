@@ -14,7 +14,7 @@
 /**
  * Base directory of application
  */
-@define('BASE_DIR', dirname(__FILE__) . '/../..');
+#@define('BASE_DIR', dirname(__FILE__) . '/../..');
 
 /**
  * DBEngine class
@@ -156,13 +156,13 @@ class AdminDB extends DBEngine {
 				FROM accounts
 				JOIN `user` on accounts.pi=`user`.user_id';
 			if (!$getAll){
-				$query .= ' WHERE deleted = 0';
+				$query .= ' WHERE archived = 0';
 			}
 			$query .= ' ORDER BY `user`.last_name ' . $vert . ', FRS';
 		}else{
 			$query = 'SELECT * FROM accounts ';
 			if (!$getAll){
-				$query .= ' WHERE deleted = 0';
+				$query .= ' WHERE archived = 0';
 			}
 			$query .= ' ORDER BY ' . $order . ' ' . $vert;
 		}
@@ -230,7 +230,15 @@ class AdminDB extends DBEngine {
 	 */
 	function get_num_admin_recs($table, $show_deleted = false) {
 		$reservation_table = false;
-
+		$has_deleted_column = false;
+		
+		$query = 'SHOW COLUMNS FROM `' . $this->get_table($table) .'` LIKE \'deleted\';';
+		$result = $this->db->query($query);
+		$this->check_for_error($result);
+		if ($result->numRows() > 0) {
+			$has_deleted_column = true;
+		}
+		
 		$query = 'SELECT COUNT(*) as num FROM ' . $this->get_table($table);
 
 		if ($table === 'reservations') {
@@ -238,7 +246,7 @@ class AdminDB extends DBEngine {
 			$reservation_table = true;
 		}
 		
-		if ($show_deleted === false || $show_deleted === null) {
+		if ($has_deleted_column && ($show_deleted === false || $show_deleted === null)) {
 			if ($reservation_table) {
 				$query .= ' AND ';
 			} else {

@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+#@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * CmnFns class
 */
@@ -51,6 +51,7 @@ class DBEngine {
         
         $this->db_connect();
         $this->define_tables();
+        
     }
     
     /**
