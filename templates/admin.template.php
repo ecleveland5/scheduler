@@ -42,7 +42,7 @@ function print_manage_labs(&$pager, $labs, $err) {
 		<td class="tableBorder">
 		<table width="100%" border="0" cellspacing="1" cellpadding="0">
 			<tr>
-				<td colspan="9" class="tableTitle">&#8250; <?php echo translate('All Labs')?></td>
+				<td colspan="10" class="tableTitle">&#8250; <?php echo translate('All Labs')?></td>
 			</tr>
 			<tr class="rowHeaders">
 				<!-- <td><?php echo translate('Lab Title')?></td> -->
@@ -60,7 +60,7 @@ function print_manage_labs(&$pager, $labs, $err) {
 			<?php
 
 			if (!$labs)
-			echo '<tr class="cellColor0"><td colspan="9" style="text-align: center;">' . $err . '</td></tr>' . "\n";
+			echo '<tr class="cellColor0"><td colspan="10" style="text-align: center;">' . $err . '</td></tr>' . "\n";
 
 			for ($i = 0; is_array($labs) && $i < count($labs); $i++) {
 				$cur = $labs[$i];
