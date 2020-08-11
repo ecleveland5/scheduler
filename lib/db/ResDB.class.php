@@ -13,7 +13,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/../..');
+#@define('BASE_DIR', dirname(__FILE__) . '/../..');
 /**
 * DBEngine class
 */
@@ -51,7 +51,7 @@ class ResDB extends DBEngine {
 	function get_equipment_ids($lab_id) {
 		$return = array();
 		//echo $lab_id;
-		$result = mysql_query('SELECT machid, name FROM ' . $this->get_table('resources') . ' WHERE  lab_id = "' . $lab_id . '"');
+		$result = $this->db-simpleQuery('SELECT machid, name FROM ' . $this->get_table('resources') . ' WHERE  lab_id = "' . $lab_id . '"');
 		$this->check_for_error($result);
 
 		if (count($result) <= 0)
