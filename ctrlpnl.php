@@ -18,6 +18,7 @@ include_once('lib/Template.class.php');
 /**
 * Include control panel-specific output functions
 */
+
 include_once('templates/cpanel.template.php');
 include_once('lib/ResCalendar.class.php');
 include_once('lib/Account.class.php');
@@ -28,6 +29,7 @@ if (!Auth::is_logged_in()) {
     echo "sessionID: " . $_SESSION['sessionID'];
 }
 
+global $conf;
 $t = new Template(translate('My Control Panel'));
 $db = new DBEngine();
 $auth = new Auth();
@@ -44,7 +46,7 @@ startDataDisplayCol();
 $order = array('number');
 $announcements = $db->get_announcements(time());
 
-showAnnouncementTable( $announcements, $db->get_err() );
+showAnnouncementTable( $announcements);
 
 printCpanelBr();
 
