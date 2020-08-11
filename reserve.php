@@ -17,7 +17,7 @@
 */
 include_once('lib/Template.class.php');
 include_once('lib/Equipment.class.php');
-
+global $conf;
 global $reservation_type_text;
 
 $is_blackout = filter_input(INPUT_POST, 'is_blackout');
@@ -103,7 +103,7 @@ function process_reservation(Reservation $res, $fn) {
     $end_date = filter_input(INPUT_POST, 'end_date');
     $start_time = filter_input(INPUT_POST, 'startTime');
     $end_time = filter_input(INPUT_POST, 'endTime');
-	$repeat_day = filter_input(INPUT_POST, 'repeat_day');
+	$repeat_day = filter_input(INPUT_POST, 'repeat_day', FILTER_SANITIZE_STRING, FILTER_FORCE_ARRAY);
 	$week_number = filter_input(INPUT_POST, 'week_number');
 	$repeat_until = filter_input(INPUT_POST, 'repeat_until');
 	$interval = filter_input(INPUT_POST, 'interval');
@@ -241,7 +241,7 @@ function get_repeat_dates($initial_ts, $interval, $days, $until, $frequency, $we
 	$res_dates = array();
 	$initial_date = getdate($initial_ts);
 	
-	list($last_m, $last_d, $last_y) = explode('/', $until);
+	list($last_y, $last_m, $last_d) = explode('-', $until);
 	$last_ts = mktime(0,0,0,$last_m, $last_d, $last_y);
 	$last_date = getdate($last_ts);
 	

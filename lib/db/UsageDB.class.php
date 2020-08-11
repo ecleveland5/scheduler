@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/../..');
+#@define('BASE_DIR', dirname(__FILE__) . '/../..');
 /**
 * DBEngine class
 */
@@ -103,7 +103,7 @@ class UsageDB extends DBEngine {
 					AND (res.is_pending <> 1)
 					AND (res.resid = ru.resid) 
 					AND (ru.owner = 1) 
-					AND res.deleted = 0';
+					AND res.archived = 0';
 		// Begin setting up values array for query
 		$values = array($startDateMin, $startDateMax, $endDateMin, $endDateMax, $startTimeMin, $startTimeMax, $endTimeMin, $endTimeMax);
 	
