@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-#@define('BASE_DIR', dirname(__FILE__) . '/../..');
+@define('BASE_DIR', dirname(__FILE__) . '/../..');
 /**
 * DBEngine class
 */
@@ -120,7 +120,7 @@ class UserDB extends DBEngine {
 	* @param int $user_id the id of the user
 	*/
 	function get_accounts_list($user_id) {
-		$result = $this->db->query('SELECT au.account_id , a.status, a.FRS, a.pi_last_name, a.pi, u.last_name as pi_ln, a.name, au.is_admin FROM account_users as au LEFT JOIN accounts AS a ON au.account_id = a.account_id LEFT JOIN `user` AS u ON a.pi = u.user_id WHERE au.user_id=? AND au.status=1 AND a.archived=0', array($user_id));
+		$result = $this->db->query('SELECT au.account_id , a.status, a.FRS, a.pi_last_name, a.pi, u.last_name as pi_ln, a.name, au.is_admin FROM account_users as au LEFT JOIN accounts AS a ON au.account_id = a.account_id LEFT JOIN `user` AS u ON a.pi = u.user_id WHERE au.user_id=? AND au.status=1 AND a.deleted=0', array($user_id));
 		$this->check_for_error($result);
 		while ($rs = $result->fetchRow())
             $return[] = $this->cleanRow($rs);
@@ -177,7 +177,7 @@ class UserDB extends DBEngine {
 		$query = 'SELECT COUNT(*) as num FROM ' . $this->get_table('reservation_users')
 				. ' JOIN ' . $this->get_table('reservations')
 				. ' ON reservation_users.resid = reservations.resid'
-				. ' WHERE reservation_users.user_id=? AND reservation_users.owner=1 AND is_blackout <> 1 AND deleted = 0 AND archived=0';
+				. ' WHERE reservation_users.user_id=? AND reservation_users.owner=1 AND is_blackout <> 1 AND deleted=0';
 		
 		$result = $this->db->getRow($query, array($user_id));
 
@@ -215,7 +215,6 @@ class UserDB extends DBEngine {
 			AND res.is_blackout <> 1
 			AND l.user_id=?
 			AND ru.user_id=l.user_id
-			AND res.archived=0
 			AND res.deleted=0';
 		
 		$query .= ' ORDER BY ' . $order . ' ' . $vert ;

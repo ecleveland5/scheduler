@@ -14,7 +14,7 @@
 /**
  * Base directory of application
  */
-#@define('BASE_DIR', dirname(__FILE__) . '/../..');
+@define('BASE_DIR', dirname(__FILE__) . '/../..');
 
 /**
  * DBEngine class
@@ -156,13 +156,13 @@ class AdminDB extends DBEngine {
 				FROM accounts
 				JOIN `user` on accounts.pi=`user`.user_id';
 			if (!$getAll){
-				$query .= ' WHERE archived = 0';
+				$query .= ' WHERE deleted = 0';
 			}
 			$query .= ' ORDER BY `user`.last_name ' . $vert . ', FRS';
 		}else{
 			$query = 'SELECT * FROM accounts ';
 			if (!$getAll){
-				$query .= ' WHERE archived = 0';
+				$query .= ' WHERE deleted = 0';
 			}
 			$query .= ' ORDER BY ' . $order . ' ' . $vert;
 		}
@@ -185,14 +185,15 @@ class AdminDB extends DBEngine {
 
 		return $return;
 	}
-
+	
 	/**
 	 * Returns an array of all resource data
 	 * @param Pager $pager pager object
 	 * @param array $orders order than results should be sorted in
+	 * @param bool $getDeleted
 	 * @return array of all resource data
 	 */
-	function get_all_equipment_data(&$pager, $orders) {
+	function get_all_equipment_data(&$pager, $orders, $getDeleted = false) {
 		$return = array();
 		$order = CmnFns::get_value_order($orders);
 		$vert = CmnFns::get_vert_order();
@@ -200,8 +201,11 @@ class AdminDB extends DBEngine {
 		// Set up query to get neccessary records ordered by user request first, then logical order
 		$query = 'SELECT rs.*, s.labTitle, s.nickname
 			FROM ' . $this->get_table('resources') . ' as rs, ' . $this->get_table('labs') . ' as s
-			WHERE rs.lab_id = s.lab_id AND rs.deleted = 0
-			ORDER BY ' . $order . ' ' . $vert;
+			WHERE rs.lab_id = s.lab_id';
+		if ($getDeleted != true) {
+			$query .= ' AND rs.deleted = 0 ';
+		}
+		$query .= ' ORDER BY ' . $order . ' ' . $vert;
 
 		$result = $this->db->limitQuery($query, $pager->getOffset(), $pager->getLimit());
 
@@ -225,20 +229,12 @@ class AdminDB extends DBEngine {
 	 * Returns the number of records from a given table
 	 *  (for paging purposes)
 	 * @param string $table table to count
-	 * @param bool $show_deleted show deleted records
+	 * @param bool $getDeleted show deleted records
 	 * @return number of records in the table
 	 */
-	function get_num_admin_recs($table, $show_deleted = false) {
+	function get_num_admin_recs($table, $getDeleted = false) {
 		$reservation_table = false;
-		$has_deleted_column = false;
-		
-		$query = 'SHOW COLUMNS FROM `' . $this->get_table($table) .'` LIKE \'deleted\';';
-		$result = $this->db->query($query);
-		$this->check_for_error($result);
-		if ($result->numRows() > 0) {
-			$has_deleted_column = true;
-		}
-		
+
 		$query = 'SELECT COUNT(*) as num FROM ' . $this->get_table($table);
 
 		if ($table === 'reservations') {
@@ -246,7 +242,7 @@ class AdminDB extends DBEngine {
 			$reservation_table = true;
 		}
 		
-		if ($has_deleted_column && ($show_deleted === false || $show_deleted === null)) {
+		if ($getDeleted != true) {
 			if ($reservation_table) {
 				$query .= ' AND ';
 			} else {
@@ -789,11 +785,12 @@ class AdminDB extends DBEngine {
 		array_push($values, intval(isset($rs['approval'])));
 		array_push($values, intval(isset($rs['allow_multi'])));
 		array_push($values, $rs['owner']);
+		array_push($values, $rs['staff_contact']);
 		array_push($values, $rs['edit_horizon']);
 		array_push($values, $rs['machid']);
 
 		$sql = 'UPDATE '. $this->get_table('resources') . ' SET '
-			. 'lab_id=?, name=?, location=?, rphone=?, notes=?, minRes=?, maxRes=?, umd_rate=?, maryland_system_rate=?, university_rate=?, government_rate=?, industry_rate=?, autoAssign=?, approval=?, allow_multi=?, owner=?, edit_horizon=? WHERE machid=?';
+			. 'lab_id=?, name=?, location=?, rphone=?, notes=?, minRes=?, maxRes=?, umd_rate=?, maryland_system_rate=?, university_rate=?, government_rate=?, industry_rate=?, autoAssign=?, approval=?, allow_multi=?, owner=?, staff_contact=?, edit_horizon=? WHERE machid=?';
 
 		$q = $this->db->prepare($sql);
 		$result = $this->db->execute($q, $values);
@@ -827,11 +824,47 @@ class AdminDB extends DBEngine {
 	/**
 	 * Deletes a list of resources from the database
 	 * @param array $rs list of machids to delete
+	 * @param array $resource_list_shown list of machids that were displayed
 	 */
-	function del_resource($rs) {
+	function del_resource($rs, $resource_list_shown) {
+		if ($rs === null) {
+			$rs = array();
+		}
 		$rs_list = $this->make_del_list($rs);
-
+		
+		$first = true;
+		$resource_list_shown_sql_string = '';
+		foreach ($resource_list_shown as $machid) {
+			if (!$first) {
+				$resource_list_shown_sql_string .= ',';
+			}
+			$resource_list_shown_sql_string.= '?';
+			$first = false;
+		}
+		$first = true;
+		if (empty($rs)) {
+			$resources_to_delete_sql_string = "''";
+		} else {
+			$resources_to_delete_sql_string = "";
+		}
+		foreach ($rs as $machid) {
+			if (!$first) {
+				$resources_to_delete_sql_string .= ',';
+			}
+			$resources_to_delete_sql_string .= '?';
+			$first = false;
+		}
+		$sql = "UPDATE " . $this->get_table('resources') . " SET deleted = IF(machid IN (".$resources_to_delete_sql_string."), 1, 0) " .
+			"WHERE machid IN (".$resource_list_shown_sql_string.")";
+		
+		$values = array_merge($rs, $resource_list_shown);
+		$q = $this->db->prepare($sql);
+		$result = $this->db->execute($q, $values);
+		//$this->check_for_error($result);
+		
+		
 		// Get all the ids of reservations that are associated with these resources
+		/*
 		$result = $this->db->query('SELECT resid FROM ' . $this->get_table('reservations') . ' WHERE machid IN (' . $rs_list . ')');
 		$this->check_for_error($result);
 		$results = array();
@@ -841,7 +874,8 @@ class AdminDB extends DBEngine {
 
 		$resids = $this->make_del_list($results);
 		$result->free();
-
+		*/
+		
 		// Delete out of the reservation_users table
 		//$result = $this->db->query('DELETE FROM ' . $this->get_table('reservation_users') . ' WHERE resid IN (' . $resids . ')');
 		//$result = $this->db->query('UPDATE ' . $this->get_table('reservation_users') . ' SET deleted = 1 WHERE resid IN (' . $resids . ')');
@@ -849,21 +883,21 @@ class AdminDB extends DBEngine {
 
 		// Delete out of the reservations table
 		//$result = $result = $this->db->query('DELETE FROM ' . $this->get_table('reservations') . ' WHERE machid IN (' . $rs_list . ')');
-		$result = $this->db->query('UPDATE ' . $this->get_table('reservations') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
-		$this->check_for_error($result);
+		//$result = $this->db->query('UPDATE ' . $this->get_table('reservations') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
+		//$this->check_for_error($result);
 
 		// Delete resources
 		//$result = $this->db->query('DELETE FROM ' . $this->get_table('resources') . ' WHERE machid IN (' . $rs_list . ')');
-		$result = $this->db->query('UPDATE ' . $this->get_table('resources') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
-		$this->check_for_error($result);
+		//$result = $this->db->query('UPDATE ' . $this->get_table('resources') . ' SET deleted = 1 WHERE machid IN (' . $rs_list . ')');
+		//$this->check_for_error($result);
 
 		// Delete all reservations and the associated record in reservation_users using these resources
 		//$result = $this->db->query('DELETE r, ru FROM ' . $this->get_table('reservations') . ' r LEFT JOIN ' . $this->get_table('reservation_users') . ' ru ON r.resid = ru.resid WHERE r.machid IN (' . $rs_list . ')');
 		//$this->check_for_error($result);
 
 		// Delete permissions
-		$result = $this->db->query('DELETE FROM ' . $this->get_table('permission') . ' WHERE machid IN (' . $rs_list . ')');
-		$this->check_for_error($result);
+		//$result = $this->db->query('DELETE FROM ' . $this->get_table('permission') . ' WHERE machid IN (' . $rs_list . ')');
+		//$this->check_for_error($result);
 	}
 
 	/**
@@ -1556,4 +1590,14 @@ class AdminDB extends DBEngine {
 		return $this->get_table_data($this->get_table('user'), array('*'), $orders, $lim, $offset, $show_deleted_clause, $show_deleted_value);
 	}
 
+	function update_resource_op_status($data) {
+		
+		foreach ($data as $machid=>$status) {
+			$values = array($status, $machid);
+			$query = "UPDATE " . $this->get_table('resources') . " SET operational_status = ? WHERE machid = ?";
+			$q = $this->db->prepare($query);
+			$result = $this->db->execute($q, $values);
+			$this->check_for_error($result);
+		}
+	}
 }

@@ -450,3 +450,20 @@ div.mycal_div {
 #quickLinks {
 	min-width: 200px;
 }
+
+.operational-status-online {
+	color: green;
+}
+
+.operational-status-offline {
+	color: red;
+}
+
+.operational-status-maintenance {
+	color: darkorange;
+}
+
+.operational-status-waiting {
+	color: darkorange;
+}
+

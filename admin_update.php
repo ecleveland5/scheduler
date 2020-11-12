@@ -45,6 +45,7 @@ $tools = array (
 	'editResource'	=> 'edit_resource',
 	'delResource'	=> 'del_resource',
 	'togResource'	=> 'tog_resource',
+	'updateResources' => 'update_resources',
 	'editEquipmentUsers'	=> 'edit_equipment_users',
 
 	'addAccount'	=> 'add_account',
@@ -292,13 +293,39 @@ function edit_resource() {
  */
 function del_resource() {
 	global $db;
+	
+	$resource_list_shown = filter_input(INPUT_POST, 'resource_list_shown', FILTER_SANITIZE_STRING);
+	$machid = filter_input(INPUT_POST, 'machid', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
 
-	// Make sure machids are checked
-	if (empty($_POST['machid']))
-		print_fail(translate('You did not select any resources to delete.'));
+	$resource_list_shown = explode(',', $resource_list_shown);
+	$db->del_resource($machid, $resource_list_shown);
+	
+	CmnFns::write_log('Resources deleted. ' . join(', ', $machid), $_SESSION['sessionID']);
+	print_success();
+}
 
-	$db->del_resource($_POST['machid']);
-	CmnFns::write_log('Resources deleted. ' . join(', ', $_POST['machid']), $_SESSION['sessionID']);
+function update_resources() {
+	global $db;
+	
+	$values = array();
+	
+	foreach ($_POST as $key=>$value) {
+		if (strstr($key, 'operational_status') !== false) {
+			$op_status_id = explode('-', $key);
+			$values[filter_var($op_status_id[1], FILTER_SANITIZE_STRING)] = filter_var($value, FILTER_SANITIZE_STRING);
+		}
+	}
+	
+	$db->update_resource_op_status($values);
+	
+	
+	$resource_list_shown = explode(',', filter_input(INPUT_POST, 'resource_list_shown', FILTER_SANITIZE_STRING));
+	$machid = filter_input(INPUT_POST, 'machid', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
+	
+	// Make sure account_ids are checked
+	$account_list_shown = explode(',', $resource_list_shown);
+	$db->del_resource($machid, $resource_list_shown);
+	
 	print_success();
 }
 
@@ -357,14 +384,13 @@ function edit_account() {
  */
 function del_account() {
 	global $db;
-
+	$account_list_shown = filter_input(INPUT_POST, 'account_list_shown', FILTER_SANITIZE_STRING);
+	$account_id = filter_input(INPUT_POST, 'account_id', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
+	
 	// Make sure account_ids are checked
-	if (empty($_POST['account_id'])) {
-		print_fail(translate('You did not select any accounts to delete.'));
-	}
-	$account_list_shown = explode(',', $_POST['account_list_shown']);
-	$db->del_account($_POST['account_id'], $account_list_shown);
-	CmnFns::write_log('Accounts archived. ' . join(', ', $_POST['account_id']), $_SESSION['sessionID']);
+	$account_list_shown = explode(',', $account_list_shown);
+	$db->del_account($account_id, $account_list_shown);
+	CmnFns::write_log('Accounts archived. ' . join(', ', $account_id), $_SESSION['sessionID']);
 	print_success();
 }
 
@@ -374,35 +400,34 @@ function del_account() {
  */
 function tog_account() {
 	global $db;
-
-	$db->tog_account($_GET['account_id'], $_GET['status']);
-	CmnFns::write_log('Account ' . $_GET['account_id'] . ' toggled on/off.', $_SESSION['sessionID']);
-	$acc = new Account($_GET['account_id']);
-	$acc->email_account_admins($_GET['status']);
+	$account_id = filter_input(INPUT_GET, 'account_id', FILTER_SANITIZE_STRING);
+	$status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
+	
+	$db->tog_account($account_id, $status);
+	CmnFns::write_log('Account ' . $account_id . ' toggled on/off.', $_SESSION['sessionID']);
+	$acc = new Account($account_id);
+	$acc->email_account_admins($status);
 	print_success();
 }
 
 /**
  * Validates lab data
  * @param array $data array of data to validate
- * @return validated data
  */
 function check_account_data($data) {
 	$msg = array();
-
-	//var_dump($data);
 
 	if (empty($data['FRS']))
 		array_push($msg, 'FRS # is required.');
 
 	// if pi is empty check for pi_first_name and pi_last_name
-	if (empty($data['pi'])){
+	if (empty($data['pi'])) {
 		//array_push($msg, 'A PI is required.');
 		if(empty($data['pi_first_name']))
 			array_push($msg, 'Please enter the PI\'s first name');
 		if(empty($data['pi_last_name']))
 			array_push($msg, 'Please enter the PI\'s last name');
-	}else{
+	} else {
 		if(!is_numeric($data['pi']))
 			array_push($msg, 'Invalid PI.');
 	}
@@ -419,11 +444,11 @@ function check_account_data($data) {
 
 /**
  *
- * @return unknown_type
+ * @return none
  */
 function edit_account_users() {
 	global $db;
-	$account_id = $_POST['account_id'];
+	$account_id = filter_input(INPUT_POST, 'account_id', FILTER_SANITIZE_STRING);
 
 	$account = new Account($account_id);
 
@@ -456,9 +481,9 @@ function edit_account_users() {
  */
 function edit_equipment_users() {
 	global $db;
-	$machid = $_POST['machid'];
+	$machid = filter_input(INPUT_GET, 'machid', FILTER_SANITIZE_STRING);
 
-	$users = $_POST['equipment_user_list'];
+	$users = filter_input(INPUT_GET, 'equipment_user_list', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
 
 	$db->clear_equipment_users($machid);
 	$db->add_equipment_users($machid, $users);
@@ -698,7 +723,8 @@ function check_equipment_data($data) {
 	$rs['location'] = $data['location'];
 	$rs['notes']	= $data['notes'];
 	$rs['owner']	= $data['owner'];
-
+	$rs['staff_contact']	= $data['staff_contact'];
+	
 	// adding dynamic rates for this tool
 	$keys = array_keys($data);
 	// find the inputs corresponding to resource_rates, the resource_rate_id is after the :

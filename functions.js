@@ -561,7 +561,7 @@ function changeLab(sel) {
 function showHide(element, showText, hideText, textElement) {
     /*console.log(element+','+showText+','+hideText);*/
     var showHide = "";
-    if (document.getElementById(element).style.display == "none") {
+    if (document.getElementById(element).style.display === "none") {
         document.getElementById(element).style.display='block';
         showHide = "show";
         if (typeof showText !== 'undefined') textElement.innerHTML = showText;
@@ -587,7 +587,7 @@ function showHideCpanelTable(element) {
 	var time = expires.getTime() + 2592000000;
 	expires.setTime(time);
 	var showHide = "";
-	if (document.getElementById(element).style.display == "none") {
+	if (document.getElementById(element).style.display === "none") {
 		document.getElementById(element).style.display='block';
 		showHide = "show";
 	} else {

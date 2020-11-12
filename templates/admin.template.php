@@ -42,7 +42,7 @@ function print_manage_labs(&$pager, $labs, $err) {
 		<td class="tableBorder">
 		<table width="100%" border="0" cellspacing="1" cellpadding="0">
 			<tr>
-				<td colspan="10" class="tableTitle">&#8250; <?php echo translate('All Labs')?></td>
+				<td colspan="9" class="tableTitle">&#8250; <?php echo translate('All Labs')?></td>
 			</tr>
 			<tr class="rowHeaders">
 				<!-- <td><?php echo translate('Lab Title')?></td> -->
@@ -60,7 +60,7 @@ function print_manage_labs(&$pager, $labs, $err) {
 			<?php
 
 			if (!$labs)
-			echo '<tr class="cellColor0"><td colspan="10" style="text-align: center;">' . $err . '</td></tr>' . "\n";
+			echo '<tr class="cellColor0"><td colspan="9" style="text-align: center;">' . $err . '</td></tr>' . "\n";
 
 			for ($i = 0; is_array($labs) && $i < count($labs); $i++) {
 				$cur = $labs[$i];
@@ -788,7 +788,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 	?>
 
 <form name="search_accounts_form" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
-<p align="center">FRS#:
+<p align="center">KFS#:
 	<input type="text" name="frs" class="textbox" value="<?php echo filter_input(INPUT_GET, 'kfs'); ?>" />
 	<input type="hidden" name="tool" value="<?php echo getTool()?>" />
 	<input type="hidden" name="searchAccounts" value="true" />
@@ -799,8 +799,8 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 	<?php if (isset($_GET['vert'])) { ?>
 	<input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
 	<?php } ?>
-	<input type="checkbox" name="getDeleted" id="getDeleted" value="1" <?php echo (isset($_GET['getDeleted'])) ? 'checked="checked"' : '';?>>
-	<label for="getDeleted">Show Deleted Data?</label>
+	<input type="checkbox" name="getArchived" id="getArchived" value="1" <?php echo (isset($_GET['getArchived'])) ? 'checked="checked"' : '';?>>
+	<label for="getArchived">Show Archived Data?</label>
 	<input type="submit" name="searchAcctsBtn" value="Update" class="button" />
 </p>
 </form>
@@ -824,7 +824,6 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								<td colspan="8" class="tableTitle">&#8250; All Accounts</td>
 							</tr>
 							<tr class="rowHeaders">
-								<td></td>
 								<td>Name</td>
 								<td>KFS #</td>
 								<td>PI</td>
@@ -833,9 +832,9 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								<td>Users</td>
 								<td>Billing Data</td>
 								<td>Status</td>
+								<td></td>
 							</tr>
 							<tr class="cellColor" style="text-align: center">
-								<td></td>
 								<td><?php printDescLink($pager, 'name', 'account name'); ?>
 								&nbsp;&nbsp; <?php printAscLink($pager, 'name', 'account name'); ?>
 								</td>
@@ -852,6 +851,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								<td></td>
 								<td><?php printDescLink($pager, 'status', 'status') ?>
 								&nbsp;&nbsp; <?php printAscLink($pager, 'status', 'status') ?></td>
+								<td></td>
 							</tr>
 							<?php
 							if (!$accounts)
@@ -861,27 +861,21 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								$cur = $accounts[$i];
 								//var_dump($accounts);
 
-								echo "<tr class=\"cellColor" . ($i%2);
+								echo "<tr class='cellColor" . ($i%2);
 								if ($cur['deleted']) {
 									echo ' deleted';
 								}
+								echo "' align='center' id='tr$i'>\r\n";
 
-								echo "\" align=\"center\" id=\"tr$i\">\n"
-								. "<td><input type=\"checkbox\" name=\"account_id[]\" value=\"" . $cur['account_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
-								if ($cur['deleted']) {
-									echo ' checked="checked"';
-								}
-								echo "/></td>\n"
-								. '<td style="text-align:left">' . $cur['name'] . "</td>\n"
-								. '<td style="text-align:left">' . $cur['FRS'] . "</td>\n";
-
-								echo '<td style="text-align:left">';
+								echo "<td style='text-align:left'>" . $cur['name'] . "</td>\r\n";
+								echo "<td style='text-align:left'>" . $cur['FRS'] . "</td>\r\n";
+								echo "<td style='text-align:left'>";
 
 								if ($cur['pi']==NULL || $cur['pi']==0) {
 									echo $cur['pi_last_name'];
 									if($cur['pi_first_name']!='')
 									echo ", " . $cur['pi_first_name'];
-									echo " <font size=1 color='red'>Not Registered</font>";
+									echo " <span style='font-size:.8em;color:red;'>Not Registered</span>";
 								} else {
 									$pi = new User($cur['pi']);
 									echo $pi->get_name(true);
@@ -890,14 +884,20 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 								echo "</td>\n";
 								echo '<td style="text-align:left">' . $cur['last_update'] . "</td>\n";
 
-								echo  '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&account_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;account_id=' . $cur['account_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['name']))) . "</td>\n";
+								echo '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&account_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;account_id=' . $cur['account_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['name']))) . "</td>\n";
 
-								echo  '<td>' . $link->getLink("admin.php?tool=account_users&amp;account_id=" . $cur['account_id'], 'Users', '', '', 'Edit this accounts users') . "</td>\n";
+								echo '<td>' . $link->getLink("admin.php?tool=account_users&amp;account_id=" . $cur['account_id'], 'Users', '', '', 'Edit this accounts users') . "</td>\n";
 
-								echo  '<td>' . $link->getLink("view_account_info.php?account_id=" . $cur['account_id'], 'View Billing', '', '', 'View Billing Data') . "</td>\n";
+								echo '<td>' . $link->getLink("view_account_info.php?account_id=" . $cur['account_id'], 'View Billing', '', '', 'View Billing Data') . "</td>\n";
 
-								echo  '<td>' . $link->getLink("admin_update.php?fn=togAccount&amp;account_id=" . $cur['account_id'] . "&amp;status=" . $cur['status'], $cur['status'] == 1 ? '<font color="#009900">Active' : '<font color="#ff0000">Inactive', '', '', 'Toggle this account active/inactive') . "</font></td>\n"
-								. "</tr>\n";
+								echo '<td>' . $link->getLink("admin_update.php?fn=togAccount&amp;account_id=" . $cur['account_id'] . "&amp;status=" . $cur['status'], $cur['status'] == 1 ? '<font color="#009900">Active' : '<font color="#ff0000">Inactive', '', '', 'Toggle this account active/inactive') . "</font></td>\n";
+								echo "<td><input type=\"checkbox\" name=\"account_id[]\" value=\"" . $cur['account_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
+								if ($cur['deleted']) {
+									echo ' checked="checked"';
+								}
+								echo "/></td>\n";
+
+								echo "</tr>\n";
 							}
 							// Close table
 							?>
@@ -907,8 +907,10 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 				</table>
 				<br />
 				<?php
-				echo submit_button('Archive Selected', 'account_id') . hidden_fn('delAccount');
+				echo "<div style='text-align: right;'>";
+				echo submit_button(translate('Update'), 'account_id') . hidden_fn('delAccount');
 				//echo submit_button('Toggle', 'account_id') . hidden_fn('togAccount');
+				echo "</div>";
 				echo '</form>';
 }
 
@@ -1307,89 +1309,147 @@ function print_account_admin_edit($rs, $users, $edit, &$pager, $account_types = 
 
 /**
  * Prints out list of current resources
- * @param Object $pager pager object
+ * @param Pager $pager pager object
  * @param mixed $resources array of resource data
  * @param string $err last database error
  */
 function print_manage_resources(&$pager, $resources, $err) {
 	global $link;
-
+	$getDeleted = filter_input(INPUT_GET, 'getDeleted', FILTER_VALIDATE_INT, array('options'=>array('default'=>0, 'min_range'=>0, 'max_range'=>1)));
+	
+	$resources_shown_list = '';
+	foreach ($resources as $a) {
+		if (!empty($resources_shown_list)) {
+			$resources_shown_list .= ',';
+		}
+		$resources_shown_list .= $a['machid'];
+	}
 	?>
-				<form name="manageResource" method="post" action="admin_update.php"
-					onsubmit="return checkAdminForm(this);">
-				<table width="100%" border="0" cellspacing="0" cellpadding="1"
-					align="center">
-					<tr>
-						<td class="tableBorder">
-						<table width="100%" border="0" cellspacing="1" cellpadding="0">
-							<tr>
-								<td colspan="7" class="tableTitle">&#8250; <?php echo translate('All Resources')?></td>
-							</tr>
-							<tr class="rowHeaders">
-								<td><?php echo translate('Resource Name')?></td>
-								<!-- <td width="18%"><?php echo translate('Location')?></td> -->
-								<td width="12%"><?php echo translate('Lab')?></td>
-								<td width="10%"><?php echo translate('Phone')?></td>
-								<!-- <td width="25%"><?php echo translate('Notes')?></td> -->
-								<td width="5%"><?php echo translate('Edit')?></td>
-								<td width="5%">View Users</td>
-								<td width="9%"><?php echo translate('Status')?></td>
-								<td width="7%"><?php echo translate('Delete')?></td>
-							</tr>
-							<tr class="cellColor" style="text-align: center">
-								<td><?php printDescLink($pager, 'name', 'resource name') ?>
-								&nbsp;&nbsp; <?php printAscLink($pager, 'name', 'resource name') ?>
-								</td>
-								<!-- <td> <?php printDescLink($pager, 'location', 'location') ?> &nbsp;&nbsp; <?php printAscLink($pager, 'location', 'location') ?> </td> -->
-								<td><?php printDescLink($pager, 'labTitle', 'lab title') ?>
-								&nbsp;&nbsp; <?php printAscLink($pager, 'labTitle', 'lab title') ?>
-								</td>
-								<td>&nbsp;</td>
-								<!-- <td>&nbsp;</td> -->
-								<td>&nbsp;</td>
-								<td>&nbsp;</td>
-								<td>&nbsp;</td>
-								<td>&nbsp;</td>
-							</tr>
-							<?php
+				<div>
+				    <div style="width:250px;margin:5px auto;">
+				        <form name="show_deleted_form" action="<?php echo $_SERVER['PHP_SELF'];?>" method="get">
+				        	<input type="hidden" name="tool" value="<?php echo getTool()?>" />
+                            <input type="hidden" name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" />
+                            <?php if (isset($_GET['order'])) { ?>
+                            <input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
+                            <?php } ?>
+                            <?php if (isset($_GET['vert'])) { ?>
+                            <input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
+                            <?php } ?>
+                            <input type="checkbox" name="getDeleted" id="getDeleted" value="1" <?php echo ($getDeleted === 1) ? 'checked="checked"' : '';?>>
+                            <label for="getDeleted"><?php echo translate('Show Deleted Data');?></label>
+                            <input type="submit" name="searchAcctsBtn" value="Update" class="button">
+				        </form>
+				    </div>
+				</div>
+				<form name="manageResource" method="post" action="admin_update.php">
+                    <input type="hidden" name="tool" value="<?php echo getTool()?>" />
+       				<input type="hidden" name="resource_list_shown" value="<?php echo $resources_shown_list ;?>">
 
-							if (!$resources)
-							echo '<tr class="cellColor0"><td colspan="8" style="text-align: center;">' . $err . '</td></tr>' . "\n";
-
-							for ($i = 0; is_array($resources) && $i < count($resources); $i++) {
-								$cur = $resources[$i];
-								echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n"
-								. '<td style="text-align:left">' . $cur['name'] . "</td>\n";
-								//    . '<td style="text-align:left">';
-								//echo isset($cur['location']) ?  $cur['location'] : '&nbsp;';
-								//echo "</td>\n"
-								echo '<td style="text-align:left">' . $cur['nickname'] . "</td>\n";
-								echo '<td style="text-align:left">';
-								echo isset($cur['rphone']) ?  $cur['rphone'] : '&nbsp;';
-								echo "</td>\n";
-								//    . '<td style="text-align:left">';
-								//echo isset($cur['notes']) ?  $cur['notes'] : '&nbsp;';
-								//echo "</td>\n"
-								echo '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&machid=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;machid=' . $cur['machid'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : '')."#edit", translate('Edit'), '', '', translate('Edit data for', array($cur['name']))) . "</td>\n";
-
-								echo '<td>' . $link->getLink("javascript: equip_users('" . $cur['machid'] . "');", 'Users', '', '', 'Edit Users') . '</td>';
-
-								echo '<td>' . $link->getLink("admin_update.php?fn=togResource&amp;machid=" . $cur['machid'] . "&amp;status=" . $cur['status'], $cur['status'] == 'a' ? '<font color="#009900">Active' : '<font color="#ff0000">Inactive', '', '', translate('Toggle this resource active/inactive')) . "</font></td>\n";
-
-								echo "<td><input type=\"checkbox\" name=\"machid[]\" value=\"" . $cur['machid'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\" /></td>\n";
-
-								echo "</tr>\n";
-							}
-
-							// Close table
-							?>
-						</table>
-						</td>
-					</tr>
-				</table>
-				<br />
-				<?php
-				echo submit_button(translate('Delete'), 'machid') . hidden_fn('delResource') . '</form>';
+                    <input type="hidden" name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" />
+                    <?php if (isset($_GET['order'])) { ?>
+                    <input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
+                    <?php } ?>
+                    <?php if (isset($_GET['vert'])) { ?>
+                    <input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
+                    <?php } ?>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="1"
+                        align="center">
+                        <tr>
+                            <td class="tableBorder">
+                            <table width="100%" border="0" cellspacing="1" cellpadding="0">
+                                <tr>
+                                    <td colspan="7" class="tableTitle">&#8250; <?php echo translate('All Resources')?></td>
+                                </tr>
+                                <tr class="rowHeaders">
+                                    <td><?php echo translate('Resource Name')?></td>
+                                    <!-- <td width="18%"><?php echo translate('Location')?></td> -->
+                                    <td width="12%"><?php echo translate('Lab')?></td>
+                                    <td width="10%"><?php echo translate('Phone')?></td>
+                                    <!-- <td width="25%"><?php echo translate('Notes')?></td> -->
+                                    <td width="5%"><?php echo translate('Edit')?></td>
+                                    <td width="5%">View Users</td>
+                                    <td width="9%"><?php echo translate('Reservation Status')?></td>
+                                    <td width="9%"><?php echo translate('Operational Status')?></td>
+                                    <td width="7%"><?php echo translate('Delete')?></td>
+                                </tr>
+                                <tr class="cellColor" style="text-align: center">
+                                    <td><?php printDescLink($pager, 'name', 'resource name') ?>
+                                    &nbsp;&nbsp; <?php printAscLink($pager, 'name', 'resource name') ?>
+                                    </td>
+                                    <!-- <td> <?php printDescLink($pager, 'location', 'location') ?> &nbsp;&nbsp; <?php printAscLink($pager, 'location', 'location') ?> </td> -->
+                                    <td><?php printDescLink($pager, 'labTitle', 'lab title') ?>
+                                    &nbsp;&nbsp; <?php printAscLink($pager, 'labTitle', 'lab title') ?>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                    <!-- <td>&nbsp;</td> -->
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <?php
+    
+                                if (!$resources)
+                                echo '<tr class="cellColor0"><td colspan="8" style="text-align: center;">' . $err . '</td></tr>' . "\n";
+    
+                                for ($i = 0; is_array($resources) && $i < count($resources); $i++) {
+                                    $cur = $resources[$i];
+                                    echo "<tr class=\"cellColor" . ($i%2) . "\" align=\"center\" id=\"tr$i\">\n"
+                                    . '<td style="text-align:left">' . $cur['name'] . "</td>\n";
+                                    //    . '<td style="text-align:left">';
+                                    //echo isset($cur['location']) ?  $cur['location'] : '&nbsp;';
+                                    //echo "</td>\n"
+                                    echo '<td style="text-align:left">' . $cur['nickname'] . "</td>\n";
+                                    echo '<td style="text-align:left">';
+                                    echo isset($cur['rphone']) ?  $cur['rphone'] : '&nbsp;';
+                                    echo "</td>\n";
+                                    //    . '<td style="text-align:left">';
+                                    //echo isset($cur['notes']) ?  $cur['notes'] : '&nbsp;';
+                                    //echo "</td>\n"
+                                    echo '<td>' . $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&machid=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;machid=' . $cur['machid'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : '')."#edit", translate('Edit'), '', '', translate('Edit data for', array($cur['name']))) . "</td>\n";
+    
+                                    echo '<td>' . $link->getLink("javascript: equip_users('" . $cur['machid'] . "');", 'Users', '', '', 'Edit Users') . '</td>';
+    
+                                    echo '<td>' . $link->getLink("admin_update.php?fn=togResource&amp;machid=" . $cur['machid'] . "&amp;status=" . $cur['status'], $cur['status'] == 'a' ? '<font color="#009900">Active' : '<font color="#ff0000">Inactive', '', '', translate('Toggle this resource active/inactive')) . "</font></td>\n";
+    
+                                    echo "<td>";
+                                    $operational_statuses = ['Online', 'Maintenance', 'Waiting', 'Offline']; // @todo: create dynamic table for op statuses.
+                                    echo "<select name='operational_status-" . $cur['machid'] . "' class='operational-status-" . strtolower($cur['operational_status']) ."'>";
+                                    foreach ($operational_statuses as $op_status) {
+                                        echo "<option value='$op_status' class='operational-status-" . strtolower($op_status) ."'";
+                                        if ($cur['operational_status'] === $op_status) {
+                                            echo " selected";
+                                        }
+                                        echo ">".translate($op_status)."</option>";
+                                    }
+                                    echo "</select>";
+                                    echo "</td>\n";
+    
+                                    echo "<td><input type=\"checkbox\" name=\"machid[]\" value=\"" . $cur['machid'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
+                                    if ($cur['deleted'] == 1) {
+                                        echo "checked";
+                                    }
+                                    echo "></td>\n";
+    
+                                    echo "</tr>\n";
+                                }
+    
+                                // Close table
+                                ?>
+                            </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <br />
+                    <div style="margin: 5px 0 5px 0;text-align: right;">
+                    <?php
+                    echo submit_button(translate('Update')) . hidden_fn('updateResources');
+                    ?>
+                    </div>
+				</form>
+    <?php
 }
 
 /**
@@ -1437,6 +1497,17 @@ function print_equipment_edit($rs, $labs, $usersList, $rateCategories, $resource
 									<?php
 									for ($i = 0; $i < count($usersList); $i++){
 										echo '<option value="' . $usersList[$i]['user_id'] . '"' . (isset($rs['owner']) && $usersList[$i]['user_id'] == $rs['owner'] ? ' selected="selected"' : '') . '>' . $usersList[$i]['last_name'] . ", " . $usersList[$i]['first_name'] . "</option>\n";
+									}
+									?>
+								</select></td>
+							</tr>
+							<tr>
+								<td class="formNames">Staff Contact</td>
+								<td class="cellColor"><select name="staff_contact" class="textbox">
+									<option value="">Select Contact</option>
+									<?php
+									for ($i = 0; $i < count($usersList); $i++){
+										echo '<option value="' . $usersList[$i]['user_id'] . '"' . (isset($rs['owner']) && $usersList[$i]['user_id'] == $rs['staff_contact'] ? ' selected="selected"' : '') . '>' . $usersList[$i]['last_name'] . ", " . $usersList[$i]['first_name'] . "</option>\n";
 									}
 									?>
 								</select></td>

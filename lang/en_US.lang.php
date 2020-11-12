@@ -260,6 +260,8 @@ $strings['Lab'] = 'Lab';
 $strings['Phone'] = 'Phone';
 $strings['Notes'] = 'Notes';
 $strings['Status'] = 'Status';
+$strings['Operational Status'] = 'Operational Status';
+$strings['Reservation Status'] = 'Reservation Status';
 $strings['All Labs'] = 'All Labs';
 $strings['All Resources'] = 'All Resources';
 $strings['All Users'] = 'All Users';
@@ -665,6 +667,16 @@ $strings['Migrating reservations'] = 'Migrating reservations';
 $strings['Admin'] = 'Admin';
 $strings['Manage Announcements'] = 'Manage Announcements';
 $strings['There are no announcements'] = 'There are no announcements';
+
+
+$strings['Online'] = 'Online';
+$strings['Offline'] = 'Offline';
+$strings['Maintenance'] = 'In maintenance';
+$strings['Waiting'] = 'Waiting for part/service';
+$strings['Contact staff to reserve'] = 'Contact lab staff to reserve';
+$strings['Show Deleted Data'] = 'Show Deleted Data?';
+
+
 // end since 1.1.0
 
 /***
@@ -764,5 +776,5 @@ $email['reservation_removal'] = "You have been removed from the following reserv
 		. "End Date: %s\r\n"
 		. "End Time: %s\r\n"
 		. "Summary: %s\r\n"
-		. "Repeated Dates (if present): %s\r\n\r\n";	
-?>
+		. "Repeated Dates (if present): %s\r\n\r\n";
+
