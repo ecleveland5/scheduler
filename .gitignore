@@ -3,3 +3,4 @@ config/config.php
 .vagrant/*
 ubuntu-*
 *.box
+install/nanocenter.sql
