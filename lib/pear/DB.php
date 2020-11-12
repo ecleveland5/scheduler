@@ -609,7 +609,7 @@ class DB
             $parsed['dbsyntax'] = $str;
         }
 
-        if (empty($dsn)) {
+        if (!count($dsn)) {
             return $parsed;
         }
 

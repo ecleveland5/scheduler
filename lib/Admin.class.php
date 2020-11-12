@@ -13,7 +13,7 @@
 /**
  * Base directory of application
  */
-#@define('BASE_DIR', dirname(__FILE__) . '/..');
+@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
  * AdminDB class
  */
@@ -319,13 +319,14 @@ class Admin {
 	 */
 	function listResourcesTable() {
 		$pager = $this->pager;
+		$getDeleted = filter_input(INPUT_GET, 'getDeleted', FILTER_VALIDATE_INT, array('options'=>array('default'=>0, 'min_range'=>0, 'max_range'=>1)));
 
-		$num = $this->db->get_num_admin_recs('resources');	// Get number of records
+		$num = $this->db->get_num_admin_recs('resources', $getDeleted);	// Get number of records
 
 		$pager->setTotRecords($num);				// Pager method calls
 		$orders = array('name', 'machID', 'labTitle');
 
-		$resources = $this->db->get_all_equipment_data($pager, $orders);
+		$resources = $this->db->get_all_equipment_data($pager, $orders, $getDeleted);
 
 		print_manage_resources($pager, $resources, $this->db->get_err());	// Print table of resources
 
@@ -338,8 +339,8 @@ class Admin {
 	 * @see printResourceEdit()
 	 */
 	function editResourceTable() {
-
-		$edit = (isset($_GET['machid']));	// Determine if the form should contain values or be blank
+		$machid = filter_input(INPUT_GET, 'machid', FILTER_SANITIZE_STRING);
+		$edit = (!empty($machid));	// Determine if the form should contain values or be blank
 		$rs = array();
 		$pager = new Pager;
 		$equipment_list = $this->db->get_all_equipment_data($pager, array('name'));
@@ -347,7 +348,6 @@ class Admin {
 
 		if ($edit)	{
 			// If this is an edit, get the resource information from database
-			$machid =  trim($_GET['machid']);
 			$rs = $this->db->get_equipment_data($machid);
 			$resourceRates = $this->db->get_resource_rates($machid);
 		}

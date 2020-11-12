@@ -192,6 +192,9 @@ class Pager {
 	*/
 	function initCurPage() {
 		$cur_page = filter_input(INPUT_GET, $this->page_var, FILTER_VALIDATE_INT);
+		if ($cur_page === null) {
+			$cur_page = filter_input(INPUT_POST, $this->page_var, FILTER_VALIDATE_INT);
+		}
 		$this->cur_page = isset($cur_page) ? $cur_page : 1;
 	}
 
@@ -201,9 +204,9 @@ class Pager {
 	*/
 	function initLimit() {
 		if (isset($_GET[$this->limit_var]))
-			$this->limit = intval(filter_input(INPUT_GET, $this->limit_var, FILTER_SANITIZE_NUMBER_INT));
+			$this->limit = intval(filter_input(INPUT_GET, $this->limit_var, FILTER_VALIDATE_INT));
 		if (isset($_POST[$this->limit_var]))
-			$this->limit = intval(filter_input(INPUT_POST, $this->limit_var, FILTER_SANITIZE_NUMBER_INT));
+			$this->limit = intval(filter_input(INPUT_POST, $this->limit_var, FILTER_VALIDATE_INT));
 	}
 	
 	function initOrder() {

@@ -35,17 +35,14 @@ class Calendar {
 	var $lab_id = '';
 
 	var $javascript = "changeScheduler(%d,%d,%d,%d,'%s');";
-	
-	/**
-	 * Create a new Calendar object with default values
-	 *
-	 * This will create a new Calendar using default
-	 * colors, font sizes, and other attributes
-	 * @param bool $isPopup
-	 * @param null $month
-	 * @param null $year
-	 * @param null $weekstart
-	 */
+
+    /**
+    * Create a new Calendar object with default values
+    *
+    * This will create a new Calendar using default
+    * colors, font sizes, and other attributes
+    * @param none
+    */
     function __construct($isPopup = true, $month = null, $year = null, $weekstart = null) {
 		//$this->setupStyleRules();
 		global $months_full;

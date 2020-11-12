@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-#@define('BASE_DIR', dirname(__FILE__) . '/../..');
+@define('BASE_DIR', dirname(__FILE__) . '/../..');
 /**
 * DBEngine class
 */
@@ -46,7 +46,7 @@ class AccountDB extends DBEngine {
 	public function get_account_users($account_id){
 		$sql = 'SELECT account_users.user_id, `user`.first_name, `user`.last_name, `user`.email FROM '
 			. $this->get_table('account_users') . ' JOIN `user` ON `user`.user_id = account_users.user_id '
-			. 'WHERE account_id=? and status = 1 and `user`.archived=0';
+			. 'WHERE account_id=? and status = 1 and `user`.deleted=0';
 		$result = $this->db->query($sql, array($account_id));
 
 		$this->check_for_error($result);
@@ -69,7 +69,7 @@ class AccountDB extends DBEngine {
 	public function get_account_admins($account_id) {
 		$sql = 'SELECT account_users.user_id, `user`.first_name, `user`.last_name, `user`.email FROM '
 			. $this->get_table('account_users') . ' JOIN `user` ON `user`.user_id = account_users.user_id '
-			. 'WHERE account_id=? AND status = 1 AND `user`.archived=0 AND account_users.is_admin = 1';
+			. 'WHERE account_id=? AND status = 1 AND `user`.deleted=0 AND account_users.is_admin = 1';
 		$result = $this->db->query($sql, array($account_id));
 		$this->check_for_error($result);
 

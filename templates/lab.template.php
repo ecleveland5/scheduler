@@ -160,26 +160,27 @@ function end_day_table() {
 
 <?php
 }
-
-
-/**
-* Prints out the cell containing all the resource information
-* @param int $ts timestamp for the current day
-* @param string $id id of this resource
-* @param string $name name of this resource
-* @param boolean $show whether this resource can be reserved
-* @param boolean $is_blackout whether this is a blackout lab or not
-* @param string $lab_id id of the current lab
-* @param boolean $pending is reservation pending approval
-* @param string $color background color of row
-*/
+	
+	
+	/**
+	 * Prints out the cell containing all the resource information
+	 * @param int $ts timestamp for the current day
+	 * @param string $id id of this resource
+	 * @param string $name name of this resource
+	 * @param boolean $show whether this resource can be reserved
+	 * @param boolean $is_blackout whether this is a blackout lab or not
+	 * @param string $lab_id id of the current lab
+	 * @param boolean $pending is reservation pending approval
+	 * @param string $color background color of row
+	 * @param bool $hide
+	 */
 function print_name_cell($ts, $id, $name, $show, $is_blackout, $lab_id, $pending = false, $color = '', $hide = false) {
     global $link;
 
     $color = (empty($color)) ? 'cellColor': $color;
 
     // Start a new row and print out resource name
-    echo "<tr class=\"$color $id\"";
+    echo "<tr class=\"$color $id resource-row\" ";
     if ($hide) {
         echo ' style="display:none;"';
     }
@@ -187,14 +188,14 @@ function print_name_cell($ts, $id, $name, $show, $is_blackout, $lab_id, $pending
            . '<td class="resourceName">';
 
     if ($is_blackout) {
-        $link->doLink("javascript: reserve('" . RES_TYPE_ADD . "', '$id','$ts', '', '$lab_id', '1', '0', '$pending');", $name, '', '', translate("Set blackout times", array($name, CmnFns::formatDate($ts))));
+        $link->doLink("javascript: reserve('" . RES_TYPE_ADD . "', '$id', '$ts', '', '$lab_id', '1', '0', '$pending');", $name, '', '', translate("Set blackout times", array($name, CmnFns::formatDate($ts))));
     }
     else {
         // If the user is allowed to make reservations on this resource
         // then provide a link
         // Else do not
         if ($show)
-            $link->doLink("javascript: reserve('" . RES_TYPE_ADD . "','$id','$ts','', '$lab_id', '0', '$pending');", $name, '', '', translate('Reserve on', array($name, CmnFns::formatDate($ts))));
+            $link->doLink("javascript: reserve('" . RES_TYPE_ADD . "','$id', '$ts','', '$lab_id', '0', '$pending');", $name, '', '', translate('Reserve on', array($name, CmnFns::formatDate($ts))));
         else
             echo '<span class="inact">' . $name . '</span>';
     }
@@ -399,9 +400,9 @@ function print_filter_resources(array $machids, array $filtered = array(), $user
     <script>
         function updateUserResourceFilters(machid, obj) {
             if (obj.checked) {
-                state = 'on';
-            } else {
                 state = 'off';
+            } else {
+                state = 'on';
             }
             switch (state) {
                 case 'on' :
@@ -442,12 +443,13 @@ function print_filter_resources(array $machids, array $filtered = array(), $user
     </script>
     <div style="width:500px;min-height:25px;max-height:150px;margin:0 auto;border:solid 1px #000;padding:4px 0 0 4px;">
         <span style="font-weight: bold;float:left;">Resource Filters</span>
-        <span style="float:right;cursor: hand;margin-right:5px;"><a onclick="showHide('resource_filter', 'Collapse', 'Expand', this);" style="cursor: hand;">collapse</a></span>
-        <div id="resource_filter" style="height:135px;overflow:auto;clear:both;">
+        <span style="float:right;cursor: hand;margin-right:5px;"><a onclick="showHide('resource_filter_list', 'Collapse', 'Expand', this);" style="cursor: hand;">collapse</a></span>
+        <div id="resource_filter_list" style="height:135px;overflow:auto;clear:both;">
             <?php
             foreach ($machids as $m) {
-                echo '<input type="checkbox" id="' . $m['machid'] . '" value="' . $m['machid'] . '"
-                    onclick="showHideByClass(\'' . $m['machid'] . '\');updateUserResourceFilters(\''.$m['machid'].'\', this);"';
+                echo '<input name="resource-filter" type="checkbox" id="' . $m['machid'] . '" value="' . $m['machid'] . '"' .
+                    //' onclick="showHideByClass(\'' . $m['machid'] . '\');updateUserResourceFilters(\''.$m['machid'].'\', this);"';
+                    ' onclick="showHideByClass(\'resource-filter\');updateUserResourceFilters(\''.$m['machid'].'\', this);"';
                 if (array_key_exists($m['machid'], $filtered)) {
                     echo ' checked="checked"';
                 }
