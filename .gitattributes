@@ -1,4 +1,2 @@
 install.sql filter=lfs diff=lfs merge=lfs -text
-/install/install.sql filter=lfs diff=lfs merge=lfs -text
-'/install/install.sql' filter=lfs diff=lfs merge=lfs -text
-'*.sql' filter=lfs diff=lfs merge=lfs -text
+*.sql filter=lfs diff=lfs merge=lfs -text

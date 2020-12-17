@@ -166,14 +166,12 @@ function print_day_reservations($reservations, $datestamp, $days, $show_owner_ic
 					}
 				
 					$js = "onmouseover=\"showSummary('details', event, '" . build_reservation_detail_div($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";	
-						
-					echo "<p>&#8226; <a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $datestamps[$date]) ? ' [' . translate_date('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . (($res['end_date'] > $datestamps[$date]) ? ' [' . translate_date('general_date', $res['end_date']) . ']' : '') . ' ' . $res['name'] . '</a>';
-					if ($show_owner_icon) {
-						echo ($res['owner'] == 1) ? ' <img src="img/owner.gif" alt="' . translate('Owner') . '" title="' . translate('Owner') . '"/>' : ' <img src="img/participant.gif" alt="' . translate('Participant') . '" title="' . translate('Participant') . '"/>';
-					}
-					//if (isset($res['parentid'])) echo ' <img src="img/recurring.gif" width="15" height="15" alt="' . translate('Recurring') . '" title="' . translate('Recurring') . '"/>';
+					
+					echo "<div style='clear: both;margin-bottom: 15px;'>";
+					echo "<div style='float:left;width:5%;max-width:10px;'>&#8226;</div> <div style='float:left;width:95%'><a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $datestamps[$date]) ? ' [' . translate_date('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . ' ' . (($res['end_date'] > $datestamps[$date]) ? ' [' . translate_date('general_date', $res['end_date']) . ']' : '') . '<br><span style="">' . $res['name'] . '</span><br><span style="">' . $res['first_name'] . ' ' . $res['last_name'] . '</span></a></div>';
 					if ($res['start_date'] != $res['end_date']) echo ' <img src="img/multiday.gif" width="8" height="9" alt="' . translate('Multiple Day') . '" title="' . translate('Multiple Day') . '"/>';
-					echo "</p>\n";
+					echo "<div class='clear'></div>";
+					echo "</div>\n";
 				}				
 			}else{
 				echo '&nbsp;';	// There is no reservation for this time, print out an empty cell
@@ -209,7 +207,7 @@ function print_month_reservations($reservations, $datestamp, $fields = array('na
 		$start_date = $reservations[$i]['start_date'];
 		if ($reservations[$i]['start_date'] != $reservations[$i]['end_date']) {
 			// This makes sure that the reservation appears on every day that it is part of
-			list($month, $day, $year) = split(' ', date('m j Y', $reservations[$i]['start_date']));
+			list($month, $day, $year) = preg_split(' ', date('m j Y', $reservations[$i]['start_date']));
 			$date = 0;
 			for ($d = 0; $date <= $reservations[$i]['end_date']; $date = mktime(0,0,0, $month, $day + $d++, $year)) {
 				$reservations_by_date[$date][] = &$reservations[$i];

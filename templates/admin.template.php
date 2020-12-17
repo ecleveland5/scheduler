@@ -1093,9 +1093,7 @@ function print_account_admin_edit($rs, $users, $edit, &$pager, $account_types = 
 								<td class="formNames">Account Type</td>
 								<td class="cellColor">
 									<?php
-									if (array_key_exists('account_type', $rs)) {
 									    print_account_type_select_box('account_type', $account_types, $rs['account_type']);
-									}
 									?>
 								</td>
 							</tr>

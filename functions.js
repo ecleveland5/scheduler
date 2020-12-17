@@ -406,31 +406,21 @@ function showSummary(object, e, text) {
 	
 	w = parseInt(myLayer.style.width);
 	h = parseInt(myLayer.style.height);
+	x = e.clientX;
+	y = e.clientY;
+	browserX = document.body.offsetWidth - 25;
+	x += document.documentElement.scrollLeft;
+	y += document.documentElement.scrollTop;
 
-    if (e != '') {
-        if (isIE()) {
-            x = e.clientX;
-            y = e.clientY;
-            browserX = document.body.offsetWidth - 25;
-			x += document.body.scrollLeft;			// Adjust for scrolling on IE
-    		y += document.body.scrollTop;
-        }
-        if (!isIE()) {
-            x = e.pageX;
-            y = e.pageY;
-            browserX = window.innerWidth - 35;
-        }
-    }
-	
 	x1 = x + 20;		// Move out of mouse pointer
 	y1 = y + 20;
 	
 	// Keep box from going off screen
 	if (x1 + w > browserX)
 		x1 = browserX - w;
-    
+
     myLayer.style.left = parseInt(x1)+ "px";
-    myLayer.style.top = parseInt(y1) + "px";
+    myLayer.style.top = 100 + "px";
 	myLayer.style.visibility = "visible";
 }
 
@@ -445,8 +435,8 @@ function moveSummary(object, e) {
             x = e.clientX;
             y = e.clientY;
 			browserX = document.body.offsetWidth -25;
-			x += document.body.scrollLeft;
-			y += document.body.scrollTop;
+			x += document.documentElement.scrollLeft;
+			y += document.documentElement.scrollTop;
         }
         if (!isIE()) {
             x = e.pageX;
