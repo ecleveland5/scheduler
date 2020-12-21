@@ -45,17 +45,16 @@ function print_manage_labs(&$pager, $labs, $err) {
 				<td colspan="9" class="tableTitle">&#8250; <?php echo translate('All Labs')?></td>
 			</tr>
 			<tr class="rowHeaders">
-				<!-- <td><?php echo translate('Lab Title')?></td> -->
-				<td>Lab Nickname</td>
+				<td width="20%"><?php echo translate('Lab Nickname')?></td>
 				<td width="8%"><?php echo translate('Start Time')?></td>
 				<td width="8%"><?php echo translate('End Time')?></td>
-				<td width="9%"><?php echo translate('Time Span')?></td>
-				<td width="11%"><?php echo translate('Weekday Start')?></td>
-				<td width="20%"><?php echo translate('Admin Email')?></td>
-				<td width="7%"><?php echo translate('Default')?></td>
-				<td width="5%"><?php echo translate('Edit')?></td>
-				<td width="5%">Permissions</td>
-				<td width="7%"><?php echo translate('Delete')?></td>
+				<td width="8%"><?php echo translate('Time Span')?></td>
+				<td width="8%"><?php echo translate('Weekday Start')?></td>
+				<td width="16%"><?php echo translate('Admin Email')?></td>
+				<td width="8%"><?php echo translate('Default')?></td>
+				<td width="8%"><?php echo translate('Edit')?></td>
+				<td width="8%"><?php echo translate('Permissions')?></td>
+				<td width="8%"><?php echo translate('Delete')?></td>
 			</tr>
 			<?php
 
@@ -96,7 +95,7 @@ function print_manage_labs(&$pager, $labs, $err) {
 				echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Edit'), '', '', translate('Edit data for', array($cur['labTitle'])));
 				echo "</td>\n";
 				echo '<td>';
-				echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . '&amp;lab_id=' . $cur['lab_id'] . ((strpos($_SERVER['QUERY_STRING'], $pager->getLimitVar())===false) ? '&amp;' . $pager->getLimitVar() . '=' . $pager->getLimit() : ''), translate('Permissions'), '', '', translate('Edit lab permissions', array($cur['labTitle'])));
+				echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/&lab_id=[\d\w]*/", "", preg_replace("/tool=[\d\w]*/", "", preg_replace("/&limit=[\d\w]*/", "", $_SERVER['QUERY_STRING']))) . 'tool=lab_permissions' . '&amp;lab_id=' . $cur['lab_id'], translate('Permissions'), '', '', translate('Edit lab permissions', array($cur['labTitle'])));
 				echo "</td>\n";
 				echo "<td><input type=\"checkbox\" name=\"lab_id[]\" value=\"";
 				echo $cur['lab_id'];
@@ -298,7 +297,9 @@ function print_manage_lab_users(&$pager, $lab_id, $lab_name, $all_users, $traine
 	global $link;
 	$trained = array();
 	$viewed_users = array();
-
+	$order = filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);
+    $vert = filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);
+    
 	foreach ($trained_users as $t) {
 			$uid = $t['user_id'];
 
@@ -314,9 +315,18 @@ function print_manage_lab_users(&$pager, $lab_id, $lab_name, $all_users, $traine
 	//var_dump($trained);
 ?>
 <h4>You are Managing <?php echo $lab_name; ?> Users</h4>
+
+<?php
+$tool = getTool();
+$first_name = filter_input(INPUT_POST, 'firstName', FILTER_SANITIZE_STRING);
+$last_name = filter_input(INPUT_POST, 'lastName', FILTER_SANITIZE_STRING);
+$show_deleted = filter_input(INPUT_POST, 'show_deleted', FILTER_SANITIZE_NUMBER_INT);
+echo print_admin_user_search($tool, $first_name, $last_name, $show_deleted);
+
+?>
+
 <form name="manageLabUsers" method="post" action="admin_update.php">
-<table width="100%" border="0" cellspacing="0" cellpadding="1"
-	align="center">
+<table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">
 		<table width="100%" border="0" cellspacing="1" cellpadding="0">
@@ -324,11 +334,11 @@ function print_manage_lab_users(&$pager, $lab_id, $lab_name, $all_users, $traine
 				<td colspan="5" class="tableTitle">&#8250; All <?php echo $lab_name; ?> Users</td>
 			</tr>
 			<tr class="rowHeaders">
-				<td width="6%">Lab Admin</td>
-				<td width="21%"><?php echo translate('Name')?></td>
+				<td width="5%">Lab Admin</td>
+				<td width="20%"><?php echo translate('Name')?></td>
 				<td width="25%"><?php echo translate('Email')?></td>
-				<td width="6%">Safety Trained</td>
-				<td width="14%">Trained <?php echo translate('Date')?></td>
+				<td width="10%">Safety Trained</td>
+				<td width="15%">Trained <?php echo translate('Date')?></td>
 				<td>Trained By</td>
 			</tr>
 			<tr class="cellColor0" style="text-align: center;">
@@ -405,28 +415,6 @@ function print_manage_lab_users(&$pager, $lab_id, $lab_name, $all_users, $traine
 <?php } ?>
 <?php
 echo submit_button(translate('Update')) . hidden_fn('editLabUsers') . '</form>';
-?>
-<form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
-<p align="center"><?php print_last_name_links(); ?></p>
-<br />
-<p align="center"><?php echo translate('First Name')?>
-<input type="text"	 name="firstName" class="textbox" /> <?php echo translate('Last Name')?>
-<input type="text" 	 name="lastName" class="textbox" />
-<input type="hidden" name="searchUsers" value="true" />
-<input type="hidden" name="tool" value="<?php echo getTool()?>" />
-<input type="hidden" name="lab_id" value="<?php echo $lab_id; ?>" />
-<input type="hidden" name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" />
-<input type="hidden" name="viewed_users" value="<?php echo implode(",", $viewed_users); ?>" />
-<?php if (isset($_GET['order'])) { ?>
-<input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
-<?php } ?>
-<?php if (isset($_GET['vert'])) { ?>
-<input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" />
-<?php } ?>
-<input type="submit" name="searchUsersBtn" value="<?php echo translate('Search Users')?>" class="button" />
-</p>
-</form>
-<?php
 }
 
 /**
@@ -455,8 +443,8 @@ function print_manage_users(&$pager, $users, $err) {
 	name="searchUsers" value="true" /> <input type="hidden" name="tool"
 	value="<?php echo getTool()?>" /> <input type="hidden"
 	name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" /> <?php if (isset($_GET['order'])) { ?>
-<input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?>
-			<?php if (isset($_GET['vert'])) { ?> <input type="hidden" name="vert"
+	<input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?>
+	<?php if (isset($_GET['vert'])) { ?> <input type="hidden" name="vert"
 	value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?> <input type="submit"
 	name="searchUsersBtn" value="<?php echo translate('Search Users')?>"
 	class="button" />
@@ -2654,4 +2642,35 @@ function print_account_category_select_box($select_name = 'account_category', $a
 	}
 }
 
+function print_admin_user_search($tool, $pager, $first_name = null, $last_name = null, $show_deleted = false) {
 ?>
+<form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
+<p align="center"><?php print_last_name_links(); ?></p>
+<br />
+<p align="center">
+<label for="firstName"><?php echo translate('First Name')?></label>
+<input type="text" name="firstName" id="firstName" class="textbox" value="<?php echo $first_name;?>">
+<label for="lastName"><?php echo translate('Last Name')?></label>
+<input type="text" name="lastName" id="lastName" class="textbox" value="<?php echo $last_name;?>">
+<input type="hidden" name="tool" value="<?php echo $tool; ?>">
+<input type="hidden" name="searchUsers" value="true" /> <input type="hidden" name="tool" value="<?php echo getTool()?>">
+<input type="hidden" name="<?php echo (!is_null($pager)) ? $pager->getLimitVar() : 'limit'; ?>" value="<?php echo (!is_null($pager)) ? $pager->getLimit() : '50'; ?>" />
+<?php
+if (isset($_GET['order'])) {
+    ?>
+<input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>">
+<?php
+}
+if (isset($_GET['vert'])) {
+    ?>
+<input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>">
+<?php
+}
+?>
+<input type="submit" name="searchUsersBtn" value="<?php echo translate('Search Users')?>" class="button">
+<input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if ($show_deleted) echo "checked";?>>
+<label for="show_deleted">Show Archived Users?</label>
+</p>
+</form>
+<?php
+}

@@ -35,21 +35,21 @@ class Admin {
 	 */
 	var $tools = array (
 					'labs'				    => array ('Manage Labs', 'manageLabs'),
-					'lab_permissions'	=> array ('Manage Lab Permissions', 'manageLabPermissions'),
+					'lab_permissions'   	=> array ('Manage Lab Permissions', 'manageLabPermissions'),
 					'users' 			    => array ('Manage Users', 'manageUsers'),
-					'resources'			  => array ('Manage Resources', 'manageResources'),
-					'accounts'			  => array ('Manage Accounts', 'manageAccounts'),
-					'account_users'		=> array ('Manage Account Users', 'manageAccountUsers'),
-					'user_accounts'		=> array ('Manage A User Accounts', 'manageUserAccounts'),
+					'resources'			    => array ('Manage Resources', 'manageResources'),
+					'accounts'			    => array ('Manage Accounts', 'manageAccounts'),
+					'account_users'		    => array ('Manage Account Users', 'manageAccountUsers'),
+					'user_accounts'		    => array ('Manage A User Accounts', 'manageUserAccounts'),
 					'perms'				    => array ('Manage User Training', 'managePerms'),
-					'reservations'		=> array ('Manage Reservations', 'manageReservations'),
+					'reservations'		    => array ('Manage Reservations', 'manageReservations'),
 					'email'				    => array ('Email Users', 'manageEmail'),
 					'export'			    => array ('Export Database Data', 'export_data'),
 					'pwreset'			    => array ('Reset Password', 'reset_password'),
-					'announcements' 	=> array ('Manage Announcements', 'manageAnnouncements'),
-					'approval'			  => array ('Approve Reservations', 'approveReservations'),
+					'announcements' 	    => array ('Manage Announcements', 'manageAnnouncements'),
+					'approval'			    => array ('Approve Reservations', 'approveReservations'),
 					'today'				    => array ('Today\'s Reservations', 'todaysReservations'),
-					'equipment_users'	=> array ('Manage Equipment Users', 'manageEquipmentUsers')
+					'equipment_users'	    => array ('Manage Equipment Users', 'manageEquipmentUsers')
 	);
 	var $pager;
 	var $db;
@@ -117,9 +117,13 @@ class Admin {
 	 * @param none
 	 */
 	function manageLabPermissions() {
-		$lab_id = $_REQUEST['lab_id'];
+		$lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_STRING);
+		if ($lab_id === null) {
+			$lab_id = filter_input(INPUT_POST, 'lab_id', FILTER_SANITIZE_STRING);
+		}
+		$show_deleted = array_key_exists('show_deleted', $_POST);
+	
 		$labrs = $this->db->get_table_data('labs', array('nickname'), NULL, NULL, NULL, ' WHERE lab_id=?', $lab_id);
-		//var_dump($labrs);
 		$lab_name = $labrs[0]['nickname'];
 		//echo $lab_name;
 
@@ -127,18 +131,18 @@ class Admin {
 		$orders = array('last_name', 'email');
 
 		if (isset($_GET['searchUsers'])) {					// Search for users or get all users?
-			$first_name = trim($_GET['firstName']);
-			$last_name = trim($_GET['lastName']);
-			$num = $this->db->get_num_search_recs($first_name, $last_name);
+			$search_first_name = filter_input(INPUT_POST, 'first_name', FILTER_SANITIZE_STRING);
+			$search_last_name = filter_input(INPUT_POST, 'last_name', FILTER_SANITIZE_STRING);
+			$num = $this->db->get_num_search_recs($search_first_name, $search_last_name);
 			$pager->setTotRecords($num);
-			$users = $this->db->search_users($first_name, $last_name, $pager, $orders);
+			$users = $this->db->search_users($search_first_name, $search_last_name, $show_deleted, $pager, $orders);
 		}else {		// Default
 			$num = $this->db->get_num_admin_recs('user');	// Get number of records
 			$pager->setTotRecords($num);
 			$users = $this->db->get_all_admin_data($pager, 'user', $orders, true);
 		}
 
-		$trained = $this->db->get_lab_trained_users($lab_id, $pager, $orders);
+		$trained = $this->db->get_lab_trained_users($lab_id);
 		print_manage_lab_users($pager, $lab_id, $lab_name, $users, $trained, $this->db->get_err());		// Print table of users
 
 		$pager->printPages();						// Print pages

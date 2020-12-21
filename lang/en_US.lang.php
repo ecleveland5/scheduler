@@ -182,6 +182,7 @@ $strings['Login to view details and place reservations'] = 'Login to view detail
 $strings['Memberid is not available.'] = 'Memberid: %s is not available.';
 
 $strings['Lab Title'] = 'Lab Title';
+$strings['Lab Nickname'] = 'Lab Nickname';
 $strings['Start Time'] = 'Start Time';
 $strings['End Time'] = 'End Time';
 $strings['Time Span'] = 'Time Span';
