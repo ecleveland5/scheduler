@@ -612,6 +612,18 @@
                                         <p><b>&raquo;</b>
 											<?php $link->doLink('index.php?logout=true', translate('Log Out')) ?>
                                         </p>
+                                        <?php
+                                            if (Auth::isLabAdmin()) {
+	                                            echo "<p style='margin-top:2em;font-weight:bold;text-align:center;'>" . translate('Lab Administration') . "</p>\r\n";
+                                                echo "<p style='margin-top:1em;'><b>&raquo;</b> <a href=''>Request Billing Account</a></p>\r\n";
+	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Announcement</a></p>\r\n";
+	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Reservations</a></p>\r\n";
+	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Resources</a></p>\r\n";
+	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Permissions</a></p>\r\n";
+	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Settings</a></p>\r\n";
+                                            }
+                                        ?>
+                                        
 										<?php
 											// If it's the admin, print out admin links
 											if (Auth::isAdmin()) {

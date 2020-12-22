@@ -344,9 +344,9 @@ echo print_admin_user_search($tool, $first_name, $last_name, $show_deleted);
 			<tr class="cellColor0" style="text-align: center;">
 				<td>&nbsp;</td>
 				<td><?php printDescLink($pager, 'last_name', 'last name') ?>
-				&nbsp;&nbsp; <?php printAscLink($pager, 'last_name', 'last name') ?></td>
+				&nbsp;&nbsp;  <?php printAscLink($pager, 'last_name', 'last name') ?></td>
 				<td><?php printDescLink($pager, 'email', 'email address') ?>
-				&nbsp;&nbsp; <?php printAscLink($pager, 'email', 'email address') ?></td>
+				&nbsp;&nbsp;  <?php printAscLink($pager, 'email', 'email address') ?></td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>

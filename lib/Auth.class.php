@@ -262,6 +262,7 @@ class Auth {
 	* return $msg will give error message or blank
 	*/
 	function doSignin($user_id, $password, $lab_id, $signaction, $signid=''){
+		$msg = '';
 		if ($user_id == '' && $signid != ''){
 			$user_id = $this->get_signedin_user($signid);
 		}
@@ -274,13 +275,13 @@ class Auth {
 					$msg = $user->get_name() . " is currently signed in.<br />";
 				}else{
 
-					if ( !$id = $this->db->userExists($email, $use_logonname) ) {
+					if ( !$id = $this->db->userExists($email) ) {
 						$msg .= translate('We could not find that user in our database.') . '<br />';
 					}else{
 						$ok_user = true;
 					}
 					// If password is incorrect, set message and flag
-					if ($ok_user && !$this->db->isPassword($email, $password, $use_logonname)) {
+					if ($ok_user && !$this->db->isPassword($email, $password)) {
 						$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
 					}else{
 						// log the signin event
@@ -300,7 +301,7 @@ class Auth {
 								$this->db->log_signout($signid);
 								$msg = $user->get_name() . " signed out.";
 						}else{
-							if (!$this->db->isPassword($email, $password, $use_logonname)) {
+							if (!$this->db->isPassword($email, $password)) {
 								$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
 							}else{
 								// log the signout event
@@ -325,15 +326,16 @@ class Auth {
 		$user = new User($user_id);
 		$email = $user->get_email();
 		$ok_user = false;
+		$msg = '';
 
 		if ($signaction == 'signin'){
-				if ( !$id = $this->db->userExists($email, $use_logonname) ) {
+				if ( !$id = $this->db->userExists($email) ) {
 					$msg .= translate('We could not find that user in our database.') . '<br />';
 				}else{
 					$ok_user = true;
 				}
 				// If password is incorrect, set message and flag
-				if ($ok_user && !$this->db->isPassword($email, $password, $use_logonname)) {
+				if ($ok_user && !$this->db->isPassword($email, $password)) {
 					$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
 				}else{
 					if ($user->has_perm($equipment_id)){
@@ -356,7 +358,7 @@ class Auth {
 							$this->db->log_signout($user_id, $equipment_id);
 							$msg = $user->get_name() . " signed out.";
 					}else{
-						if (!$this->db->isPassword($email, $password, $use_logonname)) {
+						if (!$this->db->isPassword($email, $password)) {
 							$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
 						}else{
 							// log the signout event
@@ -383,14 +385,14 @@ class Auth {
 		$return = false;
 
 		if ($signaction == 'signin'){
-			if ( !$id = $this->db->userExists($email, $use_logonname) ) {
+			if ( !$id = $this->db->userExists($email) ) {
 				$msg .= translate('We could not find that user in our database.') . '<br />';
 			}else{
 				$ok_user = true;
 			}
 
 			// If password is incorrect, set message and flag
-			if ($ok_user && !$this->db->isPassword($email, $password, $use_logonname)) {
+			if ($ok_user && !$this->db->isPassword($email, $password)) {
 				$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
 			}else{
 				$return = true;
@@ -804,5 +806,42 @@ class Auth {
 	function verifyUserID($userID) {
 		return $this->db->verifyID($userID);
 	}
+	
+	public static function isLabAdmin() {
+		$auth = new Auth();
+		$user_id = $auth::getCurrentID();
+		$perms = $auth->getUserLabPermissions($user_id);
+		if (!empty($perms)) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * @param string $user_id
+	 * @param string|null $lab_id
+	 * @return array
+	 */
+	protected function getUserLabPermissions(string $user_id, string $lab_id = null): array {
+		return $this->db->getUserLabPermissions($user_id, $lab_id);
+	}
+	
+	/**
+	 * @param string $user_id
+	 * @param string|null $system_resource_id
+	 * @return array
+	 */
+	protected function getUserSystemPermissions(string $user_id, $system_resource_id = null): array {
+		return $this->db->getUserSystemPermissions($user_id, $system_resource_id);
+	}
+	
+	/**
+	 * Create new system permissions for a user
+	 * @param string $user_id
+	 * @param string $system_resource_id System resource ID
+	 * @param array $permissions array ['create', 'read', 'update', 'delete']
+	 */
+	protected function createUserSystemPermissions(string $user_id, string $system_resource_id, array $permissions): void {
+		$this->db->createUserSystemPermissions($user_id, $system_resource_id, $permissions);
+	}
 }
-?>

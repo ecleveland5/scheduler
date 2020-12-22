@@ -143,6 +143,7 @@ $strings['Email Users'] ='Email Users';
 $strings['Export Database Data'] = 'Export Database Data';
 $strings['Reset Password'] = 'Reset Password';
 $strings['System Administration'] = 'System Administration';
+$strings['Lab Administration'] = 'Lab Administration';
 $strings['Successful update'] = 'Successful update';
 $strings['Update failed!'] = 'Update failed!';
 $strings['Manage Blackout Times'] = 'Manage Blackout Times';

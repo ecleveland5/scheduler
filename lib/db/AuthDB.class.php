@@ -504,8 +504,8 @@ class AuthDB extends DBEngine {
 		}
 		$sql .= ' ORDER BY name';
 
-		$resources = mysql_query($sql);
-		if(mysql_num_rows($resources)>0){
+		$resources = mysqli_query($sql);
+		if(mysqli_num_rows($resources)>0){
 			return $resources;
 		}else{
 			return false;
@@ -532,8 +532,8 @@ class AuthDB extends DBEngine {
 		
 		//echo 'sql : '.$sql.'<br>';
 
-		$result = mysql_query($sql);
-		if (mysql_num_rows($result)>0){
+		$result = mysqli_query($sql);
+		if (mysqli_num_rows($result)>0){
 			return $result;
 		}else{
 			return false;
@@ -545,14 +545,56 @@ class AuthDB extends DBEngine {
 				FROM sign_log AS s
 				WHERE s.signid = " . $signid;
 
-		$result = mysql_query($sql);
+		$result = mysqli_query($sql);
 
-		if (mysql_num_rows($result)>0){
-			$rs = mysql_fetch_assoc($result);
+		if (mysqli_num_rows($result)>0){
+			$rs = mysqli_fetch_assoc($result);
 			return $rs['user_id'];
 		}else{
 			return false;
 		}
 	}
+	
+	public function getUserLabPermissions(string $user_id, string $lab_id = null) {
+		$return = array();
+		$values = array($user_id);
+		
+		$sql = "SELECT * FROM lab_permission WHERE user_id = ?";
+		if ($lab_id !== null) {
+			$sql .= " AND lab_id = ?";
+			$values[] = $lab_id;
+		}
+		$q = $this->db->prepare($sql);
+		$result = $this->db->execute($q, $values);
+		$this->check_for_error($result);
+		
+		if ($result->numRows()>0) {
+			while($row = $result->fetchRow()) {
+				array_push($return,$row);
+			}
+		}
+		
+		return $return;
+	}
+	
+	public function getUserSystemPermissions(string $user_id, string $system_resource_id) {
+		$return = array();
+		
+		$sql = "SELECT * FROM system_permissions WHERE user_id = ? AND system_resource_id = ?";
+		$q = $this->db->prepare($sql, array($user_id, $system_resource_id));
+		$result = $this->db->execute($q);
+		$this->check_for_error($result);
+		
+		if ($result->numRows()>0) {
+			while($row = $result->fetchRow()) {
+				array_push($return,$row);
+			}
+		}
+		
+		return $return;
+	}
+	
+	public function createUserSystemPermissions(string $user_id, string $system_resource_id, array $permissions) {
+	
+	}
 }
-?>
