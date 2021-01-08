@@ -470,12 +470,13 @@ function print_manage_users(&$pager, $users, $err) {
 				</td>
 			</tr>
 			<tr class="rowHeaders">
-				<td width="21%"><?php echo translate('Name')?></td>
-				<td width="25%"><?php echo translate('Email')?></td>
+				<td width="20%"><?php echo translate('Name')?></td>
+				<td width="20%"><?php echo translate('Email')?></td>
 				<td width="8%"><?php echo translate('Password')?></td>
-				<td width="5%"><?php echo translate('Admin')?></td>
-				<td width="10%">Equipment <?php echo translate('Permissions')?></td>
-				<td width="10%">Account <?php echo translate('Permissions')?></td>
+				<td width="6%"><?php echo translate('Admin')?></td>
+				<td width="10%"><?php echo translate('Equipment Permissions')?></td>
+				<td width="10%"><?php echo translate('Lab Permissions')?></td>
+				<td width="10%"><?php echo translate('Account Permissions')?></td>
 				<td width="6%"><?php echo translate('Archive')?></td>
 			</tr>
 			<tr class="cellColor0" style="text-align: center;">
@@ -483,6 +484,7 @@ function print_manage_users(&$pager, $users, $err) {
 				&nbsp;&nbsp; <?php printAscLink($pager, 'last_name', 'last name') ?></td>
 				<td><?php printDescLink($pager, 'email', 'email address') ?>
 				&nbsp;&nbsp; <?php printAscLink($pager, 'email', 'email address') ?></td>
+				<td>&nbsp;</td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
@@ -515,6 +517,7 @@ function print_manage_users(&$pager, $users, $err) {
 				. '<td>' . $link->getLink("admin.php?tool=pwreset&amp;user_id=" . $cur['user_id'], translate('Reset'), '', '', translate('Reset password for', $first_name_last_name)) .  "</td>\n"
 				. '<td>' . '<a href="admin_update.php?fn=adminToggle&amp;' . $admin_link . '">' . $admin_text . '</a></td>'
 				. '<td>' . $link->getLink("admin.php?tool=perms&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
+				. '<td>' . $link->getLink("admin.php?tool=user_lab_permissions&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
 				. '<td>' . $link->getLink("admin.php?tool=user_accounts&amp;user_id=" . $cur['user_id'], translate('Edit'), '', '', translate('Edit permissions for', $first_name_last_name)) . "</td>\n"
 				. '<td><input type="checkbox" name="user_id[]" value="' . $cur['user_id'] . "\" onclick=\"adminRowClick(this,'tr$i',$i);\"";
 				if ($cur['deleted'] === "1") {
@@ -2673,4 +2676,71 @@ if (isset($_GET['vert'])) {
 </p>
 </form>
 <?php
+}
+
+function print_manage_user_lab_permissions(array $user_lab_perms) {
+    $user_id = filter_input(INPUT_GET, 'user_id', FILTER_SANITIZE_STRING);
+    echo "<form name='manageUserLabPermissions' method='post' action='admin_update.php'>";
+    echo "<input type='hidden' name='tool' value='" . getTool() . "'>";
+    echo "<input type='hidden' name='user_id' value='" . $user_id . "'>";
+   	$labs_shown = '';
+?>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
+                        <tr>
+                            <td class="tableBorder">
+                                <table width="100%" border="0" cellspacing="1" cellpadding="0">
+                                    <tr>
+                                        <td colspan="3" class="tableTitle">&#8250; <?php echo translate('Lab Permissions'); ?></td>
+                                    </tr>
+                                    <tr class="rowHeaders">
+                                        <td width="50%"><?php echo translate('Lab Name')?></td>
+                                        <td width="25%"><?php echo translate('Safety Trained')?></td>
+                                        <td width="25%"><?php echo translate('Lab Admin')?></td>
+                                    </tr>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                    <?php
+                                    $i = 0;
+                                    foreach ($user_lab_perms as $lab_perm) {
+                                        if (!empty($labs_shown)) {
+                                            $labs_shown .= ',';
+                                        }
+                                        $labs_shown .= $lab_perm['lab_id'];
+                                        echo "<tr class='cellColor" . ($i%2) . "' style='text-align: center;'>";
+                                        echo "<td>" . $lab_perm['nickname'] . "</td>";
+                                        
+                                        // saftey trained
+                                        echo "<td>";
+                                        echo "<label for='safety_trained-".$lab_perm['lab_id']."_yes'>Yes</label><input type='radio' name='safety_trained-".$lab_perm['lab_id']."' id='safety_trained-".$lab_perm['lab_id']."_yes' value='1'";
+                                        if ($lab_perm['safety_trained'] === '1') {
+                                            echo " checked='checked'> <label for='safety_trained-".$lab_perm['lab_id']."_no'>No</label><input type='radio' name='safety_trained-".$lab_perm['lab_id']."' id='safety_trained-".$lab_perm['lab_id']."_no' value='0'>";
+                                        } else {
+                                            echo "> <label for='safety_trained-".$lab_perm['lab_id']."_no'>No</label><input type='radio' name='safety_trained-".$lab_perm['lab_id']."' id='safety_trained-".$lab_perm['lab_id']."_no' value='0' checked='checked'>";
+                                        }
+                                        echo "</td>";
+                                        
+                                        // lab admin
+                                        echo "<td>";
+                                        echo "<label for='is_admin-".$lab_perm['lab_id']."_yes'>Yes</label><input type='radio' name='is_admin-".$lab_perm['lab_id']."' id='is_admin-".$lab_perm['lab_id']."_yes' value='1'";
+                                        if ($lab_perm['is_admin'] === '1') {
+                                            echo " checked='checked'> <label for='is_admin-".$lab_perm['lab_id']."_no'>No</label><input type='radio' name='is_admin-".$lab_perm['lab_id']."' id='is_admin-".$lab_perm['lab_id']."_no' value='0'>";
+                                        } else {
+                                            echo "> <label for='is_admin_".$lab_perm['lab_id']."_no'>No</label><input type='radio' name='is_admin-".$lab_perm['lab_id']."' id='is_admin-".$lab_perm['lab_id']."_no' value='0' checked='checked'>";
+                                        }
+                                        echo "</tr>";
+                                    }
+                                    ?>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+<?php
+    echo "<div style='text-align: right;margin-top:10px;'>";
+    echo submit_button(translate('Update'), 'user_id') . hidden_fn('updateUserLabPermissions');
+    echo "<input type='hidden' name='labs_shown' value='" . $labs_shown . "'>";
+    echo "</div>";
+    echo "</form>";
+
 }

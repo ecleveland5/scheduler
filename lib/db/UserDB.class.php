@@ -293,7 +293,7 @@ class UserDB extends DBEngine {
 	}
 
     function get_lab_permissions($user_id) {
-        $sql = 'SELECT * FROM ' . $this->get_table('lab_permission') . ' WHERE user_id = ?';
+        $sql = 'SELECT lp.*, l.labTitle, l.nickname FROM ' . $this->get_table('lab_permission') . ' lp JOIN ' . $this->get_table('labs') . ' l on lp.lab_id = l.lab_id WHERE lp.user_id = ?';
         $q = $this->db->prepare($sql);
         $result = $this->db->execute($q, array($user_id));
         $this->check_for_error($result);

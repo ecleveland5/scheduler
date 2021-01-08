@@ -34,22 +34,23 @@ class Admin {
 	 Tools array has tool name as index, and array of title and function call as value
 	 */
 	var $tools = array (
-					'labs'				    => array ('Manage Labs', 'manageLabs'),
-					'lab_permissions'   	=> array ('Manage Lab Permissions', 'manageLabPermissions'),
-					'users' 			    => array ('Manage Users', 'manageUsers'),
-					'resources'			    => array ('Manage Resources', 'manageResources'),
-					'accounts'			    => array ('Manage Accounts', 'manageAccounts'),
-					'account_users'		    => array ('Manage Account Users', 'manageAccountUsers'),
-					'user_accounts'		    => array ('Manage A User Accounts', 'manageUserAccounts'),
-					'perms'				    => array ('Manage User Training', 'managePerms'),
-					'reservations'		    => array ('Manage Reservations', 'manageReservations'),
-					'email'				    => array ('Email Users', 'manageEmail'),
-					'export'			    => array ('Export Database Data', 'export_data'),
-					'pwreset'			    => array ('Reset Password', 'reset_password'),
-					'announcements' 	    => array ('Manage Announcements', 'manageAnnouncements'),
-					'approval'			    => array ('Approve Reservations', 'approveReservations'),
-					'today'				    => array ('Today\'s Reservations', 'todaysReservations'),
-					'equipment_users'	    => array ('Manage Equipment Users', 'manageEquipmentUsers')
+					'labs'				    => array('Manage Labs', 'manageLabs'),
+					'lab_permissions'   	=> array('Manage Lab Permissions', 'manageLabPermissions'),
+					'user_lab_permissions'  => array('Manage User Lab Permissions', 'manageUserLabPermissions'),
+					'users' 			    => array('Manage Users', 'manageUsers'),
+					'resources'			    => array('Manage Resources', 'manageResources'),
+					'accounts'			    => array('Manage Accounts', 'manageAccounts'),
+					'account_users'		    => array('Manage Account Users', 'manageAccountUsers'),
+					'user_accounts'		    => array('Manage A User Accounts', 'manageUserAccounts'),
+					'perms'				    => array('Manage User Training', 'managePerms'),
+					'reservations'		    => array('Manage Reservations', 'manageReservations'),
+					'email'				    => array('Email Users', 'manageEmail'),
+					'export'			    => array('Export Database Data', 'export_data'),
+					'pwreset'			    => array('Reset Password', 'reset_password'),
+					'announcements' 	    => array('Manage Announcements', 'manageAnnouncements'),
+					'approval'			    => array('Approve Reservations', 'approveReservations'),
+					'today'				    => array('Today\'s Reservations', 'todaysReservations'),
+					'equipment_users'	    => array('Manage Equipment Users', 'manageEquipmentUsers')
 	);
 	var $pager;
 	var $db;
@@ -681,5 +682,12 @@ class Admin {
 		unset($users);
 		unset($allUsers);
 	}
+	
+	function manageUserLabPermissions() {
+		$user_id = filter_input(INPUT_GET, 'user_id', FILTER_SANITIZE_STRING);
+		$user = new User($user_id);
+		$lab_perms = $user->get_lab_permissions();
+		
+		print_manage_user_lab_permissions($lab_perms);
+	}
 }
-?>

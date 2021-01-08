@@ -52,8 +52,9 @@ $tools = array (
 	'editAccount'	=> 'edit_account',
 	'delAccount'	=> 'del_account',
 	'togAccount'	=> 'tog_account',
-	'editAccountUsers' =>	'edit_account_users',
+	'editAccountUsers' => 'edit_account_users',
 	'editUserAccounts' => 'edit_user_accounts',
+	'updateUserLabPermissions' => 'update_user_lab_permissions',
 
 	'editPerms' =>	'edit_perms',
 
@@ -323,7 +324,7 @@ function update_resources() {
 	$machid = filter_input(INPUT_POST, 'machid', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY);
 	
 	// Make sure account_ids are checked
-	$account_list_shown = explode(',', $resource_list_shown);
+	$resource_list_shown = explode(',', $resource_list_shown);
 	$db->del_resource($machid, $resource_list_shown);
 	
 	print_success();
@@ -904,4 +905,29 @@ function print_fail($msg, $data = null) {
 	$t->printHTMLFooter();
 	die;
 }
-?>
+
+function update_user_lab_permissions() {
+	global $db;
+	
+	$safety_trained_lab_values = array();
+	$is_admin_lab_values = array();
+	$user_id = filter_input(INPUT_POST, 'user_id', FILTER_SANITIZE_STRING);
+	
+	foreach ($_POST as $key=>$value) {
+		if (strstr($key, 'safety_trained') !== false) {
+			$safety_trained_lab_id = explode('-', $key);
+			$safety_trained_lab_values[filter_var($safety_trained_lab_id[1], FILTER_SANITIZE_STRING)] = filter_var($value, FILTER_SANITIZE_STRING);
+		}
+		if (strstr($key, 'is_admin') !== false) {
+			$is_admin_lab_id = explode('-', $key);
+			$is_admin_lab_values[filter_var($is_admin_lab_id[1], FILTER_SANITIZE_STRING)] = filter_var($value, FILTER_SANITIZE_STRING);
+		}
+	}
+	$labs_shown = filter_input(INPUT_POST, 'labs_shown', FILTER_SANITIZE_STRING);
+	$labs_shown_list = explode(",", $labs_shown);
+	
+	$db->update_user_lab_permissions($user_id, $labs_shown_list, $safety_trained_lab_values, $is_admin_lab_values);
+	
+	$_POST['get'] .= 'user_id='.$user_id;
+	print_success();
+}

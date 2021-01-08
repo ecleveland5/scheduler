@@ -811,8 +811,10 @@ class Auth {
 		$auth = new Auth();
 		$user_id = $auth::getCurrentID();
 		$perms = $auth->getUserLabPermissions($user_id);
-		if (!empty($perms)) {
-			return true;
+		foreach($perms as $perm) {
+			if ($perm['is_admin'] === "1") {
+				return true;
+			}
 		}
 		return false;
 	}

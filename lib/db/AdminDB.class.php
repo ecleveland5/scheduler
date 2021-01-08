@@ -1600,4 +1600,31 @@ class AdminDB extends DBEngine {
 			$this->check_for_error($result);
 		}
 	}
+
+	function update_user_lab_permissions(string $user_id, array $labs_shown, array $safety_trained_lab_values, array $is_admin_lab_values) {
+		$labs_shown_str = implode(",", $labs_shown);
+		
+		/*
+		$sql = "UPDATE " . $this->get_table('lab_permission') . " SET safety_trained = 0, is_admin = 0 WHERE user_id = ? AND lab_id IN (?)";
+		$p = $this->db->prepare($sql);
+		$result = $this->db->execute($p, array($user_id, $labs_shown_str));
+		$this->check_for_error($result);
+		*/
+		
+		// safety trained
+		foreach ($safety_trained_lab_values as $k=>$v) {
+			$sql = "UPDATE " . $this->get_table('lab_permission') . " SET safety_trained = ? WHERE user_id = ? AND lab_id = ?";
+			$p = $this->db->prepare($sql);
+			$result = $this->db->execute($p, array($v, $user_id, $k));
+			$this->check_for_error($result);
+		}
+		
+		// is admin
+		foreach ($is_admin_lab_values as $k=>$v) {
+			$sql = "UPDATE " . $this->get_table('lab_permission') . " SET is_admin = ? WHERE user_id = ? AND lab_id = ?";
+			$p = $this->db->prepare($sql);
+			$result = $this->db->execute($p, array($v, $user_id, $k));
+			$this->check_for_error($result);
+		}
+	}
 }
