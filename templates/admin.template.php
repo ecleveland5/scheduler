@@ -426,6 +426,10 @@ echo submit_button(translate('Update')) . hidden_fn('editLabUsers') . '</form>';
 function print_manage_users(&$pager, $users, $err) {
 	global $link;
 	$initial_archived_users = array();
+	$tool = filter_input(INPUT_GET, 'tool', FILTER_SANITIZE_STRING);
+	$first_name = filter_input(INPUT_GET, 'firstName', FILTER_SANITIZE_STRING);
+	$last_name = filter_input(INPUT_GET, 'lastName', FILTER_SANITIZE_STRING);
+	$show_deleted = filter_input(INPUT_GET, 'show_deleted', FILTER_SANITIZE_NUMBER_INT);
 	foreach ($users as $u) {
 	    if (array_key_exists('deleted', $u)) {
 	        if ($u['deleted'] === "1") {
@@ -433,34 +437,10 @@ function print_manage_users(&$pager, $users, $err) {
 	        }
 	    }
 	}
+	print_admin_user_search($tool, $pager, $first_name, $last_name, $show_deleted)
 	?>
-<form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
-<p align="center"><?php print_last_name_links(); ?></p>
-<br />
-<p align="center"><?php echo translate('First Name')?> <input type="text"
-	name="firstName" class="textbox" value="<?php echo filter_input(INPUT_GET, 'firstName');?>" /> <?php echo translate('Last Name')?> <input
-	type="text" name="lastName" class="textbox" value="<?php echo filter_input(INPUT_GET, 'lastName');?>" /> <input type="hidden"
-	name="searchUsers" value="true" /> <input type="hidden" name="tool"
-	value="<?php echo getTool()?>" /> <input type="hidden"
-	name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" /> <?php if (isset($_GET['order'])) { ?>
-	<input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?>
-	<?php if (isset($_GET['vert'])) { ?> <input type="hidden" name="vert"
-	value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>" /> <?php } ?> <input type="submit"
-	name="searchUsersBtn" value="<?php echo translate('Search Users')?>"
-	class="button" />
-	<input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if(filter_input(INPUT_GET, 'show_deleted')==="1") echo "checked";?>><label for="show_deleted">Show Archived Users?</label>
-	</p>
-</form>
-
 <form name="manageUser" method="post" action="admin_update.php" onsubmit="return checkAdminForm();">
 <input type="hidden" name="initial_archived_users" value="<?php echo implode(",", $initial_archived_users); ?>">
-<?php
-/*
-    foreach ($initial_archived_users as $u) {
-        echo "<input type=\"hidden\" name=\"initial_archived_users[]\" value=\"" . $u . "\">\r\n";
-    }
-*/
-?>
 <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">
@@ -481,9 +461,9 @@ function print_manage_users(&$pager, $users, $err) {
 			</tr>
 			<tr class="cellColor0" style="text-align: center;">
 				<td><?php printDescLink($pager, 'last_name', 'last name') ?>
-				&nbsp;&nbsp; <?php printAscLink($pager, 'last_name', 'last name') ?></td>
+				&nbsp;&nbsp;  <?php printAscLink($pager, 'last_name', 'last name') ?></td>
 				<td><?php printDescLink($pager, 'email', 'email address') ?>
-				&nbsp;&nbsp; <?php printAscLink($pager, 'email', 'email address') ?></td>
+				&nbsp;&nbsp;  <?php printAscLink($pager, 'email', 'email address') ?></td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>
@@ -780,7 +760,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 
 <form name="search_accounts_form" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
 <p align="center">KFS#:
-	<input type="text" name="frs" class="textbox" value="<?php echo filter_input(INPUT_GET, 'kfs'); ?>" />
+	<input type="text" name="frs" class="textbox" value="<?php echo filter_input(INPUT_GET, 'frs'); ?>" />
 	<input type="hidden" name="tool" value="<?php echo getTool()?>" />
 	<input type="hidden" name="searchAccounts" value="true" />
 	<input type="hidden" name="<?php echo $pager->getLimitVar()?>" value="<?php echo $pager->getLimit()?>" />
@@ -846,7 +826,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 							</tr>
 							<?php
 							if (!$accounts)
-							echo '<tr class="cellColor0"><td colspan="8" style="text-align: center;">' . $err . '</td></tr>' . "\n";
+							echo '<tr class="cellColor0"><td colspan="9" style="text-align: center;">' . $err . '</td></tr>' . "\n";
 
 							for ($i = 0; is_array($accounts) && $i < count($accounts); $i++) {
 								$cur = $accounts[$i];
@@ -2646,30 +2626,37 @@ function print_account_category_select_box($select_name = 'account_category', $a
 }
 
 function print_admin_user_search($tool, $pager, $first_name = null, $last_name = null, $show_deleted = false) {
+    $lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_STRING);
 ?>
 <form name="name_search" action="<?php echo $_SERVER['PHP_SELF']?>" method="get">
 <p align="center"><?php print_last_name_links(); ?></p>
-<br />
+<br>
 <p align="center">
 <label for="firstName"><?php echo translate('First Name')?></label>
 <input type="text" name="firstName" id="firstName" class="textbox" value="<?php echo $first_name;?>">
 <label for="lastName"><?php echo translate('Last Name')?></label>
 <input type="text" name="lastName" id="lastName" class="textbox" value="<?php echo $last_name;?>">
 <input type="hidden" name="tool" value="<?php echo $tool; ?>">
-<input type="hidden" name="searchUsers" value="true" /> <input type="hidden" name="tool" value="<?php echo getTool()?>">
-<input type="hidden" name="<?php echo (!is_null($pager)) ? $pager->getLimitVar() : 'limit'; ?>" value="<?php echo (!is_null($pager)) ? $pager->getLimit() : '50'; ?>" />
+<input type="hidden" name="searchUsers" value="true">
+<input type="hidden" name="tool" value="<?php echo getTool()?>">
+<input type="hidden" name="<?php echo (!is_null($pager)) ? $pager->getLimitVar() : 'limit'; ?>" value="<?php echo (!is_null($pager)) ? $pager->getLimit() : '50'; ?>">
 <?php
 if (isset($_GET['order'])) {
-    ?>
+?>
 <input type="hidden" name="order" value="<?php echo filter_input(INPUT_GET, 'order', FILTER_SANITIZE_SPECIAL_CHARS);?>">
 <?php
 }
 if (isset($_GET['vert'])) {
-    ?>
+?>
 <input type="hidden" name="vert" value="<?php echo filter_input(INPUT_GET, 'vert', FILTER_SANITIZE_SPECIAL_CHARS);?>">
 <?php
 }
 ?>
+<?php
+if ($lab_id !== null) {
+    echo "<input type='hidden' name='lab_id' value='$lab_id'>";
+}
+ ?>
 <input type="submit" name="searchUsersBtn" value="<?php echo translate('Search Users')?>" class="button">
 <input type="checkbox" name="show_deleted" id="show_deleted" value="1" <?php if ($show_deleted) echo "checked";?>>
 <label for="show_deleted">Show Archived Users?</label>

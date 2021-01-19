@@ -126,14 +126,13 @@ class Admin {
 	
 		$labrs = $this->db->get_table_data('labs', array('nickname'), NULL, NULL, NULL, ' WHERE lab_id=?', $lab_id);
 		$lab_name = $labrs[0]['nickname'];
-		//echo $lab_name;
 
 		$pager = $this->pager;
 		$orders = array('last_name', 'email');
 
-		if (isset($_GET['searchUsers'])) {					// Search for users or get all users?
-			$search_first_name = filter_input(INPUT_POST, 'first_name', FILTER_SANITIZE_STRING);
-			$search_last_name = filter_input(INPUT_POST, 'last_name', FILTER_SANITIZE_STRING);
+		if (isset($_GET['searchUsers'])) {					// Search for users or get all users
+			$search_first_name = filter_input(INPUT_GET, 'firstName', FILTER_SANITIZE_STRING);
+			$search_last_name = filter_input(INPUT_GET, 'lastName', FILTER_SANITIZE_STRING);
 			$num = $this->db->get_num_search_recs($search_first_name, $search_last_name);
 			$pager->setTotRecords($num);
 			$users = $this->db->search_users($search_first_name, $search_last_name, $show_deleted, $pager, $orders);

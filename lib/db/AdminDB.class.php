@@ -27,7 +27,7 @@ class AdminDB extends DBEngine {
 	 * Returns array of user data
 	 * @param Object $pager pager object
 	 * @param string $table name of table to retrieve
-	 * @param string $orders order to return values in
+	 * @param array $orders order to return values in
 	 * @param boolean $limit whether this is a limited query or not
 	 * @return array of user data
 	 */
@@ -1063,6 +1063,9 @@ class AdminDB extends DBEngine {
 	 * @param array $account_list_shown array list of account ids that were shown
 	 */
 	function del_account($rs, $account_list_shown) {
+		if ($rs === null) {
+			$rs = array();
+		}
 		$first = true;
 		$account_list_shown_sql_string = '';
 		foreach ($account_list_shown as $accid) {
@@ -1080,6 +1083,10 @@ class AdminDB extends DBEngine {
 			}
 			$accounts_to_delete_sql_string .= '?';
 			$first = false;
+		}
+		// super hacky because SQL??
+		if ($accounts_to_delete_sql_string === '') {
+			$accounts_to_delete_sql_string = '-1';
 		}
 
 		$sql = 'UPDATE accounts SET deleted = IF(account_id IN ('.$accounts_to_delete_sql_string.'), 1, 0) ' .

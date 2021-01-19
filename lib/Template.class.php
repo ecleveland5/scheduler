@@ -168,7 +168,7 @@ class Template {
 		global $conf;
 	?>
 	<br /><br />
-	<p align="center">The scheduler is still in development.<br />
+	<p align="center">
 		Please help us make this system as useful to you as possible by<br />
 		reporting <strong>problems</strong> and sending us <strong>suggestions</strong>.<br /><br />
 		<a href="mailto:nanocenter@umd.edu?subject=Scheduler Problem"><strong>Problems</strong></a> or <a href="mailto:nanocenter@umd.edu?subject=Scheduler Suggestion"><strong>Suggestions</strong></a></p>
