@@ -426,21 +426,26 @@ echo submit_button(translate('Update')) . hidden_fn('editLabUsers') . '</form>';
 function print_manage_users(&$pager, $users, $err) {
 	global $link;
 	$initial_archived_users = array();
+	$users_shown_list = array();
 	$tool = filter_input(INPUT_GET, 'tool', FILTER_SANITIZE_STRING);
 	$first_name = filter_input(INPUT_GET, 'firstName', FILTER_SANITIZE_STRING);
 	$last_name = filter_input(INPUT_GET, 'lastName', FILTER_SANITIZE_STRING);
 	$show_deleted = filter_input(INPUT_GET, 'show_deleted', FILTER_SANITIZE_NUMBER_INT);
+	
 	foreach ($users as $u) {
 	    if (array_key_exists('deleted', $u)) {
 	        if ($u['deleted'] === "1") {
 	            array_push($initial_archived_users, $u['user_id']);
 	        }
 	    }
+		$users_shown_list[] = $u['user_id'];
+
 	}
 	print_admin_user_search($tool, $pager, $first_name, $last_name, $show_deleted)
 	?>
 <form name="manageUser" method="post" action="admin_update.php" onsubmit="return checkAdminForm();">
 <input type="hidden" name="initial_archived_users" value="<?php echo implode(",", $initial_archived_users); ?>">
+<input type="hidden" name="users_shown_list" value="<?php echo implode(",", $users_shown_list); ?>">
 <table width="100%" border="0" cellspacing="0" cellpadding="1" align="center">
 	<tr>
 		<td class="tableBorder">

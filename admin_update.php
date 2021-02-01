@@ -204,10 +204,11 @@ function del_users() {
 	$undelete_users = array_diff($initial_archived_users, $user_ids);
 	
 	// Make sure user_ids are checked
+	/*
 	if (empty($user_ids)) {
 		print_fail(translate('You did not select any members to delete.') . '<br />');
 	}
-	
+	*/
 	if (!empty($undelete_users)) {
 		$db->undelete_users($undelete_users);
 	}

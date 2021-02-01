@@ -16,7 +16,9 @@ include_once('lib/Template.class.php');
 include_once('lib/Admin.class.php');
 include_once('templates/cpanel.template.php');
 
-$admin = new Admin(trim($_GET['tool']));
+$tool = filter_input(INPUT_GET, 'tool', FILTER_SANITIZE_STRING);
+
+$admin = new Admin($tool);
 
 $t = new Template(translate('System Administration'));
 
