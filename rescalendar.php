@@ -24,40 +24,46 @@ include_once('templates/cpanel.template.php');
 if (!Auth::is_logged_in()) {
     Auth::print_login_msg();
 }
+$print_view = filter_input(INPUT_GET, 'print_view', FILTER_SANITIZE_STRING);
+$type = intval(filter_input(INPUT_GET, 'view', FILTER_SANITIZE_STRING));
+if ($type === null) {
+	$type = MYCALENDARTYPE_DAY;
+}
+$machid = filter_input(INPUT_GET, 'machid', FILTER_SANITIZE_STRING);
+$lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_STRING);
 
 $t = new Template(translate('Resource Calendar'));
-
-// Print HTML headers
-$t->printHTMLHeader();
-
-// Print welcome box
-$t->printWelcome();
-
-// Begin main table
-$t->startMain();
-
-startQuickLinksCol();
-showQuickLinks();		// Print out My Quick Links
-startDataDisplayCol();
-
-
-$type = isset($_GET['view']) ? $_GET['view'] : MYCALENDARTYPE_DAY;
-$machid = isset($_GET['machid']) ? $_GET['machid'] : null;
-$lab_id = isset($_GET['lab_id']) ? $_GET['lab_id'] : null;
-
 $calendar = new ResCalendar(Auth::getCurrentID(), $type, get_calendar_actual_date(), $machid, $lab_id);
+	
+	// Print HTML headers
+	$t->printHTMLHeader();
 
-$calendar->print_calendar();
-
-// End main table
-$t->endMain();
-
-list($e_sec, $e_msec) = explode(' ', microtime());		// End execution timer
-$tot = ((float)$e_sec + (float)$e_msec) - ((float)$s_sec + (float)$s_msec);
-echo '<!--Lab printout time: ' . sprintf('%.16f', $tot) . ' seconds-->';
-// Print HTML footer
-$t->printHTMLFooter();
-
+if ($print_view!==null && $type===MYCALENDARTYPE_DAY) {
+	$calendar->print_calendar(false, $print_view);
+} else {
+	
+	
+	// Print welcome box
+	$t->printWelcome();
+	
+	// Begin main table
+	$t->startMain();
+	
+	startQuickLinksCol();
+	showQuickLinks();        // Print out My Quick Links
+	startDataDisplayCol();
+	
+	$calendar->print_calendar();
+	
+	// End main table
+	$t->endMain();
+	
+	list($e_sec, $e_msec) = explode(' ', microtime());        // End execution timer
+	$tot = ((float)$e_sec + (float)$e_msec) - ((float)$s_sec + (float)$s_msec);
+	echo '<!--Lab printout time: ' . sprintf('%.16f', $tot) . ' seconds-->';
+	// Print HTML footer
+	$t->printHTMLFooter();
+}
 
 /**
 * Sets the 'actualDate' field of the MyCalendar object

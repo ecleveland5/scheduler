@@ -130,28 +130,30 @@ class ResCalendar extends MyCalendar {
 	* Prints the given calendar out based on type
 	* @param none
 	*/
-	function print_calendar($isAdminCpanel=false) {
+	function print_calendar($isAdminCpanel=false, $print_view=false) {
 		global $conf;
 		
 		$is_private = $conf['app']['privacyMode'] && !Auth::isAdmin();
 		
 		if ($this->type != MYCALENDARTYPE_SIGNUP) {
-			//if (!$isAdminCpanel){
-				$paramname = $this->isresource ? 'machid' : 'lab_id';
-				$paramvalue = $this->isresource ? $this->machid : $this->lab_id;
-				$prefix = $this->isresource ? 'm' : 's';
-				
-				//$this->print_calendars("changeResCalendar(%d,%d,%d,$this->type,'$prefix|$paramvalue')");
-						
-				//print_view_links($this->actualDate, $this->type, array($paramname), array($paramvalue));
-			//}
-				print_date_span($this->firstDate, $this->lastDate, $this->type, array($paramname), array($paramvalue), $this->name);
-				
+			$paramname = $this->isresource ? 'machid' : 'lab_id';
+			$paramvalue = $this->isresource ? $this->machid : $this->lab_id;
+			$prefix = $this->isresource ? 'm' : 's';
+			print_date_span($this->firstDate, $this->lastDate, $this->type, array($paramname), array($paramvalue), $this->name);
+			
+			if ($print_view!=="1") {
 				print_view_links($this->actualDate, $this->type, array($paramname), array($paramvalue));
-
-				echo "<br>";
-				print_equipment_jump_link($this->resources, $this->labs, $this->machid, $this->lab_id, $this->actualDate, $this->type, $this->isresource);
-				echo "<br>";
+			}
+			echo "<br>";
+			print_equipment_jump_link($this->resources, $this->labs, $this->machid, $this->lab_id, $this->actualDate, $this->type, $this->isresource);
+			echo "<br>";
+		
+			$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://".$_SERVER[HTTP_HOST].str_replace('&print_view=1', '', $_SERVER[REQUEST_URI]);
+			if ($print_view==="1" && $this->type === MYCALENDARTYPE_DAY) {
+				echo "<a href='".$actual_link."'>Web View</a>";
+			} else if ($this->type === MYCALENDARTYPE_DAY) {
+				echo "<a href='" . $actual_link . "&print_view=1'>Print View</a>";
+			}
 
 			switch ($this->type) {
 				case MYCALENDARTYPE_DAY :
