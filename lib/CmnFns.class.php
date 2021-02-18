@@ -307,7 +307,7 @@ class CmnFns {
 	*/
     static function redirect($location, $time = 0, $die = true) {
 		header("Refresh: $time; URL=$location");
-		if ($die) exit;
+		exit();
 	}
 
 	/**
@@ -779,6 +779,40 @@ class CmnFns {
 
         return str_replace($search, $replacements, $string);
     }
+	
+	/**
+	 * Attempts to set the script timezone to the system timezone.  Does not work for Windows based machines.
+	 * @param string $default The fallback timezone if it cannot get system timezone.
+	 */
+	public static function setTimezone(string $default) {
+		$timezone = "";
+		
+		// On many systems (Mac, for instance) "/etc/localtime" is a symlink
+		// to the file with the timezone info
+		if (is_link("/etc/localtime")) {
+			
+			// If it is, that file's name is actually the "Olsen" format timezone
+			$filename = readlink("/etc/localtime");
+			
+			$pos = strpos($filename, "zoneinfo");
+			if ($pos) {
+				// When it is, it's in the "/usr/share/zoneinfo/" folder
+				$timezone = substr($filename, $pos + strlen("zoneinfo/"));
+			} else {
+				// If not, bail
+				$timezone = $default;
+			}
+		}
+		else {
+			// On other systems, like Ubuntu, there's file with the Olsen time
+			// right inside it.
+			$timezone = file_get_contents("/etc/timezone");
+			if (!strlen($timezone)) {
+				$timezone = $default;
+			}
+		}
+		date_default_timezone_set($timezone);
+	}
 }
 
 

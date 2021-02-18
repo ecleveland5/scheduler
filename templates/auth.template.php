@@ -658,7 +658,7 @@ hide('advisor_div');
 * @param string $msg error messages to display for user
 * @param string $resume page to resume on after login
 */
-function printLoginForm($msg = '', $resume = '') {
+function printLoginForm($msg = '') {
 	global $conf;
 	$link = CmnFns::getNewLink();
 	$use_logonname = (bool)$conf['app']['useLogonName'] || (bool)$conf['ldap']['authentication'];
@@ -704,7 +704,6 @@ function printLoginForm($msg = '', $resume = '') {
 		<?php CmnFns::print_language_pulldown()?>
 		</td>
 	  </tr>
--->
 	  <tr bgcolor="#FFFFFF">
 		<td>
 		  <p><b><?php echo translate('Keep me logged in')?></b></p>
@@ -713,12 +712,11 @@ function printLoginForm($msg = '', $resume = '') {
 		  <input type="checkbox" name="setCookie" value="true" checked />
 		</td>
 	  </tr>
+-->
 	  <tr bgcolor="#FAFAFA">
 		<td colspan="2" style="border-top: solid 1px #CCCCCC;">
 		   <p align="center">
-			<input type="submit" name="login" value="<?php echo translate('Log In')?>" class="button" />
-			<input type="hidden" name="resume" value="<?php echo $resume?>" />
-			<input type="hidden" name="current_page" value="">
+			<input type="submit" name="login" value="<?php echo translate('Log In')?>" class="button">
 		  </p>
 		  <h4 align="center" style="margin-bottom:1px;"><b><?php echo translate('First time user')?></b>
 			<?php $link->doLink('/register.php', translate('Click here to register'), '', '', translate('Register for phpScheduleIt')) ?>
@@ -871,7 +869,7 @@ function printSigninForm($msg = '', $users='', $signed_users='', $lab_id){
 		   <p align="center">
 			<input type="submit" value="Sign Out" class="button" />
 			<input type="hidden" name="signout" value="Sign Out" />
-			<input type="hidden" name="login" value="" />
+			<input type="hidden" name="login" value="login" />
 			<input type="hidden" name="lab_id" value="<?php echo$lab_id ?>" />
 		  </p>
 		</td>

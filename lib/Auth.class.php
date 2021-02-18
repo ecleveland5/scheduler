@@ -37,11 +37,12 @@ include_once(BASE_DIR . '/templates/auth.template.php');
 *  and user verification
 */
 class Auth {
-	var $is_loggedin = false;
-	var	$login_msg = '';
-	var $is_attempt = false;
-	var $db;
-	var $success;
+	private $db;
+	public $is_logged_in;
+	private $user_id;
+	public $is_attempt;
+	public $login_msg;
+	public $success;
 
 	/**
 	* Create a reference to the database class
@@ -50,7 +51,11 @@ class Auth {
 	*/
 	function __construct() {
 		$this->db = new AuthDB();
-		
+		$this->is_logged_in = false;
+		$this->user_id = null;
+		$this->is_attempt = null;
+		$this->login_msg = null;
+		$this->success = false;
 	}
 
 	/**
@@ -58,14 +63,13 @@ class Auth {
 	* This function checks to see if the currently
 	*  logged in user is the administrator, granting
 	*  them special permissions
-	* @param none
 	* @return boolean whether the user is the admin
 	*/
-	public static function isAdmin() {
+	public function isAdmin() {
 		return isset($_SESSION['sessionAdmin']);
 	}
 
-	function canCreateAccount() {
+	public function canCreateAccount() {
 		$canCreate = $this->db->get_table_data('user', array('user_type.createAccount'), NULL, NULL, NULL, ' JOIN user_type ON `user`.type_id=user_type.user_type_id WHERE user_id=?', array($this->getCurrentID()));
 		return $canCreate[0]['createAccount'];
 	}
@@ -74,103 +78,94 @@ class Auth {
 	* Check user login
 	* This function checks to see if the user has
 	* a valid session set (if they are logged in)
-	* @param none
 	* @return boolean whether the user is logged in
 	*/
-    public static function is_logged_in() {
-/*
-		if (!isset($_SESSION['sessionID']) && ) {
-			doLogin($uname, $pass, $cookieVal = 'y', $isCookie = false, $resume = '', $lang = '')
-			return true;
-		} else {
-			return false;
-		}
-	*/
-		return isset($_SESSION['sessionID']);
+    public function is_logged_in():bool {
+	    if ($this->is_logged_in !== null && $this->is_logged_in !== false) {
+		    return true;
+	    }
+	    return false;
 	}
 
 	/**
 	* Returns the currently logged in user's userid
-	* @param none
 	* @return int userid, or null if the user is not logged in
 	*/
-	public static function getCurrentID() {
-		return isset($_SESSION['sessionID']) ? $_SESSION['sessionID'] : null;
+	public function getCurrentID() {
+		return $this->user_id;
 	}
-
+	
 	/**
-	* Logs the user in
-	* @param string $uname username
-	* @param string $pass password
-	* @param string $cookieVal y or n if we are using cookie
-	* @param string $isCookie id value of user stored in the cookie
-	* @param string $resume page to forward the user to after a login
-	* @param string $lang language code to set
-	* @return any error message that occured during login
-	*/
-	function doLogin($uname, $pass, $cookieVal = 'y', $isCookie = false, $resume = '', $lang = '') {
+	 * Logs the user in
+	 * @param string $uname username
+	 * @param string $pass password
+	 * @param string $cookie_id stored cookie for authenticating
+	 * @param string $resume page to forward the user to after a login
+	 * @param string $lang language code to set.  Unused until more translations
+	 * @return string error message that occured during login
+	 */
+	function doLogin($uname, $pass, $cookie_id = null, $resume = 'ctrlpnl.php', $lang = 'en_US') {
 		global $conf;
 		$msg = '';
-		$_SESSION['sessionID'] = null;
-		$_SESSION['sessionName'] = null;
-		$_SESSION['sessionAdmin'] = null;
-		$uname = stripslashes($uname);
-		$pass = stripslashes($pass);
+		$id = null;
 		$ok_user = $ok_pass = false;
 		$use_logonname = (bool)$conf['app']['useLogonName'];
-		$adminEmail = strtolower($conf['app']['adminEmail']);
 		
-		if (empty($resume)) {
-			if (empty($_SESSION['resume']))
-				$resume = 'ctrlpnl.php';		// Go to control panel by default
-			else
-				$resume = $_SESSION['resume'];
-		}
-
-// Cookie Authentication
-		if ($isCookie !== false) {
-			$id = $isCookie;
-			if ($this->db->verifyID($id)) {
+		// Look up saved session and authenticate with user's cookie
+		if (!empty($cookie_id) && !empty($_COOKIE[$conf['app']['sessionName']])) {
+			if ($this->db->verifyID($cookie_id) && $_SESSION[$conf['app']['sessionName']] === hash('sha256',$_COOKIE[$conf['app']['sessionName']])) {
 				$ok_user = $ok_pass = true;
+				$id = $cookie_id;
 			} else {
-				$ok_user = $ok_pass = false;
-				setcookie('nanocenterID', '', time()-3600, '/');	// Clear out all cookies
-				$msg .= translate('That cookie seems to be invalid') . '<br/>';
-			}
-
-		} else {
 				
-// LDAP Authentication
-		  if( $conf['ldap']['authentication'] ) {
-        include_once('LDAPEngine.class.php');
-        $ldap = new LDAPEngine($uname, $pass);
-	      if( $ldap->connected() ) {
-        	$mail = $ldap->getUserEmail();
-          if( $mail ) {
-          	$id = $this->db->userExists( $mail );
-            if( $id ) {
-            	// check if LDAP and local DB are in consistancy.
-              $updates = $ldap->getUserData();
-              if( $this->db->check_updates( $id, $updates ) ) {
-              	$this->db->update_user( $id, $updates );
-              }
-            } else {
-              $data = $ldap->getUserData();
-              $id = $this->do_register_user( $data );
-            }
-            $ok_user = true; $ok_pass = true;
-          } else {
-            $msg .= translate('This system requires that you have an email address.');
-          }
-        }	else {
-          $msg .= translate('Invalid User Name/Password.');
-        }
-        $ldap->disconnect();
+				// the user's supplied cookie for user id and session hash did not match
+				$ok_user = $ok_pass = false;
+				
+				// Clear out all cookies
+				setcookie($conf['app']['cookieName'], '', time()-3600, '/');
+				setcookie($conf['app']['sessionName'], '', time()-3600, '/');
+				$msg .= translate('That cookie seems to be invalid') . '<br>';
+			}
+			
+		} else {
 
-		  } else {
-			  
-// Database & HTML Authentication
-			  	
+			// LDAP Authentication
+			if( $conf['ldap']['authentication'] ) {
+				include_once('LDAPEngine.class.php');
+				$ldap = new LDAPEngine($uname, $pass);
+				if( $ldap->connected() ) {
+					$mail = $ldap->getUserEmail();
+					if( $mail ) {
+						$id = $this->db->userExists( $mail );
+						if( $id ) {
+							// check if LDAP and local DB are in consistency.
+							$updates = $ldap->getUserData();
+							if( $this->db->check_updates( $id, $updates ) ) {
+								$this->db->update_user( $id, $updates );
+							}
+						} else {
+							$data = $ldap->getUserData();
+							$id = $this->do_register_user( $data );
+						}
+						$ok_user = true; $ok_pass = true;
+					} else {
+						$msg .= translate('This system requires that you have an email address.');
+					}
+				}	else {
+					$msg .= translate('Invalid User Name/Password.');
+				}
+				$ldap->disconnect();
+				
+			} else {
+				
+				// Database & HTML Authentication
+				
+				// We may be reaching login for the first time
+				// if so, just return false to display login form.
+				if (($uname === null || $pass == null) && $id === null) {
+					return false;
+				}
+				
 				// If we cant find email, set message and flag
 				if ( !$id = $this->db->userExists($uname, $use_logonname) ) {
 					$msg .= translate('We could not find that logon in our database.') . '<br/>';
@@ -178,7 +173,7 @@ class Auth {
 				} else {
 					$ok_user = true;
 				}
-	
+				
 				// If password is incorrect, set message and flag
 				if ($ok_user && !$this->db->isPassword($uname, $pass, $use_logonname)) {
 					$msg .= translate('That password did not match the one in our database.') . '<br/>';
@@ -186,41 +181,40 @@ class Auth {
 				} else {
 					$ok_pass = true;
 				}
-		  }
-    }
-
+			}
+		}
+		
 		// If the login failed, notify the user and quit the app
 		if (!$ok_user || !$ok_pass) {
 			$msg .= translate('You can try');
 			$this->login_msg = $msg;
-			return $msg;
-		}	else {
-
-			$this->is_loggedin = true;
+			return false;
+			
+		} else {
+			
+			$this->is_logged_in = true;
 			$user = new User($id);	// Get user info
 			$user->record_login();
+			
+			// Set cookie_id and first_name.  Expires in 30 days (2592000 seconds)
+			// set the id of user
+			$_SESSION[$conf['app']['cookieName']] = $id;
+			setcookie($conf['app']['cookieName'], $id, time() + 2592000, '/');
+			// set the session id of user (sha256 of user's id + IP)
+			$sessionHash = hash('sha256', session_id().$_SERVER['REMOTE_ADDR']);
+			
+			$_SESSION[$conf['app']['sessionName']] = $sessionHash;
+			setcookie($conf['app']['sessionName'], $sessionHash, time() + 2592000, '/');
 
-			// If the user wants to set a cookie, set it
-			// for their ID and first_name.  Expires in 30 days (2592000 seconds)
-			if (!empty($cookieVal)) {
-				//die ('Setting cookie');
-				setcookie('nanocenterID', $user->get_id(), time() + 2592000, '/');
-			}
-
-			 // If it is the admin, set session variable
+			$_SESSION['sessionUsername'] = $user->get_first_name();
+			setcookie('sessionUsername', $user->get_first_name(), time() + 2592000, '/');
+			
+			/* Let's not do this and check for permissions for each request
+			// If it is the admin, set session variable
 			if ($user->get_email() == $adminEmail || $user->get_isadmin()) {
 				$_SESSION['sessionAdmin'] = $user->get_email();
 			}
-
-			// Set other session variables
-			$_SESSION['sessionID'] = $user->get_id();
-			$_SESSION['sessionName'] = $user->get_first_name();
-
-			if ($lang != '') {
-				set_language($lang);
-			}
-
-			$_SESSION[$conf['app']['sessionName']] = $user->get_id();
+			*/
 			
 			// Send them to the control panel
 			CmnFns::redirect(urldecode($resume));
@@ -231,23 +225,27 @@ class Auth {
 	* Log the user out of the system
 	* @param none
 	*/
-	function doLogout() {
+	function doLogout($resume) {
+		global $conf;
+		
 		// Check for valid session
 		if (!$this->is_logged_in()) {
 			$this->print_login_msg();
-			die;
 		} else {
 			// Destroy all session variables
-			unset($_SESSION['sessionID']);
-			unset($_SESSION['sessionName']);
-			if (isset($_SESSION['sessionAdmin'])) unset($_SESSION['sessionAdmin']);
+			unset($_SESSION[$conf['app']['cookieName']]);
+			unset($_SESSION[$conf['app']['sessionName']]);
+			unset($_SESSION['sessionUsername']);
+			//if (isset($_SESSION['sessionAdmin'])) unset($_SESSION['sessionAdmin']);
 			session_destroy();
 
 			// Clear out all cookies
-			setcookie('nanocenterID', '', time()-3600, '/');
+			setcookie($conf['app']['cookieName'], '', time()-3600, '/');
+			setcookie($conf['app']['sessionName'], '', time()-3600, '/');
+			setcookie($conf['app']['sessionUsername'], '', time()-3600, '/');
 
 			// Refresh page
-			CmnFns::redirect($_SERVER['PHP_SELF']);
+			CmnFns::redirect($resume);
 		}
 	}
 
@@ -807,10 +805,9 @@ class Auth {
 		return $this->db->verifyID($userID);
 	}
 	
-	public static function isLabAdmin() {
-		$auth = new Auth();
-		$user_id = $auth::getCurrentID();
-		$perms = $auth->getUserLabPermissions($user_id);
+	public function isLabAdmin() {
+		$user_id = $this->getCurrentID();
+		$perms = $this->getUserLabPermissions($user_id);
 		foreach($perms as $perm) {
 			if ($perm['is_admin'] === "1") {
 				return true;
@@ -845,5 +842,72 @@ class Auth {
 	 */
 	protected function createUserSystemPermissions(string $user_id, string $system_resource_id, array $permissions): void {
 		$this->db->createUserSystemPermissions($user_id, $system_resource_id, $permissions);
+	}
+	
+	/**
+	 * Handles login and logout via form or cookie
+	 */
+	public function authenticate() {
+		// check if logging in/out or cookie
+		// perform login
+			// login via form
+			// login via cookie
+		// perform logout
+		global $conf;
+		
+		$email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+		$password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
+		$cookie = filter_input(INPUT_COOKIE, $conf['app']['cookieName'], FILTER_SANITIZE_STRING);
+		$session_cookie = filter_input(INPUT_COOKIE, $conf['app']['sessionName'], FILTER_SANITIZE_STRING);
+		$login = filter_input(INPUT_GET, 'login', FILTER_SANITIZE_STRING);
+		$logout = filter_input(INPUT_GET, 'logout', FILTER_SANITIZE_STRING);
+		if ($login === null) {
+			$login = filter_input(INPUT_POST, 'login', FILTER_SANITIZE_STRING);
+		}
+		if ($logout === null) {
+			$logout = filter_input(INPUT_GET, 'logout', FILTER_SANITIZE_STRING);
+		}
+		
+		if (array_key_exists('resume', $_SESSION) && (strpos($_SESSION['resume'], 'index.php') === true)) {
+				$resume = 'ctrlpnl.php';
+		} else {
+			$resume = $_SESSION['resume'] = $_SERVER['REQUEST_URI'];
+		}
+		
+		if (!empty($logout)) {
+			$this->doLogout($resume);
+		} else if (!empty($login) && ($login === 'login' || $login === 'Log In')) {
+			
+			// perform login
+			if ($this->doLogin($email, $password, $cookie, $resume)) {
+				CmnFns::redirect($resume);
+			} else {
+				// login credentials failed
+				$this->printLoginForm($this->login_msg);
+			}
+			
+		} else if (!empty($cookie)) {
+			// Check for cookie authentication
+			//echo 'cookie authentication<br>';
+			//echo 'cookie session[] : ' . $session_cookie . '<br>';
+			//echo 'cookie['.$conf['app']['cookieName'].'] : ' . $cookie . '<br>';
+			$session_id = session_id();
+			$sessionHash = hash('sha256', $session_id . $_SERVER['REMOTE_ADDR']);
+			
+			if ($this->db->verifyID($cookie) && $session_cookie === $sessionHash) {
+				$ok_user = $ok_pass = true;
+				$this->user_id = $cookie;
+				$this->is_logged_in = true;
+			} else {
+				$ok_user = $ok_pass = false;
+				setcookie($conf['app']['cookieName'], '', time() - 3600, '/');    // Clear out all cookies
+				$this->login_msg .= translate('That cookie seems to be invalid') . '<br>';
+			}
+			
+		} else {
+			// not authenticated
+			$this->is_logged_in = false;
+		}
+		
 	}
 }

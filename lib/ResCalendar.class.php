@@ -106,7 +106,6 @@ class ResCalendar extends MyCalendar {
 	
 	/**
 	* Calls the appropriate function to load the reservations fitting this calendar data
-	* @param none
 	*/
 	function load_reservations() {		
 		global $conf;
@@ -128,7 +127,6 @@ class ResCalendar extends MyCalendar {
 	
 	/**
 	* Prints the given calendar out based on type
-	* @param none
 	*/
 	function print_calendar($isAdminCpanel=false, $print_view=false) {
 		global $conf;

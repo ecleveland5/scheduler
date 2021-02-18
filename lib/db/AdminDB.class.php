@@ -1108,7 +1108,13 @@ class AdminDB extends DBEngine {
 		$result = $this->db->query('UPDATE ' . $this->get_table('accounts') . ' SET status=?, last_update=now() WHERE account_id=?', array($status, $account_id));
 		$this->check_for_error($result);
 	}
-
+	
+	
+	/**
+	 * @param $user_id
+	 * @param $account_id
+	 * @return bool
+	 */
 	function is_account_admin($user_id, $account_id) {
 		$result = $this->db->query('SELECT count() as count FROM ' . $this->get_table('account_users') . ' WHERE account_id = ' . $account_id . ' AND user_id = ' . $user_id . ' AND is_admin = 1');
 		$this->check_for_error($result);
@@ -1120,6 +1126,16 @@ class AdminDB extends DBEngine {
 			return false;
 		}
 	}
+	
+	
+	/**
+	 * Looks up user's system access rights
+	 * @param $user_id
+	 */
+	public function is_system_admin($user_id) {
+	
+	}
+	
 
 	/**
 	 * Clears all user permissions for a given account

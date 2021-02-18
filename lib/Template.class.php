@@ -80,7 +80,7 @@ class Template {
             <link href="<?php echo $path;?>/lib/js/jquery/jquery-ui-1.12.1/jquery-ui.css" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>
-	<h1 style="margin: 0;text-align: center;"><?php if ($title!=''){ echo $title; } else { echo $conf['app']['title']; }?></h1>
+	<h1 style="margin: 0;text-align: center;"><?php if (!empty($title)) { echo $title; } else { echo $conf['app']['title']; }?></h1>
 	<?php
 	}
 	
@@ -108,7 +108,7 @@ class Template {
 	<table width="100%" border="0" cellspacing="0" cellpadding="5" class="mainBorder">
 	  <tr>
 		<td class="mainBkgrdClr">
-		  <h4 class="welcomeBack"><?php echo translate('Welcome Back', array($_SESSION['sessionName'], 1))?></h4>
+		  <h4 class="welcomeBack"><?php echo translate('Welcome Back', array($_SESSION['sessionUsername'], 1))?></h4>
 		  <p>
 			<?php $this->link->doLink($this->dir_path . 'index.php?logout=true', translate('Log Out')) ?>
 			|
@@ -270,6 +270,16 @@ class Template {
 			$query .= "&amp;order=$order";
 		}
 		$link->doLink($_SERVER['PHP_SELF'] . '?' . $query, $plus_minus, '', '', $text);
-	}	
+	}
+	
+	public function printPleaseLogIn() {
+	    global $conf;
+	    
+	    echo "<p align='center'>";
+	    echo "Please log in to access the " . $conf['app']['title'];
+		echo "</p>";
+		echo "<p align='center'>";
+	    echo Link::getLink($conf['app']['weburi'] . '/?login=login', 'Log In');
+	    echo "</p>";
+	}
 }
-?>

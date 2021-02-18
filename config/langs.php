@@ -63,7 +63,7 @@ $languages = array (
 );
 
 // Language files directory	
-@define('LANG_DIR', __DIR__ . '/../lang/');
+define('LANG_DIR', __DIR__ . '/../lang/');
 	
 /**
 * Tries to determine the langauge for this user by
@@ -154,7 +154,6 @@ function set_language($lang) {
 		$lang = $conf['app']['defaultLanguage'];
 	}
 	
-	session_start();
 	setlocale(LC_ALL, $lang);
 	setcookie('lang', $lang, time() + 2592000, '/');	
 }

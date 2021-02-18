@@ -559,6 +559,7 @@
 	function showQuickLinks() {
 		global $conf;
 		global $link;
+		global $auth;
 		?>
         <div id="quickLinks" style="">
             <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
@@ -613,7 +614,7 @@
 											<?php $link->doLink('index.php?logout=true', translate('Log Out')) ?>
                                         </p>
                                         <?php
-                                            if (Auth::isLabAdmin()) {
+                                            if ($auth->isLabAdmin()) {
 	                                            echo "<p style='margin-top:2em;font-weight:bold;text-align:center;'>" . translate('Lab Administration') . "</p>\r\n";
                                                 echo "<p style='margin-top:1em;'><b>&raquo;</b> <a href=''>Request Billing Account</a></p>\r\n";
 	                                            echo "<p><b>&raquo;</b> <a href=''>Manage Lab Announcement</a></p>\r\n";
@@ -626,7 +627,7 @@
                                         
 										<?php
 											// If it's the admin, print out admin links
-											if (Auth::isAdmin()) {
+											if ($auth->isAdmin()) {
 												echo
 													'<p style="margin-top:2em;font-weight:bold;text-align:center;">' . translate('System Administration') . '</p>'
 													. '<p style="margin-top:1em;"><b>&raquo;</b> ' .  $link->getLink('admin.php?tool=announcements', translate('Manage Announcements')) . "</p>\n"
