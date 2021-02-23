@@ -66,7 +66,7 @@ class Auth {
 	* @return boolean whether the user is the admin
 	*/
 	public function isAdmin() {
-		return isset($_SESSION['sessionAdmin']);
+		return $this->db->isAdmin($this->getCurrentID());
 	}
 
 	public function canCreateAccount() {
@@ -194,29 +194,24 @@ class Auth {
 			
 			$this->is_logged_in = true;
 			$user = new User($id);	// Get user info
-			$user->record_login();
+			$expire = time() + 2592000;
 			
 			// Set cookie_id and first_name.  Expires in 30 days (2592000 seconds)
 			// set the id of user
 			$_SESSION[$conf['app']['cookieName']] = $id;
-			setcookie($conf['app']['cookieName'], $id, time() + 2592000, '/');
+			setcookie($conf['app']['cookieName'], $id, $expire, '/');
+
 			// set the session id of user (sha256 of user's id + IP)
 			$sessionHash = hash('sha256', session_id().$_SERVER['REMOTE_ADDR']);
 			
 			$_SESSION[$conf['app']['sessionName']] = $sessionHash;
-			setcookie($conf['app']['sessionName'], $sessionHash, time() + 2592000, '/');
+			setcookie($conf['app']['sessionName'], $sessionHash, $expire, '/');
 
 			$_SESSION['sessionUsername'] = $user->get_first_name();
-			setcookie('sessionUsername', $user->get_first_name(), time() + 2592000, '/');
+			setcookie('sessionUsername', $user->get_first_name(), $expire, '/');
 			
-			/* Let's not do this and check for permissions for each request
-			// If it is the admin, set session variable
-			if ($user->get_email() == $adminEmail || $user->get_isadmin()) {
-				$_SESSION['sessionAdmin'] = $user->get_email();
-			}
-			*/
+			$user->record_login($sessionHash, $expire);
 			
-			// Send them to the control panel
 			CmnFns::redirect(urldecode($resume));
 		}
 	}
@@ -236,13 +231,13 @@ class Auth {
 			unset($_SESSION[$conf['app']['cookieName']]);
 			unset($_SESSION[$conf['app']['sessionName']]);
 			unset($_SESSION['sessionUsername']);
-			//if (isset($_SESSION['sessionAdmin'])) unset($_SESSION['sessionAdmin']);
+			session_unset();
 			session_destroy();
 
 			// Clear out all cookies
-			setcookie($conf['app']['cookieName'], '', time()-3600, '/');
-			setcookie($conf['app']['sessionName'], '', time()-3600, '/');
-			setcookie($conf['app']['sessionUsername'], '', time()-3600, '/');
+			setcookie($conf['app']['cookieName'], '', 1);
+			setcookie($conf['app']['sessionName'], '', 1);
+			setcookie($conf['app']['sessionUsername'], '', 1);
 
 			// Refresh page
 			CmnFns::redirect($resume);
@@ -848,11 +843,6 @@ class Auth {
 	 * Handles login and logout via form or cookie
 	 */
 	public function authenticate() {
-		// check if logging in/out or cookie
-		// perform login
-			// login via form
-			// login via cookie
-		// perform logout
 		global $conf;
 		
 		$email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
@@ -887,14 +877,16 @@ class Auth {
 			}
 			
 		} else if (!empty($cookie)) {
-			// Check for cookie authentication
-			//echo 'cookie authentication<br>';
-			//echo 'cookie session[] : ' . $session_cookie . '<br>';
-			//echo 'cookie['.$conf['app']['cookieName'].'] : ' . $cookie . '<br>';
+			// authenticate with user provided cookie
+			$saved_sessionHash = $this->db->getSessionHashByUserID($this->user_id);
+			
 			$session_id = session_id();
+			
+			if ($session_id)
+			
 			$sessionHash = hash('sha256', $session_id . $_SERVER['REMOTE_ADDR']);
 			
-			if ($this->db->verifyID($cookie) && $session_cookie === $sessionHash) {
+			if ($this->db->verifyID($cookie) && ($session_cookie === $sessionHash)) {
 				$ok_user = $ok_pass = true;
 				$this->user_id = $cookie;
 				$this->is_logged_in = true;

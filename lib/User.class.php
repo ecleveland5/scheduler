@@ -501,8 +501,8 @@ class User {
 	 * Records when a user logs in
 	 * 
 	 */
-	function record_login() {
-		$this->db->record_login($this->get_id());
+	function record_login($sessionHash, $expire) {
+		$this->db->record_login($this->get_id(), $sessionHash, $expire);
 	}
 	
 	/**

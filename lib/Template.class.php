@@ -96,9 +96,10 @@ class Template {
 	*/
 	function printWelcome() {
 		global $conf;
+		global $auth;
 		
 		// Print out notice for administrator
-		echo Auth::isAdmin() ? '<h3 align="center">' . translate('Administrator') . '</h3>' : '';
+		echo $auth->isAdmin() ? '<h3 align="center">' . translate('Administrator') . '</h3>' : '';
 		
 		// Print out logoImage if it exists
 		echo (!empty($conf['ui']['logoImage']))

@@ -485,7 +485,7 @@ class DB
      * @return string error message, or false if the error code was
      * not recognized
      */
-    function errorMessage($value)
+    public static function errorMessage($value)
     {
         static $errorMessages;
         if (!isset($errorMessages)) {
@@ -848,6 +848,7 @@ class DB_result
      */
     function &fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum=null)
     {
+        $arr = array();
         if ($fetchmode === DB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }

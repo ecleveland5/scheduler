@@ -581,8 +581,8 @@ class AuthDB extends DBEngine {
 		$return = array();
 		
 		$sql = "SELECT * FROM system_permissions WHERE user_id = ? AND system_resource_id = ?";
-		$q = $this->db->prepare($sql, array($user_id, $system_resource_id));
-		$result = $this->db->execute($q);
+		$q = $this->db->prepare($sql);
+		$result = $this->db->execute($q, array($user_id, $system_resource_id));
 		$this->check_for_error($result);
 		
 		if ($result->numRows()>0) {
@@ -595,6 +595,35 @@ class AuthDB extends DBEngine {
 	}
 	
 	public function createUserSystemPermissions(string $user_id, string $system_resource_id, array $permissions) {
+	
+	}
+	
+	public function isAdmin(string $user_id) {
+		$sql = "SELECT is_admin FROM `user` WHERE user_id = ?";
+		$q = $this->db->prepare($sql);
+		$result = $this->db->execute($q, array($user_id));
+		$this->check_for_error($result);
+		
+		return $result['is_admin'];
+	}
+	
+	public function getSessionHashByUserID($user_id) {
+		$query = "SELECT session_hash FROM `sessions` WHERE user_id = ?";
+		$result = $this->db->query($query, array($user_id));
+		$this->check_for_error($result);
+		
+		return $result['session_hash'];
+	}
+	
+	public function getSessionHash($sessionHash) {
+		$query = "SELECT * FROM `sessions` WHERE session_hash = ?";
+		$result = $this->db->query($query, array($sessionHash));
+		$this->check_for_error($result);
+		
+		return $result['session_hash'];
+	}
+	
+	public function deleteSessionHash($sessionHash) {
 	
 	}
 }

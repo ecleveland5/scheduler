@@ -81,7 +81,7 @@ class Session {
     	$data = null;
     	
 	    if(!isset($this->read_stmt)) {
-		    $this->read_stmt = $this->db->prepare("SELECT data FROM sessions WHERE id = ? LIMIT 1");
+		    $this->read_stmt = $this->db->prepare("SELECT data FROM sessions WHERE session_hash = ? LIMIT 1");
 	    }
 	    $this->read_stmt->bind_param('s', $id);
 	    $this->read_stmt->execute();
@@ -101,7 +101,7 @@ class Session {
 	
 	    $time = time();
 	    if(!isset($this->w_stmt)) {
-		    $this->w_stmt = $this->db->prepare("REPLACE INTO sessions (id, set_time, data, session_key) VALUES (?, ?, ?, ?)");
+		    $this->w_stmt = $this->db->prepare("REPLACE INTO sessions (session_hash, set_time, data, session_key) VALUES (?, ?, ?, ?)");
 	    }
 	
 	    $this->w_stmt->bind_param('siss', $id, $time, $data, $key);
@@ -110,7 +110,7 @@ class Session {
     }
     public function _destroy($id){
         // Set query
-        $this->db->query('DELETE FROM sessions WHERE id = :id');
+        $this->db->query('DELETE FROM sessions WHERE session_hash = :id');
         // Bind data
         $this->db->bind(':id', $id);
         // Attempt execution
@@ -126,7 +126,7 @@ class Session {
         // Calculate what is to be deemed old
         $old = time() - $max;
         // Set query
-        $this->db->query('DELETE FROM sessions WHERE access < :old');
+        $this->db->query('DELETE FROM sessions WHERE expire < :old');
         // Bind data
         $this->db->bind(':old', $old);
         // Attempt execution

@@ -86,6 +86,7 @@
 	 */
 	function showReservationTable($res, $err, $res_in_use=NULL) {
 		global $link;
+		global $auth;
 		$limit = 25; // default list limit
 		
 		if (array_key_exists('limit', $_POST)) {
@@ -107,7 +108,7 @@
                     <table width="100%" border="0" cellspacing="1" cellpadding="0">
                         <tr>
                             <td colspan="<?php
-								if(Auth::isAdmin())
+								if($auth->isAdmin())
 									echo "9";
 								else
 									echo "7";

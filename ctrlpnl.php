@@ -27,7 +27,7 @@
 		printCpanelBr();
 		
 		$order = array('start_date', 'startTime', 'endTime', 'created', 'modified');
-		$res = $db->get_user_reservations($_SESSION['sessionID'], CmnFns::get_value_order($order), CmnFns::get_vert_order());
+		$res = $db->get_user_reservations($auth->getCurrentID(), CmnFns::get_value_order($order), CmnFns::get_vert_order());
 		showReservationTable($res, $db->get_err());    // Print out My Reservations
 		
 		printCpanelBr();

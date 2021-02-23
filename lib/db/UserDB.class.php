@@ -253,16 +253,14 @@ class UserDB extends DBEngine {
 	 * Records when a user logs in
 	 * 
 	 */
-	function record_login($user_id) {
-		$query = 'UPDATE ' . $this->get_table('user') . ' SET last_login = NOW() where user_id = ?';
+	function record_login($user_id, $sessionHash, $expire) {
+		$query = 'UPDATE ' . $this->get_table('user') . ' SET last_login = NOW(), login_count = login_count + 1 where user_id = ?';
 		$result = $this->db->query($query, array($user_id));
-		//$this->check_for_error($result);
-		//$result->free();
+		$this->check_for_error($result);
 		
-		$login_count = $this->get_login_count($user_id);
-		$query = 'UPDATE ' . $this->get_table('user') . ' SET login_count = ? where user_id = ?';
-		$result = $this->db->query($query, array($login_count+1, $user_id));
-		//$result->free();
+		$query = 'REPLACE INTO ' . $this->get_table('sessions') .' SET session_hash = ?, user_id = ?, expire = ?';
+		$result = $this->db->query($query, array($sessionHash, $user_id, $expire));
+		$this->check_for_error($result);
 	}
 	
 	/**
