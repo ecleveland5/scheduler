@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * CmnFns class
 */
@@ -20,13 +20,7 @@ include_once('CmnFns.class.php');
 /**
 * Pear::DB
 */
-if ($GLOBALS['conf']['app']['safeMode']) {
-    ini_set('include_path', ( dirname(__FILE__) . '/pear/' . PATH_SEPARATOR . ini_get('include_path') ));
-    include_once('pear/DB.php');
-}
-else {
-    include_once('DB.php');
-}
+include_once('pear/DB.php');
 
 /**
 * Provide all database access/manipulation functionality
@@ -729,8 +723,8 @@ class DBEngine {
 	}
 	}
 
-	function isFRSAvailable($frs) {
-		$sql = 'SELECT count(account_id) AS count FROM accounts WHERE FRS = \''.$frs.'\'';
+	function isKFSAvailable($kfs) {
+		$sql = 'SELECT count(account_id) AS count FROM accounts WHERE kfs = \''.$kfs.'\'';
 		$result = $this->db->query($sql);
 		$this->check_for_error($result);
 		$rs = $result->fetchRow();

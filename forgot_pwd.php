@@ -113,7 +113,7 @@ function changePassword() {
     }
 	else {
 		$user = new User($id);
-		$result = $user->get_user_data();
+		$result = $user->getUserData();
 	}
 
     // Generate new 8 character password by choosing random
@@ -136,12 +136,12 @@ function changePassword() {
     }
 
 	// Set password in database
-	$user->set_password($pwd);
+	$user->setPassword($pwd);
  
     // Send email to user
     $sub = translate('Your New Password', array($title));
     
-    $msg = translate_email('new_password', $result['first_name'], $conf['app']['title'], $pwd, CmnFns::getScriptURL(), $adminEmail);
+    $msg = translateEmail('new_password', $result['first_name'], $conf['app']['title'], $pwd, CmnFns::getScriptURL(), $adminEmail);
 	
 	$msg .= ($use_logon_name ? "\r\n" . translate('Your logon name is', array($result['logon_name'])) : '');
 

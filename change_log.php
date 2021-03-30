@@ -21,8 +21,8 @@ include_once('lib/Account.class.php');
 include_once('templates/account.template.php');
 include_once('templates/cpanel.template.php');
 
-if (!Auth::is_logged_in()) {
-	Auth::print_login_msg();
+if (!Auth::isLoggedIn()) {
+	Auth::printLoginMsg();
 }
 
 $t = new Template();
@@ -30,7 +30,7 @@ $auth = new Auth();
 $pager = CmnFns::getNewPager();
 $pager->setTextStyle('font-size: 10px;');
 
-$t->set_title(" Change Log : NanoCenter Scheduler");
+$t->setTitle(" Change Log : NanoCenter Scheduler");
 $t->printHTMLHeader();
 $t->printWelcome();
 $t->startMain();

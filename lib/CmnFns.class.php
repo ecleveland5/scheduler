@@ -11,7 +11,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * Include configuration file
 **/
@@ -319,11 +319,11 @@ class CmnFns {
 		?>
 		<select name="language" class="textbox" onchange="changeLanguage(this);">
 		<?php
-			$languages = get_language_list();
-			foreach ($languages as $lang => $conf) {
+			$languages = getLanguageList();
+			foreach ($languages as $lang => $c) {
 				echo '<option value="' . $lang . '"'
-					. ((determine_language() == $lang) ? ' selected="selected"' : '' )
-					. '>' . $conf[3] . ($lang == $conf['app']['defaultLanguage'] ? ' ' . translate('(Default)') : '') . "</option>\n";
+					. ((determineLanguage() == $lang) ? ' selected="selected"' : '' )
+					. '>' . $c[3] . ($lang == $conf['app']['defaultLanguage'] ? ' ' . translate('(Default)') : '') . "</option>\n";
 			}
 		?>
 		</select>

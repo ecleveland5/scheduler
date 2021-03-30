@@ -9,6 +9,7 @@
 	ini_set('session.gc_probability',1);
 	ini_set('session.cookie_secure',1);
 	ini_set('session.sid_length',250);
+	ini_set('session.gc_maxlifetime',300);
 	
 	switch ($conf['app']['debugMode']) {
 		case 1:
@@ -27,9 +28,9 @@
 	include_once('langs.php');
 	include_once(__DIR__ . '/../lib/CmnFns.class.php');
 
-	if ($lang = determine_language()) {
-		set_language($lang);
-		load_language_file();
+	if ($lang = determineLanguage()) {
+		setLanguage($lang);
+		loadLanguageFile();
 	}
 	
 	CmnFns::setTimezone('America/New_York');

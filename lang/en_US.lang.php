@@ -471,6 +471,7 @@ $strings['No resources in the database.'] = 'No resources in the database.';
 $strings['There was an error executing your query'] = 'There was an error executing your query:';
 
 $strings['That cookie seems to be invalid'] = 'That cookie seems to be invalid';
+$strings['Invalid credentials'] = 'Invalid credentials.';
 $strings['We could not find that logon in our database.'] = 'We could not find that logon in our database.';	// @since 1.1.0
 $strings['That password did not match the one in our database.'] = 'That password did not match the one in our database.';
 $strings['You can try'] = '<br />You can try:<br />Registering an email address.<br />Or:<br />Try logging in again.';

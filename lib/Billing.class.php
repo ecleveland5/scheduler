@@ -144,20 +144,20 @@ class Billing {
 		if ($this->type == RES_TYPE_ADD && $rs['approval'] == 1) {
 			$this->is_pending = true;		// On the initial add, make sure that the is_pending flag is correct
 		}
-		print_title($rs);
-		begin_account_form($this->type == RES_TYPE_ADD, $this->is_blackout);
-		begin_container();
-		print_basic_panel($this, $rs, $is_private);		// Contains resource/user info, time select, summary, repeat boxes
+		printTitle($rs);
+		beginAccountForm($this->type == RES_TYPE_ADD, $this->is_blackout);
+		beginContainer();
+		printBasicPanel($this, $rs, $is_private);		// Contains resource/user info, time select, summary, repeat boxes
 		if ($this->is_blackout || $is_private) {
-			print_advanced_panel($this, null, null, null, false);	// No advanced for either case
+			printAdvancedPanel($this, null, null, null, false);	// No advanced for either case
 		}
 		else {
-			print_advanced_panel($this, $this->db->get_table_data('user', array('first_name','last_name','user_id','email'), array('last_name','first_name')), (($this->user_id == Auth::getCurrentID() || Auth::isAdmin()) && $this->type != RES_TYPE_VIEW) );
+			printAdvancedPanel($this, $this->db->get_table_data('user', array('first_name','last_name','user_id','email'), array('last_name','first_name')), (($this->user_id == Auth::getCurrentID() || Auth::isAdmin()) && $this->type != RES_TYPE_VIEW) );
 		}
-		end_container();
-		print_buttons_and_hidden($this);
-		end_reserve_form();
-		print_jscalendar_setup($this, $rs);
+		endContainer();
+		printButtonsAndHidden($this);
+		endReserveForm();
+		printJSCalendarSetup($this, $rs);
 	}
 
 

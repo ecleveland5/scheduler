@@ -12,11 +12,11 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * Include Auth class
 */
-include_once('Auth.class.php');
+//include_once('Auth.class.php');
 
 /**
 * Provides functions for outputting template HTML
@@ -119,7 +119,7 @@ class Template {
 		<td class="mainBkgrdClr" valign="top">
 		  <div align="right">
 		    <p>
-			<?php echo translate_date('header', time());?>
+			<?php echo translateDate('header', time());?>
 			</p>
 			<p>
 			  <?php $this->link->doLink('javascript: help();', translate('Help')) ?>
@@ -183,7 +183,7 @@ class Template {
 	* Sets the link class variable to reference a new Link object
 	* @param none
 	*/
-	function set_link() {
+	function setLink() {
 		$this->link = CmnFns::getNewLink();
 	}
 	
@@ -192,7 +192,7 @@ class Template {
 	* @param none
 	* @return link object for this class 
 	*/
-	function get_link() {
+	function getLink() {
 		return $this->link;
 	}
 	
@@ -200,7 +200,7 @@ class Template {
 	* Sets a new title for the template page
 	* @param string $title title of page
 	*/
-	function set_title($title) {
+	function setTitle($title) {
 		$this->title = $title;
 	}
 	
@@ -237,7 +237,7 @@ class Template {
 	* @param string $text link text
 	* @param string $vert ascending or descending order
 	*/
-	function print_asc_desc_link(&$pager, $order, $text, $vert) {
+	function printAscDescLink(&$pager, $order, $text, $vert) {
 		global $link;      
 		
 		$tool = getTool();

@@ -31,34 +31,34 @@ if (isset($_POST['signin'])){
 }
 
 // Check login status
-if ($edit && !$auth->is_logged_in()) {
-	$auth->print_login_msg(true);
+if ($edit && !$auth->isLoggedIn()) {
+	$auth->printLoginMsg(true);
 	$auth->clean();			// Clean out any lingering sessions
 }
 
 // If we are editing and have not yet submitted an update
 if ($edit && !isset($_POST['update'])) {
 	$user = new User($_SESSION['sessionID']);
-	$data = $user->get_user_data();
+	$data = $user->getUserData();
 	$data['emailaddress'] = $data['email'];		// Needed to be the same as the form
 }
 else
 	$data = CmnFns::cleanPostVals();
 
 if (isset($_POST['register'])) {	// New registration
-	$msg = $auth->do_register_user($data, $_SESSION['resume']);
+	$msg = $auth->doRegisterUser($data, $_SESSION['resume']);
 	$show_form = false;
 }
 else if (isset($_POST['update'])) {	// Update registration
 	//var_dump($data);
-	$msg = $auth->do_edit_user($data);
+	$msg = $auth->doEditUser($data);
 	$show_form = false;
 }
 
 // Print HTML headers
 $t->printHTMLHeader();
 
-$t->set_title(($edit) ? translate('Modify My Profile') : translate('Register'));
+$t->setTitle(($edit) ? translate('Modify My Profile') : translate('Register'));
 
 // Print the welcome banner if they are logged in
 if ($edit)
@@ -67,7 +67,7 @@ if ($edit)
 // Begin main table
 $t->startMain();
 
-if($auth->is_logged_in()) {
+if($auth->isLoggedIn()) {
 	startQuickLinksCol();
 	showQuickLinks();		// Print out My Quick Links
 	startDataDisplayCol();
@@ -81,7 +81,7 @@ if ($show_form || $msg != '') {
 
 // The registration/edit went fine, print the message
 if ($msg == '' && $show_form == false) {
-	$auth->print_success_box();
+	$auth->printSuccessBox();
 }
 
 // End main table

@@ -1,59 +1,45 @@
 <?php
-/**
-* Manage email contacts from this page
-* @author Nick Korbel <lqqkout13@users.sourceforge.net>
-* @author David Poole <David.Poole@fccc.edu>
-* @version 09-22-04
-* @package phpScheduleIt
-*
-* Copyright (C) 2003 - 2005 phpScheduleIt
-* License: GPL, see LICENSE
-*/
-/**
-* Template class
-*/
-include_once('lib/Template.class.php');
-include_once('templates/cpanel.template.php');
-/**
-* Template functions
-*/
-include_once('templates/my_email.template.php');
-
-// Make sure user is logged in
-if (!Auth::is_logged_in()) {
-    Auth::print_login_msg();
-}
-
-$t = new Template(translate('Manage My Email Contacts'));
-
-$user = new User($_SESSION['sessionID']);
-
-$t->printHTMLHeader();
-$t->printWelcome();
-$t->startMain();
-
-startQuickLinksCol();
-showQuickLinks();		// Print out My Quick Links
-startDataDisplayCol();
-
-if (!isset($_POST['submit'])) {
-	print_email_contacts($user);
-}
-else {
-	manage_emails();
-	print_success();
-}
-
-$t->endMain();
-$t->printHTMLFooter();
-
-/**
-* Manages the user's email contacts
-* @param none
-*/
-function manage_emails() {
-	global $user;
-
-	$user->set_emails($_POST['e_add'], $_POST['e_mod'], $_POST['e_del'], $_POST['e_app'], $_POST['e_html'], $_POST['lab_pref']);
-}
-?>
+	
+	include_once('bootstrap.php');
+	include_once('templates/cpanel.template.php');
+	include_once('templates/my_email.template.php');
+	
+	global $auth;
+	$t = new Template(translate('Manage My Email Contacts'));
+	$user = new User($auth->getCurrentID());
+	
+	$t->printHTMLHeader();
+	$t->printWelcome();
+	$t->startMain();
+	
+	startQuickLinksCol();
+	showQuickLinks();		// Print out My Quick Links
+	startDataDisplayCol();
+	
+	$submit = filter_input(INPUT_POST, 'submit', FILTER_SANITIZE_STRING);
+	
+	if ($submit !== null) {
+		manageEmails();
+		printSuccess();
+	} else {
+		printEmailContacts($user);
+	}
+	
+	$t->endMain();
+	$t->printHTMLFooter();
+	
+	/**
+	 * Manages the user's email contacts
+	 */
+	function manageEmails() {
+		global $user;
+		$e_add = filter_input(INPUT_POST, 'e_add', FILTER_SANITIZE_STRING);
+		$e_mod = filter_input(INPUT_POST, 'e_mod', FILTER_SANITIZE_STRING);
+		$e_del = filter_input(INPUT_POST, 'e_del', FILTER_SANITIZE_STRING);
+		$e_app = filter_input(INPUT_POST, 'e_app', FILTER_SANITIZE_STRING);
+		$e_html = filter_input(INPUT_POST, 'e_html', FILTER_SANITIZE_STRING);
+		$lab_pref = filter_input(INPUT_POST, 'lab_pref', FILTER_SANITIZE_STRING);
+		
+		$user->setEmails($e_add, $e_mod, $e_del, $e_app, $e_html, $lab_pref);
+	}
+	

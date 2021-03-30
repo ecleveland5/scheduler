@@ -29,7 +29,7 @@ include_once('templates/userinfo.template.php');
 
 $user = new User($_GET['user']);
 
-$t = new Template(translate('User Info') . ' ' . $user->get_name());
+$t = new Template(translate('User Info') . ' ' . $user->getFullName());
 
 $t->printHTMLHeader();		// Print HTML header
 
@@ -39,8 +39,8 @@ if (!Auth::isAdmin()) {
         . '<a href="ctrlpnl.php">' . translate('Back to My Control Panel') . '</a>');
 }
 
-if (!$user->is_valid()) {	// Make sure member ID is valid
-    CmnFns::do_error_box(translate('Memberid is not available.', array($user->get_id())));
+if (!$user->isValid()) {	// Make sure member ID is valid
+    CmnFns::do_error_box(translate('Memberid is not available.', array($user->getId())));
 }
 
 $db = new UserInfoDB();

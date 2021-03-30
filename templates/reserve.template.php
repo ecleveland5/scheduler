@@ -15,7 +15,7 @@
 * Print out the resource name
 * @param array $rs resource data array
 */
-function print_title(&$rs) {
+function printTitle(&$rs) {
 	echo "<h3 align=\"center\">{$rs['name']}</h3>\n";
 }
 
@@ -24,7 +24,7 @@ function print_title(&$rs) {
 * @param bool $show_repeat whether to show the repeat box
 * @param bool $is_blackout if this is a blackout
 */
-function begin_reserve_form($show_repeat, $is_blackout = false) {
+function beginReserveForm($show_repeat, $is_blackout = false) {
 	echo '<form name="reserve" method="post" action="' . $_SERVER['PHP_SELF'] . '?is_blackout=' . intval($is_blackout) . '" style="margin: 0px" onsubmit="return ' . (($show_repeat) ? 'check_reservation_form(this)' : 'check_for_delete(this)') . ';">' . "\n";
 }
 
@@ -33,7 +33,7 @@ function begin_reserve_form($show_repeat, $is_blackout = false) {
  * and switches between them
  *
  */
-function begin_container() {
+function beginContainer() {
 ?>
 <!-- begin_container() -->
 <table width="100%" cellspacing="0" cellpadding="0" border="0" id="tab-container">
@@ -58,7 +58,9 @@ function begin_container() {
 * @param array $rs resource data array
 * @param bool $is_private if the privacy mode is on and we should hide personal data
 */
-function print_basic_panel($res, $rs, $is_private) {
+function printBasicPanel($res, $rs, $is_private) {
+    global $auth;
+	$is_admin = $auth->isAdmin();
 ?>
 	<!-- Begin basic panel -->
       <div id="pnl_basic" style="display:table; width:100%; position: relative;">
@@ -68,48 +70,49 @@ function print_basic_panel($res, $rs, $is_private) {
 			<!-- Content begin -->
 <?php
     // Print resource info
-	print_equipment_data($rs);
+	printResourceData($rs);
 
-	print_time_info($res, $rs, !$res->is_blackout, (isset($rs['allow_multi']) && $rs['allow_multi'] == 1));
+	printTimeInfo($res, $rs, !$res->is_blackout, (isset($rs['allow_multi']) && $rs['allow_multi'] == 1));
 
 	$user = new User($res->user_id);
 	// will need to change to get list of permitted accounts.
 
 	if (!$res->is_blackout && !$is_private)
-		print_user_info($res->type, $user);	// Print user info
+		printUserInfo($res->type, $user);	// Print user info
 
-	if ($res->user_id == Auth::getCurrentID() || Auth::isAdmin())
-		print_account_info($res, $user);
+	if ($res->user_id === $auth->getCurrentID() || $is_admin)
+		printAccountInfo($res, $user);
 
 	if (!empty($res->id))			// Print created/modified times (if applicable)
-		print_create_modify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email);
+		printCreateModify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email);
 
-	print_summary($res->summary, $res->type);
+	printSummary($res->summary, $res->type);
 
 	if ($res->signin != ""){
-		print_signout();
+		printSignOut();
 	}
 
-	$user = new User($res->user_id);
-	if ($user->get_isadmin()){
-		if (!empty($res->parentid) && ($res->type == RES_TYPE_MODIFY || $res->type == RES_TYPE_DELETE || $res->type == RES_TYPE_APPROVE))
-			print_recur_checkbox($res->parentid);
-
-		if ($res->type == RES_TYPE_MODIFY)
-			print_del_checkbox();
-
+	if ($user->getIsAdmin()) {
+		if (!empty($res->parentid) && ($res->type == RES_TYPE_MODIFY || $res->type == RES_TYPE_DELETE || $res->type == RES_TYPE_APPROVE)) {
+			printRecurCheckbox($res->parentid);
+		}
+		
+		if ($res->type == RES_TYPE_MODIFY) {
+			printDeleteCheckbox();
+		}
 	}
 
 	if ($res->type == RES_TYPE_ADD) {		// Print out repeat reservation box, if applicable
-		divide_table();
-		$user = new User($res->user_id);
-
-		if ($user->get_isadmin()){
-			print_repeat_box(date('m', $res->start_date), date('Y', $res->start_date));
+		divideTable();
+		if ($user->getIsAdmin()) {
+			printRepeatSelectBox(date('m', $res->start_date), date('Y', $res->start_date));
 		}
+		
+		
 		unset($user);
-		if( $res->is_pending )
-			 print_pending_approval_msg();
+		
+		if ($res->is_pending)
+			 printPendingApprovalMsg();
 
 	}
 ?>
@@ -129,7 +132,7 @@ function print_basic_panel($res, $rs, $is_private) {
 * @param bool $is_owner if the current user is the reservations owner
 * @param bool $viewable if the advanced panel shows anything
 */
-function print_advanced_panel(&$res, $users, $is_owner, $viewable = true) {
+function printAdvancedPanel(&$res, $users, $is_owner, $viewable = true) {
 ?>
 	<!-- Begin advanced panel -->
      <div id="pnl_advanced" style="width:100%; position: relative;">
@@ -143,11 +146,11 @@ function print_advanced_panel(&$res, $users, $is_owner, $viewable = true) {
 			else {
 				$user_info = $res->users;
 				if ($is_owner && $res->type != RES_TYPE_APPROVE && $res->type != RES_TYPE_DELETE) {
-					print_invite_selectboxes($res, $users, $user_info);
-					print_participating_users($user_info);
+					printInviteSelectboxes($res, $users, $user_info);
+					printParticipatingUsers($user_info);
 				}
 				else {
-					print_invited_particpating_users($user_info);
+					printInvitedParticpatingUsers($user_info);
 				}
 			}
 		  ?>
@@ -166,7 +169,7 @@ function print_advanced_panel(&$res, $users, $is_owner, $viewable = true) {
 * @param array $users array of all users in the database
 * @param array $user_info the users array of the Reservation object
 */
-function print_invite_selectboxes(&$res, $users, $user_info) {
+function printInviteSelectboxes(&$res, $users, $user_info) {
 	?>
 	<td colspan="3"><p align="center" style="font-weight: bold;">
 	<?php
@@ -225,7 +228,7 @@ function print_invite_selectboxes(&$res, $users, $user_info) {
 *  remove users from participating in this reservation
 * @param array $user_info the users array of the Reservation object
 */
-function print_participating_users($user_info) {
+function printParticipatingUsers($user_info) {
 	?>
 	</tr><tr><td colspan="3"><p align="center" style="font-weight: bold;padding-top:10px;">
 	<?php
@@ -266,7 +269,7 @@ function print_participating_users($user_info) {
 * Prints out lists of all of the invited and all of the participating users
 * @param array $user_info users array from the Reservation object
 */
-function print_invited_particpating_users($user_info){
+function printInvitedParticpatingUsers($user_info){
 	$invited = $participating = '';
 	for ($i = 0; $i < count($user_info); $i++) {
 		if ($user_info[$i]['invited'] == 1) {
@@ -293,7 +296,7 @@ function print_invited_particpating_users($user_info){
 * Closes all tags opened by begin_container()
 * @param none
 */
-function end_container() {
+function endContainer() {
 ?>
 	<!-- end_container() -->
     </td>
@@ -306,7 +309,9 @@ function end_container() {
 * Prints all the buttons and hidden fields
 * @param object $res Reservation object to work with
 */
-function print_buttons_and_hidden(&$res) {
+function printButtonsAndHidden(&$res) {
+    global $auth;
+    $is_admin = $auth->isAdmin();
 ?>
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
@@ -317,7 +322,7 @@ function print_buttons_and_hidden(&$res) {
     echo '<p>';
 	switch($type) {
 		case RES_TYPE_MODIFY :
-			if (!empty($_SESSION['sessionID']) && $res->check_horizon($_SESSION['sessionID'])) {
+			if (!empty($_SESSION['sessionID']) && $res->checkHorizon($_SESSION['sessionID'])) {
 				echo '<input type="submit" name="submit" value="' . translate('Modify') . '" class="button" onclick="selectUsers();"/>'
 					 . '<input type="hidden" name="fn" value="'.RES_TYPE_MODIFY.'" />';
   	  }
@@ -346,7 +351,7 @@ function print_buttons_and_hidden(&$res) {
 				 . '<input type="hidden" name="fn" value="'.RES_TYPE_APPROVE.'" />';
   }
 
-  if ($type == RES_TYPE_MODIFY && Auth::isAdmin()) {
+  if ($type == RES_TYPE_MODIFY && $is_admin) {
   	echo '&nbsp;&nbsp;&nbsp;<input type="submit" name="submit" value="' . translate('Delete') . '" class="button" onclick="setFNtype(\'delete\');" />';
   }
 
@@ -356,14 +361,14 @@ function print_buttons_and_hidden(&$res) {
 
 	// print hidden fields
 	if ($res->get_type() == RES_TYPE_ADD) {
-        echo '<input type="hidden" name="machid" value="' . $res->get_machid(). '" />' . "\n"
+        echo '<input type="hidden" name="machid" value="' . $res->getMachId(). '" />' . "\n"
 			  . '<input type="hidden" name="lab_id" value="' . $res->lab_data['lab_id'] . '" />' . "\n"
-			  . '<input type="hidden" name="pending" value="' . $res->get_pending(). '" />' . "\n"
-			  . '<input type="hidden" name="user_id" value="' . Auth::getCurrentID() . '" />' . "\n";;
+			  . '<input type="hidden" name="pending" value="' . $res->getPending(). '" />' . "\n"
+			  . '<input type="hidden" name="user_id" value="' . $auth->getCurrentID() . '" />' . "\n";;
     }
     else {
-        echo '<input type="hidden" name="resid" value="' . $res->get_id() . '" />' . "\n"
-			. '<input type="hidden" name="user_id" value="' . $res->get_user_id() . '" />' . "\n";;
+        echo '<input type="hidden" name="resid" value="' . $res->getReservationId() . '" />' . "\n"
+			. '<input type="hidden" name="user_id" value="' . $res->getUserId() . '" />' . "\n";;
     }
 ?>
     </td>
@@ -378,7 +383,7 @@ function print_buttons_and_hidden(&$res) {
 *  all information about a given resource
 * @param array $rs array of resource information
 */
-function print_equipment_data(&$rs, $colspan = 1) {
+function printResourceData(&$rs, $colspan = 1) {
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="1">
   <tr class="tableBorder">
@@ -419,14 +424,14 @@ function print_equipment_data(&$rs, $colspan = 1) {
 * @param bool $allow_multi bool if multiple day reseravtions are allowed
 * @global $conf
 */
-function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false) {
-
-	$type = $res->get_type();
+function printTimeInfo($res, $rs, $print_min_max = true, $allow_multi = false) {
+    global $auth;
+    $is_admin = $auth->isAdmin();
+	$type = $res->getReservationType();
 	$interval = $res->lab_data['timeSpan'];
 	$startDay = $res->lab_data['dayStart'];
 	$endDay	  = $res->lab_data['dayEnd'];
 ?>
-    <div style="display:none;"><?php var_dump($res);?></div>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
      <tr class="tableBorder">
       <td>
@@ -455,10 +460,10 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
 	   </tr>
       <tr>
 <?php
-		$start_date = $res->get_start_date();
-		$end_date = $res->get_end_date();
+		$start_date = $res->getStartDate();
+		$end_date = $res->getEndDate();
         // Show reserved time or select boxes depending on type
-        if ( ($type == RES_TYPE_ADD) || ($type == RES_TYPE_MODIFY) || Auth::isAdmin()) {
+        if ( ($type == RES_TYPE_ADD) || ($type == RES_TYPE_MODIFY) || $is_admin) {
 
 
             // Start time select box
@@ -493,10 +498,10 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
             // Start at startDay time, end 30 min before endDay
             //var_dump($res);
             //echo $endDay;//+$interval-(int)$rs['minRes'];
-            for ($i = $startDay; $i < $endDay+$interval-$rs['minRes']; $i+=$interval) {
+            for ($i = $startDay; $i < $endDay + $interval - $rs['minRes']; $i += $interval) {
                 echo '<option value="' . $i . '"';
                 // If this is a modification, select current time
-                if ( ($res->get_start() == $i) )
+                if ( ($start_date === $i) )
                     echo ' selected="selected" ';
                 echo '>' . CmnFns::formatTime($i) . '</option>';
             }
@@ -519,16 +524,16 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
 
             echo "<select name=\"endTime\" class=\"textbox\">\n";
 			// Start at 30 after startDay time, end 30 at endDay time
-            for ($i = $startDay; $i < $endDay+$interval; $i+=$interval) {
+            for ($i = $startDay; $i < $endDay + $interval; $i += $interval) {
                 echo "<option value=\"$i\"";
 
                 // set end time to greater of previous end time or min reservation length.
-                if ($res->get_end() >= $res->get_start()+$rs['minRes']) {
-                    if ($res->get_end() == $i) {
+                if ($end_date >= $start_date + $rs['minRes']) {
+                    if ($end_date === $i) {
                         echo ' selected="selected" ';
                     }
                 } else {
-                    if ((int)$rs['minRes']+$res->get_start() == $i) {
+                    if ((int)$rs['minRes'] + $start_date == $i) {
                         echo ' selected="selected" ';
                     }
                 }
@@ -547,8 +552,8 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
 			}
         }
         else {
-            echo '<td class="formNames" width="50%"><div id="div_start_date" style="float:left;width:86px;">' . CmnFns::formatDate($start_date) . '</div>' . CmnFns::formatTime($res->get_start()) . "</td>\n"
-			      . '<td class="formNames"><div id="div_end_date" style="float:left;width:86px;">' . CmnFns::formatDate($end_date) . '</div>' . CmnFns::formatTime($res->get_end()) . "</td>\n";
+            echo '<td class="formNames" width="50%"><div id="div_start_date" style="float:left;width:86px;">' . CmnFns::formatDate($start_date) . '</div>' . CmnFns::formatTime($start_date) . "</td>\n"
+			      . '<td class="formNames"><div id="div_end_date" style="float:left;width:86px;">' . CmnFns::formatDate($end_date) . '</div>' . CmnFns::formatTime($end_date) . "</td>\n";
 
         }
         // Close off table
@@ -562,11 +567,12 @@ function print_time_info($res, $rs, $print_min_max = true, $allow_multi = false)
 * @param string $type viewing type
 * @param Object $user User object of this user
 */
-function print_user_info($type, $user) {
-	if (!$user->is_valid()) {
-		$user->get_error();
+function printUserInfo($type, $user) {
+    global $auth;
+	if (!$user->isValid()) {
+		$user->getError();
 	}
-	$user = $user->get_user_data();
+	$user = $user->getUserData();
 ?>
    <table width="100%" border="0" cellspacing="0" cellpadding="1">
     <tr class="tableBorder">
@@ -576,7 +582,7 @@ function print_user_info($type, $user) {
         <td colspan="2" class="cellColor"><h5 align="center"><?php echo ($type=='v' || $type=='d') ? translate('Reserved for') : translate('Will be reserved for')?></h5></td></tr>
        <tr>
         <td width="100" class="formNames"><?php echo translate('Name')?></td>
-         <td class="cellColor"><div id="name" style="position: relative;float:left;"><?php echo $user['first_name'] . ' ' . $user['last_name']?></div><?php if (Auth::isAdmin() && ($type == RES_TYPE_MODIFY || $type == RES_TYPE_ADD)) { echo "&nbsp;&nbsp;<a href=\"javascript:window.open('user_select.php','selectuser','height=430,width=570,resizable');void(0);\">" . translate('Change') . '</a>'; } ?></td>
+         <td class="cellColor"><div id="name" style="position: relative;float:left;"><?php echo $user['first_name'] . ' ' . $user['last_name']?></div><?php if ($auth->isAdmin() && ($type == RES_TYPE_MODIFY || $type == RES_TYPE_ADD)) { echo "&nbsp;&nbsp;<a href=\"javascript:window.open('user_select.php','selectuser','height=430,width=570,resizable');void(0);\">" . translate('Change') . '</a>'; } ?></td>
           </tr>
           <tr>
            <td width="100" class="formNames"><?php echo translate('Phone')?></td>
@@ -602,19 +608,21 @@ function print_user_info($type, $user) {
 *  the selected reservation's billed account.
 * @param Object $res Reservation object of this reservation
 */
-function print_account_info($res, $user) {
-	$type = $res->get_type();
+function printAccountInfo($res, $user) {
+    global $auth;
+    $is_admin = $auth->isAdmin();
+	$type = $res->getReservationType();
 	//echo $res->get_account_id();
 
 	//$account = Account::get_account_data($res->get_account_id());
 	//$accounts = $res->db->get_table_data('accounts', array('account_id', 'FRS', 'sub_FRS', 'name', 'pi_last_name'), array('FRS', 'account_id'), NULL, NULL, NULL, NULL);
 
 	//	if admin get all accounts
-	if(Auth::isAdmin()){
+	if($is_admin){
 		$accounts = $user->db->get_table_data('admin_accounts', array('account_id', 'FRS', 'sub_FRS', 'name', 'pi_last_name', 'status'), array('FRS'), NULL, NULL, NULL, NULL);
-	}else{
+	} else {
 		//echo "here";
-		$accounts = $user->get_accounts_list();
+		$accounts = $user->getAccountsList();
 	}
 	//var_dump($accounts);
 ?>
@@ -644,7 +652,7 @@ function print_account_info($res, $user) {
 			
 				// Option tag
 				echo '<option value="' . $account['account_id'] . '"';
-				if ($res->get_account_id() == $account['account_id']) {
+				if ($res->getAccountId() === $account['account_id']) {
 			
 					// Selected attribute
 					echo ' selected="selected" ';
@@ -752,7 +760,7 @@ function print_account_info($res, $user) {
 				</table>
 			<?php
 			}else{
-				$account = $res->db->get_table_data('accounts', array('account_id', 'FRS', 'sub_FRS', 'name', 'pi_last_name'), array('FRS'), NULL, NULL, ' WHERE account_id = ?', array($res->get_account_id()));
+				$account = $res->db->get_table_data('accounts', array('account_id', 'FRS', 'sub_FRS', 'name', 'pi_last_name'), array('FRS'), NULL, NULL, ' WHERE account_id = ?', array($res->getAccountId()));
 			?><!--
 				<table>
 					<tr><td>FRS</td>
@@ -788,7 +796,7 @@ function print_account_info($res, $user) {
 				</table>
 			-->
 				<?php
-					$account_data = $res->get_res_account_data();
+					$account_data = $res->getResAccountData();
 					if($account_data){
 						echo $account_data['FRS'] . ' - ' . $account_data['pi_last_name'];
 						if($account_data['name']!='')
@@ -797,7 +805,7 @@ function print_account_info($res, $user) {
 							echo ', '.$account_data['pi_first_name'];
 						//print_r ($account_data);
 					}else
-						echo $res->get_account_id();
+						echo $res->getAccountId();
 				?>
 			<?php
 			}
@@ -817,7 +825,7 @@ function print_account_info($res, $user) {
 /**
 * Get user input about usage
 */
-function print_signout() {
+function printSignOut() {
 ?>
    <p>&nbsp;</p>
    <table width="100%" border="0" cellspacing="0" cellpadding="1">
@@ -852,7 +860,7 @@ function print_signout() {
 * @param int $c created timestamp
 * @param int $m modified stimestamp
 */
-function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '') {
+function printCreateModify($c, $m, $d = '', $d_by = '', $d_by_email = '') {
 ?>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
     <tr class="tableBorder">
@@ -880,15 +888,15 @@ function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '') {
 
 /**
 * Prints out a checkbox to modify all recurring reservations associated with this one
-* @param string $parentid id of parent reservation
+* @param string $parent_id id of parent reservation
 */
-function print_recur_checkbox($parentid) {
+function printRecurCheckbox($parent_id) {
 	?>
-	<p align="left"><input type="checkbox" name="mod_recur" value="<?php echo $parentid?>" /><?php echo translate('Update all recurring records in group')?></p>
+	<p align="left"><input type="checkbox" name="mod_recur" value="<?php echo $parent_id?>" /><?php echo translate('Update all recurring records in group')?></p>
 	<?php
 }
 
-function print_del_checkbox() {
+function printDeleteCheckbox() {
 ?>
     <p align="left"><input type="checkbox" name="del" id="del_checkbox" value="true" /><label for="del_checkbox"><?php echo translate('Delete?')?></label></p>
 <?php
@@ -900,7 +908,7 @@ function print_del_checkbox() {
 * @param int $month month of current reservation
 * @param int $year year of current reservation
 */
-function print_repeat_box($month, $year) {
+function printRepeatSelectBox($month, $year) {
 	global $days_abbr;
 ?>
 
@@ -970,7 +978,7 @@ function print_repeat_box($month, $year) {
 * @param int $month month of current reservation
 * @param int $year year of current reservation
 */
-function print_pending_approval_msg() {
+function printPendingApprovalMsg() {
 ?>
 <br />
 <table width="100%" border="0" cellspacing="0" cellpadding="1">
@@ -994,7 +1002,7 @@ function print_pending_approval_msg() {
 * @param string $summary summary to edit
 * @param string $type type of reservation
 */
-function print_summary($summary, $type) {
+function printSummary($summary, $type) {
 ?>
    <table width="100%" border="0" cellspacing="0" cellpadding="1">
     <tr class="tableBorder">
@@ -1024,14 +1032,14 @@ function print_summary($summary, $type) {
 * Closes reserve form
 * @param none
 */
-function end_reserve_form() {
+function endReserveForm() {
 	echo "</form>\n";
 }
 
 /**
 * Splits the table into two columns
 */
-function divide_table() {
+function divideTable() {
 ?>
 </td>
 <td style="vertical-align: top; padding-left: 15px;">
@@ -1043,7 +1051,7 @@ function divide_table() {
 *
 *
 **/
-function print_res_note_box($resid, $action, $billing_note, $technical_note=''){
+function printResNoteBox($resid, $action, $billing_note, $technical_note=''){
 ?>
 	<form action="<?php echo $_SERVER['PHP_SELF'] ?>">
 	<table width="100%" border="0" cellspacing="0" cellpadding="1">
@@ -1099,7 +1107,7 @@ function print_res_note_box($resid, $action, $billing_note, $technical_note=''){
 * Prints out the javascript necessary to set up the calendars for choosing recurring dates, start/end dates
 * @param Reservation $res reservation to populate the calendar dates with
 */
-function print_jscalendar_setup(&$res, $rs) {
+function printJSCalendarSetup(&$res, $rs) {
 	global $dates;
 	$allow_multi = (isset($rs['allow_multi']) && $rs['allow_multi'] == 1);
 ?>
@@ -1107,7 +1115,7 @@ function print_jscalendar_setup(&$res, $rs) {
 	var now = new Date(<?php echo date('Y', $res->start_date) . ',' . (intval(date('m', $res->start_date))-1) . ',' . date('d', $res->start_date);?>);
 	<?php
 	//echo "res type: ".$res->get_type();
-	if ($res->get_type() == RES_TYPE_ADD) {
+	if ($res->getReservationType() == RES_TYPE_ADD) {
 	?>
 	// Recurring calendar
 		Calendar.setup(
@@ -1123,7 +1131,7 @@ function print_jscalendar_setup(&$res, $rs) {
 	<?php
 	}
 
-	if ($allow_multi && ($res->get_type() == RES_TYPE_ADD || $res->get_type() == RES_TYPE_MODIFY)) {
+	if ($allow_multi && ($res->getReservationType() == RES_TYPE_ADD || $res->getReservationType() == RES_TYPE_MODIFY)) {
 	?>
 		// Start date calendar
 		Calendar.setup(
@@ -1157,7 +1165,7 @@ function print_jscalendar_setup(&$res, $rs) {
 
 
 
-function print_add_on_charge_list($add_on_charges_available, $add_on_charges) {
+function printAddOnChargeList($add_on_charges_available, $add_on_charges) {
     ?>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
         <tr class="tableBorder">

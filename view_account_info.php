@@ -32,7 +32,7 @@ $account = new Account($account_id);
 $view = filter_input(INPUT_POST, 'view');
 
 // To Do: set up translate
-$t->set_title("Account Info");
+$t->setTitle("Account Info");
 $t->printHTMLHeader();
 
 // Do modify/add
@@ -45,10 +45,10 @@ showQuickLinks();		// Print out My Quick Links
 startDataDisplayCol();
 
 // Following function checks user permissions
-print_account_details($account);
+printAccountDetails($account);
 
 // Get billing data
-$billing_data = $account->get_billing_data();
+$billing_data = $account->getBillingData();
 ?>
 <!--
 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" name="billing_view">

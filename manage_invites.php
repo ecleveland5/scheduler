@@ -16,13 +16,13 @@ include_once('lib/Reservation.class.php');
 
 $t = new Template('Manage Invites');
 
-if (Auth::is_logged_in() && (isset($_POST['y']) || isset($_POST['n'])) ) {
+if (Auth::isLoggedIn() && (isset($_POST['y']) || isset($_POST['n'])) ) {
 	CmnFns::redirect('ctrlpnl.php', 1, false);
 }
 
 $t->printHTMLHeader();
 
-if (Auth::is_logged_in()) {
+if (Auth::isLoggedIn()) {
 	$t->printWelcome();
 }
 $t->startMain();
@@ -55,23 +55,23 @@ if (isset($_POST['y'])) {
 			if ($found_user && $owner_id !== false) {
 				$translate_index = 'reservation ' . (($action == INVITE_ACCEPT) ? 'accepted' : 'declined');
 				// Update the invite record
-				$res->update_users($user_id, $action, isset($_POST['update_all']));
+				$res->updateUsers($user_id, $action, isset($_POST['update_all']));
 				// Let the owner know the user accepted/declined
 				$owner = new User($owner_id);
 				
 				$mailer = new PHPMailer();		
 				$mailer->From = $conf['app']['adminEmail'];
 				$mailer->FromName = $conf['app']['title'];
-				$mailer->Subject =  translate($translate_index, array($user->get_name(), CmnFns::formatDate($res->start_date)));
+				$mailer->Subject =  translate($translate_index, array($user->getFullName(), CmnFns::formatDate($res->start_date)));
 				$mailer->IsHTML(false);
 				
-				$mailer->AddAddress($owner->get_email());
-				$mailer->Body = translate($translate_index, array($user->get_name(), CmnFns::formatDate($res->start_date)));
+				$mailer->AddAddress($owner->getEmail());
+				$mailer->Body = translate($translate_index, array($user->getFullName(), CmnFns::formatDate($res->start_date)));
 				$mailer->Send();
 				
 				$msg = '';
-				$msg .= translate($translate_index, array($user->get_name(), CmnFns::formatDate($res->start_date))) . '<br/>';
-				if (Auth::is_logged_in()) {
+				$msg .= translate($translate_index, array($user->getFullName(), CmnFns::formatDate($res->start_date))) . '<br/>';
+				if (Auth::isLoggedIn()) {
 					$msg .= Link::getLink('ctrlpnl.php', translate('Return to My Control Panel'));
 				}	
 				else {
@@ -90,7 +90,7 @@ if (isset($_POST['y'])) {
 	}
 }
 else if (isset($_POST['n'])) {
-	if (Auth::is_logged_in()) {
+	if (Auth::isLoggedIn()) {
 		$msg = Link::getLink('ctrlpnl.php', translate('Return to My Control Panel'));
 	}	
 	else {
@@ -106,7 +106,7 @@ else {
 	$msg .= '<input type="submit" class="button" name="y" value="' . translate($word) . '"/>';
 	$msg .= ' ';
 	$msg .= '<input type="submit" class="button" name="n" value="' . translate('Cancel') . '"/>';
-	if ($res->is_repeat()) {
+	if ($res->isRepeat()) {
 		$msg .= '<br/><input type="checkbox" name="update_all" value="yes"/> '. translate('Do for all reservations in the group?');
 	}
 	echo '<form name="inv_mgmt" action="' . $_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'] . '" method="post">';

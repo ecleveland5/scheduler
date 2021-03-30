@@ -1,55 +1,29 @@
 <?php
-/**
-* Scheduler class
-* This file contians the scheduler application where
-*  users have an interface for reserving resources,
-*  viewing other reservations and modifying their own.
-* @author Nick Korbel <lqqkout13@users.sourceforge.net>
-* @author David Poole <David.Poole@fccc.edu>
-* @author Richard Cantzler <rmcii@users.sourceforge.net>
-* @version 08-18-05
-* @package phpScheduleIt
-*
-* Copyright (C) 2003 - 2005 phpScheduleIt
-* License: GPL, see LICENSE
-*/
-/**
-* Base directory of application
-*/
-@define('BASE_DIR', dirname(__FILE__) . '/..');
-/**
-* Include LabDB class
-*/
-include_once('db/LabDB.class.php');
-/**
-* Include Calendar
-*/
-include_once('Calendar.class.php');
-/**
-* Include Lab template files
-*/
+
+include_once(BASE_DIR . '/lib/db/LabDB.class.php');
+include_once(BASE_DIR . '/lib/Calendar.class.php');
 include_once(BASE_DIR . '/templates/lab.template.php');
 
 class Lab {
 
     var $_date;
-    var $machids;
+    var $mach_ids;
     var $res;
     var $blackouts;
     var $db;
     var $user;
-    var $labType; // BLACKOUT_ONLY, RESERVATION_ONLY, ALL, READ_ONLY
+    var $lab_type; // BLACKOUT_ONLY, RESERVATION_ONLY, ALL, READ_ONLY
     var $lab_id;
-    var $viewDays;
-    var $startDay;
-    var $endDay;
-    var $timeSpan;
-    var $weekStartDay;
-    var $showSummary;
-    var $dayOffset;
+    var $view_days;
+    var $start_day;
+    var $end_day;
+    var $time_span;
+    var $week_start_day;
+    var $show_summary;
+    var $day_offset;
     var $title;
     var $admin;
-    var $isValid = false;
+    var $is_valid = false;
 
     /**
      * Sets up initial variable values
@@ -58,8 +32,9 @@ class Lab {
      * @param User $user current logged in user object
      */
     function __construct($lab_id, $labType = ALL) {
+    	global $auth;
         $this->lab_id = $lab_id;
-        $this->labType = $labType;                // Set lab type
+        $this->lab_type = $labType;                // Set lab type
 	    $this->db = new LabDB($lab_id, $labType);            // Set database class
 
         if (is_null($lab_id) || empty($lab_id)) {
@@ -67,34 +42,34 @@ class Lab {
             $this->db->lab_id = $this->lab_id;
         }
 
-        $this->isValid = $this->db->check_lab_id($this->lab_id);
+        $this->is_valid = $this->db->check_lab_id($this->lab_id);
 
-        if ($this->isValid) {
+        if ($this->is_valid) {
             $data = $this->db->get_lab_data($this->lab_id);
-            $this->viewDays = $data['viewDays'];
-            $this->startDay = $data['dayStart'];
-            $this->endDay   = $data['dayEnd'];
-            $this->timeSpan = $data['timeSpan'];
+            $this->view_days = $data['viewDays'];
+            $this->start_day = $data['dayStart'];
+            $this->end_day   = $data['dayEnd'];
+            $this->time_span = $data['timeSpan'];
             $this->weekDayStart = $data['weekDayStart'];
-            $this->showSummary	= $data['showSummary'];
+            $this->show_summary	= $data['showSummary'];
             $this->title    = $data['labTitle'];
             $this->admin    = $data['adminEmail'];
-            $this->dayOffset= $data['dayOffset'];
+            $this->day_offset= $data['dayOffset'];
 
             if ($labType == READ_ONLY)
                 $this->user = new User();
             else
-                $this->user = new User(Auth::getCurrentID());    // Set User class
+                $this->user = new User($auth->getCurrentID());    // Set User class
 
-            $this->_date = $this->get_date_vars();        // Get all date info we need
-            $this->machids = $this->db->get_mach_ids($this->lab_id);    // Get all resource info
+            $this->_date = $this->getDateVars();        // Get all date info we need
+            $this->mach_ids = $this->db->get_mach_ids($this->lab_id);    // Get all resource info
             $machids = array();
-            if($this->machids !== false) {
-                foreach($this->machids as $mach) {
+            if($this->mach_ids !== false) {
+                foreach($this->mach_ids as $mach) {
                     $machids[] = $mach['machid'];
                 }
             }
-            $this->res = $this->db->get_all_res($this->_date['firstDayTs'], $this->_date['lastDayTs'], $machids);
+            $this->res = $this->db->getAllReservations($this->_date['firstDayTs'], $this->_date['lastDayTs'], $machids);
         }
     }
 
@@ -104,34 +79,32 @@ class Lab {
      * @param array $filters list of resources to display
      * @param string $user_id ID of the current user
      */
-    function print_lab($filters) {
-        global $conf;
+    function printLab($filters) {
 
-        print_date_span($this->_date, $this->title);
+        printDate($this->_date, $this->title);
 
-        //print_jump_links($this->_date);
-
-        print_lab_list($this->db->get_lab_list(), $this->lab_id);
-        //var_dump($filters);
+        printLabList($this->db->get_lab_list(), $this->lab_id);
+        
         //print_filter_resources($this->machids, $filters, $this->user->get_id());
         //$this->print_calendars();
 
-        if ($this->labType == ALL)
-            print_color_key();
-
+        if ($this->lab_type == ALL) {
+	        printColorKey();
+        }
+        
         // Break first day we are viewing into an array of date pieces
         $temp_date = getdate($this->_date['firstDayTs']);
-        $hour_header = get_hour_header($this->get_time_array(), $this->startDay, $this->endDay, $this->timeSpan);    // Get the headers (same for all tables)
+        $hour_header = getHourHeader($this->getTimeArray(), $this->start_day, $this->end_day, $this->time_span);
 
         // Repeat this for each day we need to show
-        for ($dayCount = 0; $dayCount < $this->viewDays; $dayCount++) {
+        for ($dayCount = 0; $dayCount < $this->view_days; $dayCount++) {
             // Timestamp for whatever day we are currently viewing
             $this->_date['current'] = mktime(0,0,0, $temp_date['mon'], $temp_date['mday'] + $dayCount, $temp_date['year']);
-            start_day_table($this->get_display_date(), $hour_header);    // Start the table for this day
-            $this->print_reservations($filters);    // Print reservations for this day
-            end_day_table();                // End the table for this day
+            startDayTable($this->getDisplayDate(), $hour_header);    // Start the table for this day
+            $this->printReservations($filters);    // Print reservations for this day
+            endDayTable();                // End the table for this day
         }
-        print_summary_div();
+        printSummaryDiv();
 
     }
 
@@ -139,56 +112,56 @@ class Lab {
     * Prints out 3 calendars (prev month, this month, next month) at the top of the lab
     * @param none
     */
-    function print_calendars() {
+    function printCalendars() {
         $prev = new Calendar(false, $this->_date['month'] -1, $this->_date['year']);
         $curr = new Calendar(false, $this->_date['month'], $this->_date['year']);
         $next = new Calendar(false, $this->_date['month'] + 1, $this->_date['year']);
         $prev->lab_id = $curr->lab_id = $next->lab_id = $this->lab_id;
 
-        print_calendars($prev, $curr, $next);
+        printCalendars($prev, $curr, $next);
     }
 
     /**
     * Print out the reservations for each resource on each day
     * @param array $filters array of resource ids to show
     */
-    function print_reservations(array $filters = array()) {
-        global $conf;
-
-        if (!$this->machids)
+    function printReservations(array $filters = array()) {
+        global $auth;
+        $is_admin = $auth->isAdmin();
+        if (!$this->mach_ids)
             return;
 
         $current_date = $this->_date['current'];        // Store current_date so we dont have to access the array every time
         //var_dump($this->res);
         // Repeat this whole process for each resource
-        for ($count = 0; $count < count($this->machids); $count++) {
-            $prevTime = $this->startDay;        // Previous time holder
-            $totCol = intval(($this->endDay - $this->startDay) / $this->timeSpan);    // Total columns holder
+        for ($count = 0; $count < count($this->mach_ids); $count++) {
+            $prevTime = $this->start_day;        // Previous time holder
+            $totCol = intval(($this->end_day - $this->start_day) / $this->time_span);    // Total columns holder
 
             // Store info about this current resource in local vars
-            $id = $this->machids[$count]['machid'];
-            $name = $this->machids[$count]['name'];
-            $status = $this->machids[$count]['status'];
-            $approval = $this->machids[$count]['approval'];
+            $id = $this->mach_ids[$count]['machid'];
+            $name = $this->mach_ids[$count]['name'];
+            $status = $this->mach_ids[$count]['status'];
+            $approval = $this->mach_ids[$count]['approval'];
             $show = false;        // Default resource visibility to not shown
 
             // If the date has not passed, resource is active and user has permission,
             //  or the user is the admin allow reservations to be made
-            if (($current_date >= mktime(0,0,0, date('m'), date('d') + $this->dayOffset) && ($status == 'a' && $this->user->has_perm($id)))
-                || Auth::isAdmin()
+            if (($current_date >= mktime(0,0,0, date('m'), date('d') + $this->day_offset) && ($status == 'a' && $this->user->hasResourcePermission($id)))
+                || $is_admin
             ) {
                 $show = true;
             }
                 // insert code to limit visibility of resources not authorized
             $color = 'cellColor' . ($count%2);
 
-            if (empty($filters) || array_key_exists($this->machids[$count]['machid'], $filters)) {
-                $this->machids[$count]['hide'] = false;
+            if (empty($filters) || array_key_exists($this->mach_ids[$count]['machid'], $filters)) {
+                $this->mach_ids[$count]['hide'] = false;
             } else {
-                $this->machids[$count]['hide'] = true;
+                $this->mach_ids[$count]['hide'] = true;
             }
 
-            print_name_cell($current_date, $id, $name, $show, $this->labType == BLACKOUT_ONLY, $this->lab_id, $approval, $color, $this->machids[$count]['hide']);
+            printNameCell($current_date, $id, $name, $show, $this->lab_type == BLACKOUT_ONLY, $this->lab_id, $approval, $color, $this->mach_ids[$count]['hide']);
 
             $index = $id;
             if (isset($this->res[$index])) {
@@ -207,37 +180,37 @@ class Lab {
                     }
 
                     // Just skip the reservation if the ending date/time is todays start time
-                    if ($rs['end_date'] == $current_date && $rs['endTime'] == $this->startDay) { continue; }
+                    if ($rs['end_date'] == $current_date && $rs['endTime'] == $this->start_day) { continue; }
 
                     // If the reservation starts before or ends after todays date, just pretend it ends today so it shows correctly
                     if ($rs['start_date'] < $current_date) {
-                        $rs['startTime'] = $this->startDay;
+                        $rs['startTime'] = $this->start_day;
                     }
                     if ($rs['end_date'] > $current_date) {
-                        $rs['endTime'] = $this->endDay;
+                        $rs['endTime'] = $this->end_day;
                     }
 
                     // Print out row of reservations
                     $thisStart = $rs['startTime'];
                     $thisEnd = $rs['endTime'];
 
-                    if ($thisStart < $this->startDay && $thisEnd > $this->startDay)
-                        $thisStart = $this->startDay;
-                    else if ($thisStart < $this->startDay && $thisEnd <= $this->startDay)
+                    if ($thisStart < $this->start_day && $thisEnd > $this->start_day)
+                        $thisStart = $this->start_day;
+                    else if ($thisStart < $this->start_day && $thisEnd <= $this->start_day)
                         continue;    // Ignore reservation, its off the lab
 
-                    if ($thisStart < $this->endDay && $thisEnd > $this->endDay)
-                        $thisEnd = $this->endDay;
-                    else if ($thisStart >= $this->endDay && $thisEnd > $this->startDay)
+                    if ($thisStart < $this->end_day && $thisEnd > $this->end_day)
+                        $thisEnd = $this->end_day;
+                    else if ($thisStart >= $this->end_day && $thisEnd > $this->start_day)
                         continue;    // Ignore reservation, its off the lab
 
-                    $colspan = intval(($thisEnd - $thisStart) / $this->timeSpan);
-                    $this->move_to_starting_col($rs, $thisStart, $prevTime, $this->timeSpan, $id, $current_date, $show, $color);
+                    $colspan = intval(($thisEnd - $thisStart) / $this->time_span);
+                    $this->moveToStartingColumn($rs, $thisStart, $prevTime, $this->time_span, $id, $current_date, $show, $color);
 
                     if ($rs['is_blackout'] == 1) {
-                      $this->write_blackout($rs, $colspan);
+                      $this->writeBlackout($rs, $colspan);
                     } else {
-                      $this->write_reservation($rs, $colspan);
+                      $this->writeReservation($rs, $colspan);
                     }
 
                     // Set prevTime to this reservation's ending time
@@ -245,7 +218,7 @@ class Lab {
                 }
             }
             //echo '<p>endDay: ' . $this->endDay . ', prevTime: ' . $prevTime . ', timeSpan: ' . $this->timeSpan . '</p>';
-            $this->finish_row($this->endDay, $prevTime, $this->timeSpan, $id, $current_date, $show, $color);
+            $this->finishRow($this->end_day, $prevTime, $this->time_span, $id, $current_date, $show, $color);
         }
     }
 
@@ -253,8 +226,8 @@ class Lab {
     * Return the formatted date
     * @return string formatted date
     */
-    function get_display_date() {
-        return translate_date('lab_daily', $this->_date['current']);
+    function getDisplayDate() {
+        return translateDate('lab_daily', $this->_date['current']);
     }
 
     /**
@@ -262,7 +235,7 @@ class Lab {
     * @param none
     * @return array of all needed date variables
     */
-    function get_date_vars() {
+    function getDateVars() {
         $default = false;
         $getDate = filter_input(INPUT_GET, 'date');
         $jumpMonth = filter_input(INPUT_POST, 'jumpMonth');
@@ -305,7 +278,7 @@ class Lab {
 
         // Make timestamp for last date
         // by adding # of days to view minus the day of the week to $day
-        $dv['lastDayTs'] = mktime(0,0,0, $dv['month'], ($dv['day'] + $this->viewDays - 1), $dv['year']);
+        $dv['lastDayTs'] = mktime(0,0,0, $dv['month'], ($dv['day'] + $this->view_days - 1), $dv['year']);
         $dv['current'] = $dv['firstDayTs'];
 
         return $dv;
@@ -322,12 +295,12 @@ class Lab {
     * @global $conf
     * @see CmnFns::formatTime()
     */
-    function get_time_array() {
+    function getTimeArray() {
         global $conf;
 
-        $startDay = $startingTime = $this->startDay;
-        $endDay   = $endingTime   = $this->endDay;
-        $interval = $this->timeSpan;
+        $startDay = $startingTime = $this->start_day;
+        $endDay   = $endingTime   = $this->end_day;
+        $interval = $this->time_span;
         $timeHash = array();
 
         // Compute the available times
@@ -359,29 +332,29 @@ class Lab {
     * Print out links to jump to new dates
     * @param none
     */
-    function print_jump_links() {
-        print_jump_links($this->_date['firstDayTs'], $this->viewDays, ($this->viewDays != 7), $this->lab_id);
+    function printJumpLinks() {
+        printJumpLinks($this->_date['firstDayTs'], $this->view_days, ($this->view_days != 7), $this->lab_id);
     }
 
     /**
     * Return color_select for given reservation
     * @param array $rs array of reservation information
     */
-    function get_reservation_colorstr($rs) {
+    function getReservationColor($rs) {
         global $conf;
 
         $is_mine = false;
         $is_past = false;
         $color_select = 'other_res';        // Default color (if anything else is true, it will be changed)
 
-        if ($this->labType != READ_ONLY) {
+        if ($this->lab_type != READ_ONLY) {
             if ($rs['user_id'] == $_SESSION['sessionID']) {
                 $is_mine = true;
                 $color_select = 'my_res';
             }
         }
 
-        if (mktime(0,0,0, date('m'), date('d') + $this->dayOffset) > $this->_date['current']) {        // If todays date is still before or on the day of this reservation
+        if (mktime(0,0,0, date('m'), date('d') + $this->day_offset) > $this->_date['current']) {        // If todays date is still before or on the day of this reservation
             $is_past = true;
             $color_select = ($is_mine) ? 'my_past_res' : 'other_past_res';        // Choose which color array to use
         }
@@ -405,10 +378,10 @@ class Lab {
     * @param bool $clickable if this row's cells can be clicked to start a reservation
 	* @param string $color class of column background
     */
-    function move_to_starting_col($rs, $start, $prev, $span, $machid, $ts, $clickable, $color) {
+    function moveToStartingColumn($rs, $start, $prev, $span, $machid, $ts, $clickable, $color) {
         global $conf;
         $cols = (($start-$prev) / $span) - 1;
-        print_blank_cols($cols, $prev, $span, $ts, $machid, $this->lab_id, $this->labType, $clickable, $color);
+        printBlankCols($cols, $prev, $span, $ts, $machid, $this->lab_id, $this->lab_type, $clickable, $color);
     }
 
     /**
@@ -421,13 +394,13 @@ class Lab {
     * @param bool $clickable if this row's cells can be clicked to start a reservation
 	* @param string $color class of column background
     */
-    function finish_row($end, $prev, $span, $machid, $ts, $clickable, $color) {
+    function finishRow($end, $prev, $span, $machid, $ts, $clickable, $color) {
         global $conf;
         $cols = (($end-$prev) / $span) - 1;
-        $is_past = (mktime(0,0,0, date('m'), date('d') + $this->dayOffset) > $this->_date['current']);        // If todays date is still before or on the day of this reservation
+        $is_past = (mktime(0,0,0, date('m'), date('d') + $this->day_offset) > $this->_date['current']);        // If todays date is still before or on the day of this reservation
 
-		print_blank_cols($cols, $prev, $span, $ts, $machid, $this->lab_id, $this->labType, $clickable, $color);
-        print_closing_tr();
+		printBlankCols($cols, $prev, $span, $ts, $machid, $this->lab_id, $this->lab_type, $clickable, $color);
+        printClosingTableRow();
     }
 
     /**
@@ -435,22 +408,23 @@ class Lab {
     * @param array $rs array of reservation information
     * @param int $colspan column span value
     */
-    function write_reservation($rs, $colspan) {
+    function writeReservation($rs, $colspan) {
         global $conf;
+        global $auth;
 
         $is_mine = false;
         $is_past = false;
-        $is_private = $conf['app']['privacyMode'] && !Auth::isAdmin();
+        $is_private = $conf['app']['privacyMode'] && !$auth->isAdmin();
         $color_select = 'other_res';        // Default color (if anything else is true, it will be changed)
 
-        if ($this->labType != READ_ONLY) {
+        if ($this->lab_type != READ_ONLY) {
             if ($rs['user_id'] == $_SESSION['sessionID']) {
                 $is_mine = true;
                 $color_select = 'my_res';
             }
         }
 
-        if (mktime(0,0,0, date('m'), date('d') + $this->dayOffset) > $this->_date['current']) {        // If todays date is still before or on the day of this reservation
+        if (mktime(0,0,0, date('m'), date('d') + $this->day_offset) > $this->_date['current']) {        // If todays date is still before or on the day of this reservation
             $is_past = true;
             $color_select = ($is_mine) ? 'my_past_res' : 'other_past_res';        // Choose which color array to use
         }
@@ -465,10 +439,10 @@ class Lab {
         // If this is the user who made the reservation or the admin,
         //  and time has not passed, allow them to edit it
         //  else only allow view
-        $mod_view = ( Auth::isAdmin() || (($is_mine) && !$is_past)) ? RES_TYPE_MODIFY : RES_TYPE_VIEW;    // To use in javascript edit/view box
-        $show_summary = (($this->labType != READ_ONLY || ($this->labType == READ_ONLY && $conf['app']['readOnlySummary'])) && $this->showSummary && !$is_private);
-        $viewable = ($this->labType != READ_ONLY || ($this->labType == READ_ONLY && $conf['app']['readOnlyDetails']));
-        write_reservation($colspan, $color_select, $mod_view, $rs['resid'],$summary , $viewable, $show_summary, $this->labType == READ_ONLY, $rs['is_pending']);
+        $mod_view = ( $auth->isAdmin() || (($is_mine) && !$is_past)) ? RES_TYPE_MODIFY : RES_TYPE_VIEW;    // To use in javascript edit/view box
+        $show_summary = (($this->lab_type != READ_ONLY || ($this->lab_type == READ_ONLY && $conf['app']['readOnlySummary'])) && $this->show_summary && !$is_private);
+        $viewable = ($this->lab_type != READ_ONLY || ($this->lab_type == READ_ONLY && $conf['app']['readOnlyDetails']));
+        writeReservation($colspan, $color_select, $mod_view, $rs['resid'],$summary , $viewable, $show_summary, $this->lab_type == READ_ONLY, $rs['is_pending']);
     }
 
     /**
@@ -476,24 +450,25 @@ class Lab {
     * @param array $rs array of reservation information
     * @param int $colspan column span value
     */
-    function write_blackout($rs, $colspan) {
+    function writeBlackout($rs, $colspan) {
         global $conf;
-		$is_private = $conf['app']['privacyMode'] && !Auth::isAdmin();
-        $show_summary = (($this->labType != READ_ONLY || ($this->labType == READ_ONLY && $conf['app']['readOnlySummary'])) && $this->showSummary && !$is_private);
+        global $auth;
+        
+		$is_private = $conf['app']['privacyMode'] && !$auth->isAdmin();
+        $show_summary = (($this->lab_type != READ_ONLY || ($this->lab_type == READ_ONLY && $conf['app']['readOnlySummary'])) && $this->show_summary && !$is_private);
 
-        write_blackout($colspan, Auth::isAdmin(), $rs['resid'], htmlspecialchars($rs['summary']),  $show_summary);
+        writeBlackout($colspan, $auth->isAdmin(), $rs['resid'], htmlspecialchars($rs['summary']),  $show_summary);
     }
 
     /**
     * Prints out an error message for the user
     * @param none
     */
-    function print_error() {
+    function printError() {
         CmnFns::do_error_box(translate('That lab is not available.') . '<br/><a href="javascript: history.back();">' . translate('Back') . '</a>', '', false);
     }
 
-    function user_has_permissions($user_id) {
-        $this->db->user_has_permissions($this->lab_id, $user_id);
+    function userHasPermissions($user_id) {
+        $this->db->userHasPermissions($this->lab_id, $user_id);
     }
 }
-?>

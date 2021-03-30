@@ -7,16 +7,16 @@ $billing_data = null;
 if ( isset($_GET['account_id']) && !empty($_GET['account_id']) ) {
 	if (is_numeric($_GET['account_id'])) {
 		$account = new Account($_GET['account_id']);
-		$billing_data = $account->get_billing_data();
-		$filename = $account->get_field('FRS');
+		$billing_data = $account->getBillingData();
+		$filename = $account->getField('FRS');
 	} else {
 		$accounts = explode(",",$_GET['account_id']);
 		if (count($accounts)>0) {
 			$billing_data = array();
 			foreach ($accounts as $account_id) {
 				$account = new Account($account_id);
-				if ($account->is_admin($_SESSION['sessionID'])) {
-          $new_data = $account->get_billing_data();
+				if ($account->isAdmin($_SESSION['sessionID'])) {
+          $new_data = $account->getBillingData();
           if (!empty($billing_data)) {
             $billing_data = array_merge($billing_data, $new_data);
           } else {

@@ -15,8 +15,8 @@
 include_once('lib/Template.class.php');
 include_once('lib/Reservation.class.php');
 
-if (!Auth::is_logged_in()) {
-	Auth::print_login_msg();
+if (!Auth::isLoggedIn()) {
+	Auth::printLoginMsg();
 }
 
 $t = new Template();
@@ -29,11 +29,11 @@ $technical_note = $_REQUEST['technical_note'];
 $res = new Reservation($resid);
 
 if (isset($_REQUEST['submit']) && strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF'])) {
-	$t->set_title(translate("Processing Note"));
+	$t->setTitle(translate("Processing Note"));
 	$t->printHTMLHeader();
 	$t->startMain();
-	$res->add_billing_note($resid, $billing_note);
-	$res->add_technical_note($resid, $technical_note);
+	$res->addBillingNote($resid, $billing_note);
+	$res->addTechnicalNote($resid, $technical_note);
 	?>
 	<center>
 	<div class="message">
@@ -52,15 +52,15 @@ if (isset($_REQUEST['submit']) && strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP
 else {
 
 	if($type=='billing'){
-		$note = $res->get_billing_note();
+		$note = $res->getBillingNote();
 	}else if ($type=='technical'){
-		$note = $res->get_technical_note();
+		$note = $res->getTechnicalNote();
 	}
 
-	$t->set_title(ucwords($action + "ing Reservation Notes"));
+	$t->setTitle(ucwords($action + "ing Reservation Notes"));
     $t->printHTMLHeader();
     $t->startMain();
-    print_res_note_box($resid, $action, $note);
+    printResNoteBox($resid, $action, $note);
 }
 
 // End main table

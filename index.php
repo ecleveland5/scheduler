@@ -4,12 +4,11 @@
 	$t = new Template();
 	$t->printHTMLHeader();
 	
-	// Print out logoImage if it exists
-	echo (!empty($conf['ui']['logoImage']))
-		? '<div align="left"><img src="' . $conf['ui']['logoImage'] . '" alt="logo" vspace="5"/></div>'
-		: '';
-	
-	CmnFns::redirect('ctrlpnl.php', 1);
+	if ($auth->isLoggedIn()) {
+		CmnFns::redirect('ctrlpnl.php', 1);
+	} else {
+		$auth->printLoginForm($auth->login_msg);
+	}
 	
 	$t->printHTMLFooter();
 	

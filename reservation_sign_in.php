@@ -32,26 +32,26 @@ $t->startMain();
 
 if (isset($_REQUEST['login'])) {
 	
-	$res_sign_in = $auth->doReservationSignin($user->get_id(), $password, $resid, $frs, $signaction, &$msg);
+	$res_sign_in = $auth->doReservationSignin($user->getId(), $password, $res_id, $frs, $signaction, &$msg);
 
 	if($res_sign_in){
 		//echo $user->get_email() . " " . $password;
-		$_SESSION['sessionID'] = $user->get_id();
+		$_SESSION['sessionID'] = $user->getId();
 		
 		$order = array('start_date', 'name', 'startTime', 'endTime', 'created', 'modified');
 
-		$reservations = $db->get_user_reservations($user->get_id(), CmnFns::get_value_order($order), CmnFns::get_vert_order(), true);
+		$reservations = $db->get_user_reservations($user->getId(), CmnFns::get_value_order($order), CmnFns::get_vert_order(), true);
 		if(!$reservations){
 			$msg = $db->get_err();
 		}else{
-			$msg = showReservationTable($reservations, $db->get_err(), NULL, $user->get_id());
+			$msg = showReservationTable($reservations, $db->get_err(), NULL, $user->getId());
 		}
 	
 		if($msg != '') CmnFns::do_message_box($msg);
 		
 	}else{
-		$users = $auth->get_user_list();
-		$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->get_id(), $useid, $signaction);
+		$users = $auth->getUserList();
+		$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->getId(), $useid, $signaction);
 	}
 ?>
 	<script>
@@ -64,9 +64,9 @@ if (isset($_REQUEST['login'])) {
 <?
 }else{
 	
-	$users = $auth->get_user_list();
+	$users = $auth->getUserList();
 
-	$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->get_id(), $useid, $signaction);
+	$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->getId(), $useid, $signaction);
 }
 $t->endMain();
 

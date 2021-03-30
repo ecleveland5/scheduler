@@ -103,7 +103,7 @@ function add_lab() {
 	$id = $db->add_lab($lab);
 
 	CmnFns::write_log('Lab added. ' . $lab['labTitle'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -117,7 +117,7 @@ function edit_lab() {
 	$db->edit_lab($lab);
 
 	CmnFns::write_log('Lab editied. ' . $lab['labTitle'] . ' ' . $lab['lab_id'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -135,7 +135,7 @@ function del_lab() {
 
 	$db->del_lab($lab_id);
 	CmnFns::write_log('Labs deleted. ' . join(', ', $lab_id), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 function set_default_lab() {
@@ -143,7 +143,7 @@ function set_default_lab() {
 
 	$db->set_default_lab($_POST['lab_id']);
 	CmnFns::write_log('Default lab changed to ' . $_POST['lab_id'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -158,7 +158,7 @@ function add_announcement() {
 	$id = $db->add_announcement($announcement);
 
 	CmnFns::write_log('Announcement added. ' . $announcement['announcement'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -172,7 +172,7 @@ function edit_announcement() {
 	$db->edit_announcement($announcement);
 
 	CmnFns::write_log('Announcement editied. ' . $announcement['announcement'] . ' ' . $announcement['announcementid'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -190,7 +190,7 @@ function del_announcement() {
 
 	$db->del_announcement($announcementid);
 	CmnFns::write_log('Announcements deleted. ' . join(', ', $announcementid), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -215,7 +215,7 @@ function del_users() {
 	
 	$db->del_users($user_ids);
 	CmnFns::write_log('Users deleted. ' . join(', ', $user_ids), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -250,7 +250,7 @@ function edit_lab_users() {
 
 	//$db->edit_lab_users($_POST['user_id'], $_POST['lab_id']);
 	CmnFns::write_log('Users deleted. ' . join(', ', $_POST['user_id']), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -268,7 +268,7 @@ function add_resource() {
 		$db->auto_assign($id);
 
 	CmnFns::write_log('Resource added. ' . $resource['name'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -286,7 +286,7 @@ function edit_resource() {
 		$db->auto_assign($resource['machid']);
 
 	CmnFns::write_log('Resource editied. ' . $resource['name'] . ' ' . $resource['machid'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -303,7 +303,7 @@ function del_resource() {
 	$db->del_resource($machid, $resource_list_shown);
 	
 	CmnFns::write_log('Resources deleted. ' . join(', ', $machid), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 function update_resources() {
@@ -328,7 +328,7 @@ function update_resources() {
 	$resource_list_shown = explode(',', $resource_list_shown);
 	$db->del_resource($machid, $resource_list_shown);
 	
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -340,7 +340,7 @@ function tog_resource() {
 
 	$db->tog_resource($_GET['machid'], $_GET['status']);
 	CmnFns::write_log('Resource ' . $_GET['machid'] . ' toggled on/off.', $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -353,12 +353,12 @@ function add_account() {
 	$account_data = check_account_data(CmnFns::cleanPostVals());
 	$account = new Account(NULL, false);
 
-	$account->add_account($account_data);
+	$account->addAccount($account_data);
 
-	$account->add_account_user($account->get_field("pi_id"), 1);
+	$account->addAccountUser($account->getField("pi_id"), 1);
 
 	//CmnFns::write_log('Account added. ' . $account['name'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -374,7 +374,7 @@ function edit_account() {
 	$db->edit_account($account);
 
 	CmnFns::write_log('Account editied. ' . $account['name'] . ' ' . $account['account_id'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 	//}else{
 	//print_fail();
 	//}
@@ -393,7 +393,7 @@ function del_account() {
 	$account_list_shown = explode(',', $account_list_shown);
 	$db->del_account($account_id, $account_list_shown);
 	CmnFns::write_log('Accounts archived. ' . join(', ', $account_id), $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -408,8 +408,8 @@ function tog_account() {
 	$db->tog_account($account_id, $status);
 	CmnFns::write_log('Account ' . $account_id . ' toggled on/off.', $_SESSION['sessionID']);
 	$acc = new Account($account_id);
-	$acc->email_account_admins($status);
-	print_success();
+	$acc->emailAccountAdmins($status);
+	printSuccess();
 }
 
 /**
@@ -460,20 +460,20 @@ function edit_account_users() {
 
 	$keptUsers = array_merge($users, $admins);
 	//var_dump($keptUsers);
-	$account->db->clear_account_users($account->get_account_id(), $keptUsers);
+	$account->db->clear_account_users($account->getAccountId(), $keptUsers);
 
 	foreach($users as $acc_user) {
-		$account->add_account_user($acc_user);
+		$account->addAccountUser($acc_user);
 	}
 
 	foreach($admins as $admin_user) {
-		$account->add_account_user($admin_user, 1);
+		$account->addAccountUser($admin_user, 1);
 	}
 
 	//$db->edit_account_users($_REQUEST['account_id'], $_REQUEST['user_id'], $_REQUEST['is_admin']);
 	//CmnFns::write_log('Account users have been updated. ' . join(', ', $_POST['user_id']), $_SESSION['sessionID']);
 
-	print_success();
+	printSuccess();
 
 }
 
@@ -490,7 +490,7 @@ function edit_equipment_users() {
 	$db->clear_equipment_users($machid);
 	$db->add_equipment_users($machid, $users);
 
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -504,19 +504,19 @@ function edit_user_accounts() {
 
 	$accounts = $_POST['account_list'];
 	$admin_accounts = $_POST['admin_list'];
-	$user->db->clear_user_account($user_id);
+	$user->db->clearUserAccount($user_id);
 
 	foreach($accounts as $acct) {
 		$account = new Account($acct);
-		$account->add_account_user($user_id, 0);
+		$account->addAccountUser($user_id, 0);
 	}
 
 	foreach($admin_accounts as $acct) {
 		$account = new Account($acct);
-		$account->add_account_user($user_id, 1);
+		$account->addAccountUser($user_id, 1);
 	}
 
-	print_success();
+	printSuccess();
 }
 
 
@@ -774,7 +774,7 @@ function edit_perms() {
 	if (isset($_POST['notify_user']))
 		send_perms_email($_POST['user_id']);
 
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -789,10 +789,10 @@ function send_perms_email($user_id) {
 	$appTitle = $conf['app']['title'];
 
 	$user = new User($user_id);
-	$perms = $user->get_perms();
+	$perms = $user->getResourcePermissions();
 
 	$subject = $appTitle . ' ' . translate('Permissions Updated');
-	$msg = $user->get_first_name() . ",\r\n"
+	$msg = $user->getFirstName() . ",\r\n"
 		. translate('Your permissions have been updated', array($appTitle)) . "\r\n\r\n";
 	$msg .= (empty($perms)) ? translate('You now do not have permission to use any resources.') . "\r\n" : translate('You now have permission to use the following resources') . "\r\n";
 	foreach ($perms as $val)
@@ -800,7 +800,7 @@ function send_perms_email($user_id) {
 
 	$msg .= "\r\n" . translate('Please contact with any questions.', array($adminEmail));
 
-	mail($user->get_email(), $subject, $msg, 'From: '.$adminEmail.'\r\n');
+	mail($user->getEmail(), $subject, $msg, 'From: '.$adminEmail.'\r\n');
 }
 
 /**
@@ -820,7 +820,7 @@ function reset_password() {
 		send_pwdreset_email($data['user_id'], $password);
 
 	CmnFns::write_log('Password reset by admin for user ' . $_POST['user_id'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -837,10 +837,10 @@ function send_pwdreset_email($user_id, $password) {
 	$user = new User($user_id);
 
 	$subject = $appTitle . ' ' . translate('Password Reset');
-	$msg = $user->get_first_name() . ",\r\n"
-		. translate_email('password_reset', $appTitle, $password, $appTitle, CmnFns::getScriptURL(), $adminEmail);
+	$msg = $user->getFirstName() . ",\r\n"
+		. translateEmail('password_reset', $appTitle, $password, $appTitle, CmnFns::getScriptURL(), $adminEmail);
 
-	mail($user->get_email(), $subject, $msg, 'From: '.$adminEmail.'\r\n');
+	mail($user->getEmail(), $subject, $msg, 'From: '.$adminEmail.'\r\n');
 }
 
 /**
@@ -857,7 +857,7 @@ function toggle_admin() {
 	$db->change_admin_status($_GET['user_id'], $is_admin);
 
 	CmnFns::write_log('Admin status chagned for user: ' . $_GET['user_id'], $_SESSION['sessionID']);
-	print_success();
+	printSuccess();
 }
 
 /**
@@ -930,5 +930,5 @@ function update_user_lab_permissions() {
 	$db->update_user_lab_permissions($user_id, $labs_shown_list, $safety_trained_lab_values, $is_admin_lab_values);
 	
 	$_POST['get'] .= 'user_id='.$user_id;
-	print_success();
+	printSuccess();
 }

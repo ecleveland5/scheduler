@@ -20,7 +20,7 @@
 //
 // $Id: common.php,v 1.103 2004/06/24 15:24:56 danielc Exp $
 
-require_once 'PEAR.php';
+require_once BASE_DIR . '/lib/pear/PEAR.php';
 
 /**
  * DB_common is a base class for DB implementations, and must be
@@ -1138,7 +1138,7 @@ class DB_common extends PEAR
      */
     function &query($query, $params = array())
     {
-        if (sizeof($params) > 0) {
+        if (!empty($params)) {
             $sth = $this->prepare($query);
             if (DB::isError($sth)) {
                 return $sth;

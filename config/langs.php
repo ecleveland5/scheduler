@@ -71,7 +71,7 @@ define('LANG_DIR', __DIR__ . '/../lang/');
 * @param none
 * @return mixed language if it can be determined, or false if it cannot
 */ 
-function determine_language() {
+function determineLanguage() {
 	global $conf;
 	$lang = false;
 	
@@ -102,7 +102,7 @@ function determine_language() {
 * Loads the language file 
 * @param none
 */
-function load_language_file() {
+function loadLanguageFile() {
 	global $languages;
 	global $lang;
 	
@@ -124,7 +124,7 @@ function load_language_file() {
 * @param none
 * @return mixed language value if it can be found, false if it cannot be found
 */
-function get_browser_lang() {
+function getBrowserLang() {
 	global $languages;
 		
 	if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && !empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -146,7 +146,7 @@ function get_browser_lang() {
 *  through the determining process each time
 * @param string $lang language of current user
 */
-function set_language($lang) {
+function setLanguage($lang) {
 	global $languages;
 	global $conf;
 	
@@ -155,7 +155,7 @@ function set_language($lang) {
 	}
 	
 	setlocale(LC_ALL, $lang);
-	setcookie('lang', $lang, time() + 2592000, '/');	
+	setcookie("lang", $lang, time() + 3600, "/", false, true, true);
 }
 
 /**
@@ -198,7 +198,7 @@ function translate($str, $args = array()) {
 * @param mixed unlimited number of arguments to be placed inline into the email
 * @return translated email message
 */
-function translate_email($email_index) {
+function translateEmail($email_index) {
 	global $email;
 	
 	$return = '';
@@ -229,7 +229,7 @@ function translate_email($email_index) {
 * @param string $date_index index of date to get
 * @return formatted date for that index
 */
-function translate_date($date_index, $date) {
+function translateDate($date_index, $date) {
 	global $dates;
 	global $days_full;
 	global $days_abbr;
@@ -278,7 +278,7 @@ function translate_date($date_index, $date) {
 * @param none
 * @return array of languages
 */
-function get_language_list() {
+function getLanguageList() {
 	global $languages;
 	return $languages;
 }
@@ -290,7 +290,7 @@ function get_language_list() {
 *  if it is not, then we use the english lang file
 * @return name of proper jscalendar/lang/calendar-*.js file
 */
-function get_jscalendar_file() {
+function getJSCalendarFile() {
 	global $languages;
 	global $lang;
 	

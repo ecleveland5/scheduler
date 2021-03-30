@@ -21,7 +21,7 @@ $link = CmnFns::getNewLink();
 * @param array $d array of date information about this lab
 * @param string $title title of lab
 */
-function print_date_span($d, $title) {
+function printDate($d, $title) {
     // Print out current week being viewed
     echo '<h3 align="center">' . $title . '<br/>' . CmnFns::formatDate($d['firstDayTs']) . ' - ' . CmnFns::formatDate($d['lastDayTs']) . '</h3>';
 }
@@ -30,7 +30,7 @@ function print_date_span($d, $title) {
 * Prints out a jump menu for the labs
 * @param array $links array of lab links
 */
-function print_lab_list($links, $currentid) {
+function printLabList($links, $currentid) {
 ?>
 <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" style="padding-bottom: 5px;">
 <tr><td style="text-align: center; width: 100%;">
@@ -58,7 +58,7 @@ for ($i = 0; $i < count($links); $i++){
 * Print out a key to identify what the colors mean
 * @param none
 */
-function print_color_key() {
+function printColorKey() {
     global $conf;
 ?>
 <table align="center" cellpadding="5" cellspacing="10">
@@ -72,24 +72,25 @@ function print_color_key() {
 </table>
 <?php
 }
+	
+	
+	/**
+	 * Start table for one day on lab
+	 * This function starts the table for each day
+	 * on the lab, printing out it's date
+	 * and the time value cells
+	 * @param string $display_date date string to print
+	 * @param string $hour_header
+	 */
+function startDayTable($display_date, $hour_header) {
 
-
-/**
-* Start table for one day on lab
-* This function starts the table for each day
-* on the lab, printing out it's date
-* and the time value cells
-* @param string $displayDate date string to print
-*/
-function start_day_table($displayDate, $hour_header) {
-
-?><div id="<?php echo $displayDate ?>">
+?><div id="<?php echo $display_date ?>">
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
      <tr class="tableBorder">
       <td>
        <table width="100%" border="0" cellspacing="1" cellpadding="0">
         <tr class="labTimes">
-         <td rowspan="2" width="140px" class="labDate"><?php echo $displayDate ?></td>
+         <td rowspan="2" width="140px" class="labDate"><?php echo $display_date ?></td>
 <?php
     echo $hour_header ."</tr>\n";
 }
@@ -100,7 +101,7 @@ function start_day_table($displayDate, $hour_header) {
 * @param Calendar $curr current month calendar
 * @param Calendar $next next month calendar
 */
-function print_calendars(&$prev, &$curr, &$next) {
+function printCalendars(&$prev, &$curr, &$next) {
 ?>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
   <tr>
@@ -120,8 +121,7 @@ function print_calendars(&$prev, &$curr, &$next) {
 * @param int $timeSpan time intervals
 * @global $conf
 */
-function get_hour_header($th, $startDay, $endDay, $timeSpan) {
-    global $conf;
+function getHourHeader($th, $startDay, $endDay, $timeSpan) {
     $header = '';
 
     // Write out the available times
@@ -149,7 +149,7 @@ function get_hour_header($th, $startDay, $endDay, $timeSpan) {
 * the rows and tables for each day
 * @param none
 */
-function end_day_table() {
+function endDayTable() {
 ?>
     </table>
    </td>
@@ -174,7 +174,7 @@ function end_day_table() {
 	 * @param string $color background color of row
 	 * @param bool $hide
 	 */
-function print_name_cell($ts, $id, $name, $show, $is_blackout, $lab_id, $pending = false, $color = '', $hide = false) {
+function printNameCell($ts, $id, $name, $show, $is_blackout, $lab_id, $pending = false, $color = '', $hide = false) {
     global $link;
 
     $color = (empty($color)) ? 'cellColor': $color;
@@ -215,7 +215,7 @@ function print_name_cell($ts, $id, $name, $show, $is_blackout, $lab_id, $pending
 * @param bool $clickable if this row can be clicked
 * @param string $color class of column background
 */
-function print_blank_cols($cols, $start, $span, $ts, $machid, $lab_id, $labType, $clickable, $class = '') {
+function printBlankCols($cols, $start, $span, $ts, $machid, $lab_id, $labType, $clickable, $class = '') {
     $is_blackout = intval($labType == BLACKOUT_ONLY);
     //$color = empty($color) ? '' : "#" . $color;
 	  //$color_str = empty($color) ? '': "style=\"background-color: $color;\"";
@@ -245,7 +245,7 @@ function print_blank_cols($cols, $start, $span, $ts, $machid, $lab_id, $labType,
 * Prints the closing tr tag
 * @param none
 */
-function print_closing_tr() {
+function printClosingTableRow() {
     echo "</tr>\n";
 }
 
@@ -261,7 +261,7 @@ function print_closing_tr() {
 * @param int $read_only whether this is a read only lab
 * @param boolean $pending is this reservation pending approval
 */
-function write_reservation($colspan, $color_select, $mod_view, $resid, $summary = '', $viewable = false, $show_summary = 0, $read_only = false, $pending = 0) {
+function writeReservation($colspan, $color_select, $mod_view, $resid, $summary = '', $viewable = false, $show_summary = 0, $read_only = false, $pending = 0) {
     global $conf;
     $js = '';
     $color = '#' . $conf['ui'][$color_select][0]['color'];
@@ -303,7 +303,7 @@ function write_reservation($colspan, $color_select, $mod_view, $resid, $summary 
 	 * @param int $show_summary whether to show the summary or not
 	 * @param string $lab_id
 	 */
-function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0, $lab_id = null) {
+function writeBlackout($colspan, $viewable, $blackoutid, $summary = '', $show_summary = 0, $lab_id = null) {
     global $conf;
     $color = '#' . $conf['ui']['blackout'][0]['color'];
     $hover = '#' . $conf['ui']['blackout'][0]['hover'];
@@ -336,7 +336,7 @@ function write_blackout($colspan, $viewable, $blackoutid, $summary = '', $show_s
 * Writes out a div to be used for reservation summary mouseovers
 * @param none
 */
-function print_summary_div() {
+function printSummaryDiv() {
 ?>
 <div id="summary" class="summary_div" style="width: 150px;"></div>
 <?php
@@ -353,7 +353,7 @@ function print_summary_div() {
 	 * @param bool $printAllCols whether or not to print the 5 column jump
 	 * @param $lab_id
 	 */
-function print_jump_links($_date, $viewDays, $printAllCols, $lab_id) {
+function printJumpLinks($_date, $viewDays, $printAllCols, $lab_id) {
     global $link;
     global $dates;
     
@@ -395,7 +395,7 @@ function print_jump_links($_date, $viewDays, $printAllCols, $lab_id) {
 <?php
 }
 
-function print_filter_resources(array $machids, array $filtered = array(), $user_id) {
+function printFilterResources(array $machids, array $filtered = array(), $user_id) {
     ?>
     <script>
         function updateUserResourceFilters(machid, obj) {

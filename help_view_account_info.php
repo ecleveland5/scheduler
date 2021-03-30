@@ -23,7 +23,7 @@ $t = new Template();
 $auth = new Auth();
 $user = new User($auth->getCurrentID());
 
-$t->set_title("Account Billing Information Help");
+$t->setTitle("Account Billing Information Help");
 $t->printHTMLHeader();
 $t->startMain();
 

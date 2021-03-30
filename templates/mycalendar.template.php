@@ -19,7 +19,7 @@ $link = CmnFns::getNewLink();
 * @param Calendar $next next month calendar
 * @param Calendar $curr current month calendar
 */
-function print_calendars(&$prev, &$next, &$curr) {
+function printMycalendars(&$prev, &$next, &$curr) {
 ?>
 <!-- Start calendars -->
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
@@ -41,25 +41,25 @@ function print_calendars(&$prev, &$next, &$curr) {
 
 /**
 * Prints out the proper datespan heading depending on $type
-* @param $firstDate int datestamp of first date in calendar
-* @param $lastDate int datestamp of last date in calendar
+* @param $first_date int datestamp of first date in calendar
+* @param $last_date int datestamp of last date in calendar
 * @param $type int calendar view type
-* @param $addl_params array list of additional querystring params
-* @param $addl_values array list of additional querystring values that match the params
+* @param $params array list of additional querystring params
+* @param $values array list of additional querystring values that match the params
 * @param $name string a name to print next to the date
 */
-function print_date_span($firstDate, $lastDate, $type, $addl_params = array(), $addl_values = array(), $name = null) {
+function printDateSpan($first_date, $last_date, $type, $params = array(), $values = array(), $name = null) {
 	global $months_full;
 	global $link;
 	
 	$name_str = ($name == null) ? '' : $name . ' : ';
 	
-	$date_vars = getdate($firstDate);
+	$date_vars = getdate($first_date);
 	$link_string = $_SERVER['PHP_SELF'] . "?view=$type&amp;date=%s";
 	
 	// Attach all of the additional querystring params
-	for ($pcount = 0; $pcount < count($addl_params); $pcount++) {
-		$link_string .= "&amp;{$addl_params[$pcount]}={$addl_values[$pcount]}";
+	for ($pcount = 0; $pcount < count($params); $pcount++) {
+		$link_string .= "&amp;{$params[$pcount]}={$values[$pcount]}";
 	}
 	
 	$move_month = $move_day = 0;		// How many months/days we should jump forward or back on the link clicks
@@ -67,7 +67,7 @@ function print_date_span($firstDate, $lastDate, $type, $addl_params = array(), $
 	switch ($type) {
 		case MYCALENDARTYPE_DAY :
 			$move_day = 1;
-			$date_string = translate_date('header', $firstDate);
+			$date_string = translateDate('header', $first_date);
 			break;
 		case MYCALENDARTYPE_MONTH :
 			$move_month = 1;
@@ -75,7 +75,7 @@ function print_date_span($firstDate, $lastDate, $type, $addl_params = array(), $
 			break;
 		default :
 			$move_day = 7;
-			$date_string = translate_date('general_date', $firstDate) . ' - ' . translate_date('general_date', $lastDate);
+			$date_string = translateDate('general_date', $first_date) . ' - ' . translateDate('general_date', $last_date);
 			break;
 	}
 		
@@ -90,10 +90,10 @@ function print_date_span($firstDate, $lastDate, $type, $addl_params = array(), $
 * Simply print out some links to change the view of the calendar
 * @param int $datestamp the datestamp of the day we are focused on
 * @param $type int calendar view type
-* @param $addl_params array list of additional querystring params
-* @param $addl_values array list of additional querystring values that match the params
+* @param $params array list of additional querystring params
+* @param $values array list of additional querystring values that match the params
 */
-function print_view_links($datestamp, $current_view, $addl_params = array(), $addl_values = array()) {
+function printViewLinks($datestamp, $current_view, $params = array(), $values = array()) {
 	global $link;
 	$date = date('m-d-Y', $datestamp);
 	
@@ -104,8 +104,8 @@ function print_view_links($datestamp, $current_view, $addl_params = array(), $ad
 	$link_string = $_SERVER['PHP_SELF'] . "?view=%d&amp;date=%s";
 	
 	// Attach all of the additional querystring params
-	for ($pcount = 0; $pcount < count($addl_params); $pcount++) {
-		$link_string .= "&amp;{$addl_params[$pcount]}={$addl_values[$pcount]}";
+	for ($pcount = 0; $pcount < count($params); $pcount++) {
+		$link_string .= "&amp;{$params[$pcount]}={$values[$pcount]}";
 	}
 	
 	echo '<table width="270px" align="center" border="0"><tr align="center"><td>';
@@ -118,15 +118,16 @@ function print_view_links($datestamp, $current_view, $addl_params = array(), $ad
 	$link->doLink(sprintf($link_string, $current_view, date('m-d-Y')), translate('[today]'));
 	echo '</p>';
 }
-
-/**
-* Prints all reservations for a given day
-* @param array $reservations array of all reservation data for this day
-* @param int $datestamp the unix datestamp for the first day shown
-* @param int $days number of days to print out
-* @param bool $is_private if we are in privacy mode and should hide user details
-*/
-function print_day_reservations($reservations, $datestamp, $days, $show_owner_icon = true, $is_private = false) {
+	
+	/**
+	 * Prints all reservations for a given day
+	 * @param array $reservations array of all reservation data for this day
+	 * @param int $datestamp the unix datestamp for the first day shown
+	 * @param int $days number of days to print out
+	 * @param bool $show_owner_icon
+	 * @param bool $is_private if we are in privacy mode and should hide user details
+	 */
+function printDayReservations($reservations, $datestamp, $days, $show_owner_icon = true, $is_private = false) {
 	echo "<table border=\"0\" tableLayout=\"fixed\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\">
 			<tr><td class=\"tableBorder\">\n<table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"0\">\n";
 	$date_vars = getdate($datestamp);
@@ -146,7 +147,7 @@ function print_day_reservations($reservations, $datestamp, $days, $show_owner_ic
 	echo '<tr><td></td>';
 	for ($day_count = 0; $day_count < $days; $day_count++) {
 		$datestamps[$day_count] = mktime(0,0,0, $date_vars['mon'], $date_vars['mday'] + $day_count, $date_vars['year']);
-		echo '<td width="' . $col_width . '%" class="labDate"><a href="rescalendar.php?view=1&date=' . sprintf('%d-%d-%d', $date_vars['mon'], $date_vars['mday'] + $day_count, $date_vars['year']) . '">' . translate_date('lab_daily', $datestamps[$day_count]) . '</a></td>';
+		echo '<td width="' . $col_width . '%" class="labDate"><a href="rescalendar.php?view=1&date=' . sprintf('%d-%d-%d', $date_vars['mon'], $date_vars['mday'] + $day_count, $date_vars['year']) . '">' . translateDate('lab_daily', $datestamps[$day_count]) . '</a></td>';
 	}
 	echo "</tr>\n";
 	
@@ -165,10 +166,10 @@ function print_day_reservations($reservations, $datestamp, $days, $show_owner_ic
 						$res['last_name'] = '';
 					}
 				
-					$js = "onmouseover=\"showSummary('details', event, '" . build_reservation_detail_div($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";	
+					$js = "onmouseover=\"showSummary('details', event, '" . buildReservationDetailDiv($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";
 					
 					echo "<div style='clear: both;margin-bottom: 15px;'>";
-					echo "<div style='float:left;width:5%;max-width:10px;'>&#8226;</div> <div style='float:left;width:95%'><a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $datestamps[$date]) ? ' [' . translate_date('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . ' ' . (($res['end_date'] > $datestamps[$date]) ? ' [' . translate_date('general_date', $res['end_date']) . ']' : '') . '<br><span style="">' . $res['name'] . '</span><br><span style="">' . $res['first_name'] . ' ' . $res['last_name'] . '</span></a></div>';
+					echo "<div style='float:left;width:5%;max-width:10px;'>&#8226;</div> <div style='float:left;width:95%'><a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $datestamps[$date]) ? ' [' . translateDate('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . ' ' . (($res['end_date'] > $datestamps[$date]) ? ' [' . translateDate('general_date', $res['end_date']) . ']' : '') . '<br><span style="">' . $res['name'] . '</span><br><span style="">' . $res['first_name'] . ' ' . $res['last_name'] . '</span></a></div>';
 					if ($res['start_date'] != $res['end_date']) echo ' <img src="img/multiday.gif" width="8" height="9" alt="' . translate('Multiple Day') . '" title="' . translate('Multiple Day') . '"/>';
 					echo "<div class='clear'></div>";
 					echo "</div>\n";
@@ -188,10 +189,10 @@ function print_day_reservations($reservations, $datestamp, $days, $show_owner_ic
 * @param array $reservations array of all reservation data for this day
 * @param int $datestamp the unix datestamp for the first day shown
 * @param array $fields fields of the reservation to print after the times appear
-* @param bool $ownerParticipantImage whether to show the owner/participant images
+* @param bool $owner_participant_image whether to show the owner/participant images
 * @param bool $is_private if we are in privacy mode and should hide user details
 */
-function print_month_reservations($reservations, $datestamp, $fields = array('name'), $ownerParticipantImage = true, $is_private = false) {
+function printMonthReservations($reservations, $datestamp, $fields = array('name'), $owner_participant_image = true, $is_private = false) {
 	global $conf;
 	global $days_full;
 	
@@ -260,14 +261,14 @@ function print_month_reservations($reservations, $datestamp, $fields = array('na
 						$res['last_name'] = '';
 					}
 					
-					$js = "onmouseover=\"showSummary('details', event, '" . build_reservation_detail_div($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";	
+					$js = "onmouseover=\"showSummary('details', event, '" . buildReservationDetailDiv($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";
 					
-					echo "<p align=\"left\">&#8226; <a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $currentDate) ? ' [' . translate_date('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . (($res['end_date'] > $currentDate) ? ' [' . translate_date('general_date', $res['end_date']) . ']' : '');
+					echo "<p align=\"left\">&#8226; <a $js href=\"javascript:reserve('" . RES_TYPE_MODIFY. "','','','{$res['resid']}','{$res['lab_id']}');\">" . CmnFns::formatTime($res['startTime']) . (($res['start_date'] < $currentDate) ? ' [' . translateDate('general_date', $res['start_date']) . ']' : '') . ' - '  . CmnFns::formatTime($res['endTime']) . (($res['end_date'] > $currentDate) ? ' [' . translateDate('general_date', $res['end_date']) . ']' : '');
 					foreach ($fields as $field) {
 						echo ' ' . $res[$field];
 					}
 					echo '</a>';
-					if ($ownerParticipantImage) {
+					if ($owner_participant_image) {
 						echo ($res['owner'] == 1) ? ' <img src="img/owner.gif" alt="' . translate('Owner') . '" title="' . translate('Owner') . '"/>' : ' <img src="img/participant.gif" alt="' . translate('Participant') . '" title="' . translate('Participant') . '"/>';
 					}
 					//if (isset($res['parentid'])) echo ' <img src="img/recurring.gif" width="15" height="15" alt="' . translate('Recurring') . '" title="' . translate('Recurring') . '"/>';
@@ -290,7 +291,7 @@ function print_month_reservations($reservations, $datestamp, $fields = array('na
 * Writes out a div to be used for reservation summary mouseovers
 * @param none
 */
-function print_details_div() {
+function printDetailsDiv() {
 ?>
 <div id="details" class="mycal_div" style="width: 200px;"></div>
 <?php
@@ -301,10 +302,10 @@ function print_details_div() {
 * @param array $res array of resrevation data
 * @return formatted HTML string for the content of the div
 */
-function build_reservation_detail_div($res) {
+function buildReservationDetailDiv($res) {
 	$html = '';
-	$html .= translate_date('general_date', $res['start_date']) . ' ' . CmnFns::formatTime($res['startTime']) . ' -<br/>';
-	$html .= translate_date('general_date', $res['end_date']) . ' ' . CmnFns::formatTime($res['endTime']) . '<br/><br/>'; 
+	$html .= translateDate('general_date', $res['start_date']) . ' ' . CmnFns::formatTime($res['startTime']) . ' -<br/>';
+	$html .= translateDate('general_date', $res['end_date']) . ' ' . CmnFns::formatTime($res['endTime']) . '<br/><br/>';
 	$html .= $res['name'] . ' @ ' .  $res['location'] . '<br/>';
 	$html .= $res['first_name'] . ' ' . $res['last_name'] . '<br/>';
 	if (!empty($res['summary'])) {

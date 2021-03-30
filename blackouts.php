@@ -24,7 +24,7 @@ $user = new User(Auth::getCurrentID());
 $t = new Template(translate('Manage Blackout Times'));
 $lab_id = filter_input(INPUT_GET, 'lab_id');
 if (is_null($lab_id)) {
-    $lab_id = $user->get_lab_pref();
+    $lab_id = $user->getLabPref();
 }
 $s = new Lab($lab_id, BLACKOUT_ONLY);
 
@@ -47,11 +47,11 @@ showQuickLinks();		// Print out My Quick Links
 startDataDisplayCol();
 $filter = array();
     echo "<h2>" . translate('Manage Blackout Times') . "</h2>";
-$s->print_jump_links();
-$s->print_lab($filter);
+$s->printJumpLinks();
+$s->printLab($filter);
 
 // Print out links to jump to new date
-$s->print_jump_links();
+$s->printJumpLinks();
 
 // End main table
 $t->endMain();

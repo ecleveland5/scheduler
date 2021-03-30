@@ -1,5 +1,5 @@
 <?php
-@define('BASE_DIR', dirname(__FILE__) . '/../..');
+//@define('BASE_DIR', dirname(__FILE__) . '/../..');
 /**
 * DBEngine class
 */

@@ -26,7 +26,7 @@ $t->startMain();
 
 // Logging user out
 if (isset($_REQUEST['login'])) {
-	$msg .= $auth->doResourceSignin($useid, $user->get_id(), $password, $equipment_id, $frs, $signaction, $description, $notes, $problems);
+	$msg .= $auth->doResourceSignin($useid, $user->getId(), $password, $equipment_id, $frs, $signaction, $description, $notes, $problems);
 	echo $msg;
 ?>
 	<script>
@@ -39,9 +39,9 @@ if (isset($_REQUEST['login'])) {
 <?
 }else{
 	
-	$users = $auth->get_user_list();
+	$users = $auth->getUserList();
 
-	$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->get_id(), $useid, $signaction);
+	$auth->printResourceLoginForm($msg, $users, $equipment_id, $user->getId(), $useid, $signaction);
 }
 $t->endMain();
 // Print HTML footer

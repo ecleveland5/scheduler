@@ -19,8 +19,8 @@ include_once('lib/Template.class.php');
 include_once('lib/SelectUser.class.php');
 
 // Check that the user is logged in
-if (!Auth::is_logged_in()) {
-    Auth::print_login_msg();
+if (!Auth::isLoggedIn()) {
+    Auth::printLoginMsg();
 }
 
 $first_name = null;

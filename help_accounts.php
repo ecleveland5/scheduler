@@ -23,7 +23,7 @@ $t = new Template();
 $auth = new Auth();
 $user = new User($auth->getCurrentID());
 
-$t->set_title("Account Help");
+$t->setTitle("Account Help");
 $t->printHTMLHeader();
 $t->printWelcome();
 $t->startMain();

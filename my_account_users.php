@@ -31,13 +31,13 @@ $account_id = (isset($_POST['account_id'])) ? $_POST['account_id'] : $_GET['acco
 if (is_numeric($account_id) && $account_id != NULL){
 	$account = new Account($account_id);
 	if(!$account) {
-		echo $account->get_last_error();
+		echo $account->getLastError();
 	}
 }else{
 	$errmsg = "Account not given or invalid.";
 }
 
-if (!($account->is_admin($user->get_id()) || $user->get_isadmin())){
+if (!($account->isAdmin($user->getId()) || $user->getIsAdmin())){
 	echo "here";
 	$errmsg .= "<br>You are not authorized to view this page.<br>";
 }
@@ -45,7 +45,7 @@ if (!($account->is_admin($user->get_id()) || $user->get_isadmin())){
 	if ( (isset($_POST['submit'])) ) {
 				
 		// To Do: set up translate
-		$t->set_title("Processing Account Users");
+		$t->setTitle("Processing Account Users");
 		$t->printHTMLHeader();
 		
 		// Print welcome message
@@ -60,7 +60,7 @@ if (!($account->is_admin($user->get_id()) || $user->get_isadmin())){
 		process_account_users($account, $_POST, $auth);
 		
 	}else {
-		$t->set_title("Manage Account Users");
+		$t->setTitle("Manage Account Users");
 	    $t->printHTMLHeader();
 	    
 		// Print welcome message
@@ -86,7 +86,7 @@ $t->printHTMLFooter();
 
 function present_account_users($account, $auth) {
 	$all_users = $auth->get_user_list();
-	print_manage_account_users($account, $all_users);
+	printManageAccountUsers($account, $all_users);
 }
 
 /**
@@ -118,6 +118,6 @@ function process_account_users($account, $data, $auth) {
 	</table>
 	</center>
 <?
-	print_manage_account_users($account, $auth->get_user_list());
+	printManageAccountUsers($account, $auth->get_user_list());
 }
 ?>

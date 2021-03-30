@@ -854,7 +854,7 @@ function print_manage_accounts(&$pager, $accounts, $err) {
 									echo " <span style='font-size:.8em;color:red;'>Not Registered</span>";
 								} else {
 									$pi = new User($cur['pi']);
-									echo $pi->get_name(true);
+									echo $pi->getFullName(true);
 								}
 
 								echo "</td>\n";

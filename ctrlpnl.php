@@ -11,7 +11,7 @@
 	
 	$t->printHTMLHeader();
 	
-	if ($auth->is_logged_in()) {
+	if ($auth->isLoggedIn()) {
 		$t->printWelcome();
 		$t->startMain();
 		
@@ -43,7 +43,7 @@
 			if ($conf['app']['use_perms']) {
 				
 				$order = array('name', 'nickname');
-				showTrainingTable($db->get_user_permissions($auth->get_signedin_user()), $db->get_err());    // Print out My Training
+				showTrainingTable($db->get_user_permissions($auth->getSignedInUser()), $db->get_err());    // Print out My Training
 				printCpanelBr();
 			}
 			
@@ -59,7 +59,7 @@
 		printCpanelBr();
 	} else {
 		
-		$t->printPleaseLogIn();
+		$auth->printLoginForm($auth->login_msg);
 		
 	}
 	$t->printHTMLFooter();

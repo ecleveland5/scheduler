@@ -17,7 +17,7 @@ include_once('lib/Template.class.php');
 include_once('templates/cpanel.template.php');
 
 $t = new Template();
-$t->set_title("Account Help");
+$t->setTitle("Account Help");
 $t->printHTMLHeader();
 $t->startMain();
 

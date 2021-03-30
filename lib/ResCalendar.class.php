@@ -14,7 +14,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * Include MyCalendar class
 */
@@ -29,7 +29,7 @@ include_once('db/ResCalendarDB.class.php');
 include_once(BASE_DIR . '/templates/rescalendar.template.php');
 
 class ResCalendar extends MyCalendar {
-	var $machid;
+	var $mach_id;
 	var $lab_id;
 	var $type;
 	var $resources;
@@ -40,47 +40,49 @@ class ResCalendar extends MyCalendar {
 	var $time_span;
 	
 	var $name;
-	var $isresource;
+	var $is_resource;
 	
 	/**
-	* Sets up initial variable values
-	* @param string $userid id of the calendar user
-	* @param int MyCalendarType type for this calendar
-	* @param int $actualDate todays date
-	*/
-	function __construct($userid = null, $type = null, $actualDate = null, $machid = null, $lab_id = null) {
-		$this->machid = $machid;
+	 * Sets up initial variable values
+	 * @param null $user_id id of the calendar user
+	 * @param null $type
+	 * @param null $actual_date todays date
+	 * @param null $mach_id
+	 * @param null $lab_id
+	 */
+	function __construct($user_id = null, $type = null, $actual_date = null, $mach_id = null, $lab_id = null) {
+		$this->mach_id = $mach_id;
 		$this->lab_id = $lab_id;
 
 		$this->db = new ResCalendarDB();
-		parent::__construct($userid, $type, $actualDate, false);
+		parent::__construct($user_id, $type, $actual_date, false);
 		
-		$this->resources = $this->db->get_resources($userid, $lab_id);		// Used to provide a pull down to change resources
+		$this->resources = $this->db->get_resources($user_id, $lab_id);		// Used to provide a pull down to change resources
 		$this->labs = $this->db->get_lab_list();		// Used in resource pull down and to determine start/end/interval times
 		
-		if ($this->machid == null && $this->lab_id == null) {
+		if ($this->mach_id == null && $this->lab_id == null) {
 			$this->lab_id = $this->resources[0]['lab_id'];
 		}
-		$this->isresource = ($this->lab_id == null);
+		$this->is_resource = ($this->lab_id == null);
 		
-		if ($this->isresource && $this->machid == null) {
-			$this->machid = $this->resources[0]['machid'];	// If we dont have a machid from the querystring, take the first one in the list
+		if ($this->is_resource && $this->mach_id == null) {
+			$this->mach_id = $this->resources[0]['machid'];	// If we dont have a machid from the querystring, take the first one in the list
 			$this->lab_id = $this->resources[0]['lab_id'];
 		}
-		else if (!$this->isresource && $this->lab_id == null) {
+		else if (!$this->is_resource && $this->lab_id == null) {
 			$this->lab_id = $this->labs[0]['lab_id'];
 		}
-		else if ($this->isresource && $this->machid != null) {
+		else if ($this->is_resource && $this->mach_id != null) {
 			// Set the lab_id for this machid
 			for ($i = 0; $i < count($this->resources); $i++) {
-				if ($this->resources[$i]['machid'] == $this->machid) {
+				if ($this->resources[$i]['machid'] == $this->mach_id) {
 					$this->lab_id = $this->resources[$i]['lab_id'];
 					$this->name = $this->resources[$i]['name'];
 					break;
 				}
 			}
 		}
-		else if (!$this->isresource && $this->lab_id != null) {
+		else if (!$this->is_resource && $this->lab_id != null) {
 			for ($i = 0; $i < count($this->labs); $i++) {
 				if ($this->labs[$i]['lab_id'] == $this->lab_id) {
 					$this->name = $this->labs[$i]['labTitle'];
@@ -101,49 +103,51 @@ class ResCalendar extends MyCalendar {
 			}
 		}
 		
-		$this->load_reservations();
+		$this->loadReservations();
 	}
 	
 	/**
 	* Calls the appropriate function to load the reservations fitting this calendar data
 	*/
-	function load_reservations() {		
+	function loadReservations() {
 		global $conf;
-		$firstResDate = $this->firstDate;
-		$lastResDate = $this->lastDate;
+		$firstResDate = $this->first_date;
+		$lastResDate = $this->last_date;
 		if ($this->type == MYCALENDARTYPE_MONTH) {
-			$datestamp = $this->firstDate;
+			$datestamp = $this->first_date;
 			$date_vars = explode(' ',date('d m Y t w W',$datestamp));
 			$last_month_num_days = date('t', mktime(0,0,0, $date_vars[1]-1, $date_vars[0], $date_vars[2]));
 			$week_start = $conf['app']['calFirstDay'];
 			$firstWeekDay = (7 + (date('w', $datestamp) - $week_start)) % 7;
-			$lastWeekDay = date('w',$this->lastDate) + 1;
+			$lastWeekDay = date('w',$this->last_date) + 1;
 			$firstResDate = mktime(0,0,0, $date_vars[1]-1, ($last_month_num_days - $firstWeekDay), $date_vars[2]);
 			$lastResDate = mktime(0,0,0, $date_vars[1]+1, (7 + $week_start - $lastWeekDay) % 7, $date_vars[2]);
 		}
 		
-		$this->reservations = $this->db->get_all_reservations($firstResDate, $lastResDate, (($this->isresource) ? $this->machid : $this->lab_id), $this->isresource);	
+		$this->reservations = $this->db->get_all_reservations($firstResDate, $lastResDate, (($this->is_resource) ? $this->mach_id : $this->lab_id), $this->is_resource);
 	}
 	
 	/**
-	* Prints the given calendar out based on type
-	*/
-	function print_calendar($isAdminCpanel=false, $print_view=false) {
+	 * Prints the given calendar out based on type
+	 * @param bool $isAdminCpanel
+	 * @param bool $print_view
+	 */
+	function printCalendar($isAdminCpanel=false, $print_view=false) {
 		global $conf;
 		
 		$is_private = $conf['app']['privacyMode'] && !Auth::isAdmin();
 		
 		if ($this->type != MYCALENDARTYPE_SIGNUP) {
-			$paramname = $this->isresource ? 'machid' : 'lab_id';
-			$paramvalue = $this->isresource ? $this->machid : $this->lab_id;
-			$prefix = $this->isresource ? 'm' : 's';
-			print_date_span($this->firstDate, $this->lastDate, $this->type, array($paramname), array($paramvalue), $this->name);
+			$param_name = $this->is_resource ? 'machid' : 'lab_id';
+			$param_value = $this->is_resource ? $this->mach_id : $this->lab_id;
+			$prefix = $this->is_resource ? 'm' : 's';
+			printDateSpan($this->first_date, $this->last_date, $this->type, array($param_name), array($param_value), $this->name);
 			
 			if ($print_view!=="1") {
-				print_view_links($this->actualDate, $this->type, array($paramname), array($paramvalue));
+				printViewLinks($this->actual_date, $this->type, array($param_name), array($param_value));
 			}
 			echo "<br>";
-			print_equipment_jump_link($this->resources, $this->labs, $this->machid, $this->lab_id, $this->actualDate, $this->type, $this->isresource);
+			print_equipment_jump_link($this->resources, $this->labs, $this->mach_id, $this->lab_id, $this->actual_date, $this->type, $this->is_resource);
 			echo "<br>";
 		
 			$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://".$_SERVER[HTTP_HOST].str_replace('&print_view=1', '', $_SERVER[REQUEST_URI]);
@@ -156,21 +160,21 @@ class ResCalendar extends MyCalendar {
 			switch ($this->type) {
 				case MYCALENDARTYPE_DAY :
 				case MYCALENDARTYPE_WEEK :
-					if ($this->isresource) {
-						print_day_equipment_reservations($this->reservations, $this->firstDate, $this->totalDays, $this->lab_id, $this->start_time, $this->end_time, $this->time_span, $is_private);
+					if ($this->is_resource) {
+						print_day_equipment_reservations($this->reservations, $this->first_date, $this->total_days, $this->lab_id, $this->start_time, $this->end_time, $this->time_span, $is_private);
 					}
 					else {
-						print_day_reservations($this->reservations, $this->firstDate, $this->totalDays, false, $is_private);
+						printDayReservations($this->reservations, $this->first_date, $this->total_days, false, $is_private);
 					}
 					break;
 				case MYCALENDARTYPE_MONTH :
-					print_month_reservations($this->reservations, $this->firstDate, array('first_name', 'last_name'), false, $is_private);
+					printMonthReservations($this->reservations, $this->first_date, array('first_name', 'last_name'), false, $is_private);
 			}
 			
-			print_details_div();
+			printDetailsDiv();
 		}
 		else {
-			print_signup_sheet($this->reservations, $this->firstDate, 1, $this->start_time, $this->end_time, $this->time_span, $this->name, $is_private);		
+			print_signup_sheet($this->reservations, $this->first_date, 1, $this->start_time, $this->end_time, $this->time_span, $this->name, $is_private);
 		}
 	}
 }

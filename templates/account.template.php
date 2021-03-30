@@ -15,7 +15,7 @@
 * Print out the account id
 * @param array $rs resource data array
 */
-function print_account_title(&$rs) {
+function printAccountTitle(&$rs) {
 	echo "<h3 align=\"center\">{$rs['name']}</h3>\n";
 }
 
@@ -25,7 +25,7 @@ function print_account_title(&$rs) {
 * @param bool $show_repeat whether to show the repeat box
 * @param bool $is_blackout if this is a blackout
 */
-function begin_account_form($show_repeat, $is_blackout = false) {
+function beginAccountForm($show_repeat, $is_blackout = false) {
 	echo '<form name="account" method="post" action="' . $_SERVER['PHP_SELF'] . '" style="margin: 0px" onsubmit="return ' . (($show_repeat) ? 'check_account_form(this)' : 'check_for_delete(this)') . ';">' . "\n";
 }
 
@@ -37,7 +37,8 @@ function begin_account_form($show_repeat, $is_blackout = false) {
 * @param mixed $accounts array of account data
 * @param Object $user current user
 */
-function print_account_list($accounts, $pager, $user) {
+function printAccountList($accounts, $pager, $user) {
+    global $auth;
 	global $link;
 	$accounts_list = array();
 	//echo "sizeof accounts: ". sizeof($accounts);
@@ -49,7 +50,7 @@ function print_account_list($accounts, $pager, $user) {
 	foreach ($accounts as $a) {
 		//echo "account_id: " . $accounts[$i]['account_id'] . "<br>";
 		$account = new Account($a['account_id']);
-		array_push($accounts_list, $account->get_account_data($a['account_id']));
+		array_push($accounts_list, $account->getAccountData($a['account_id']));
 	}
 ?>
 <form name="manageAccount" method="post" action="my_accounts.php">
@@ -76,7 +77,6 @@ function print_account_list($accounts, $pager, $user) {
 		echo '<tr class="cellColor0"><td colspan="9" style="text-align: center;">No Accounts Found.</td></tr>' . "\n";
 	}
 	
-	$auth = new Auth();
 	$i = 0;
     foreach ($accounts_list as $a) {
 		$cur_account = new Account($a['account_id']);
@@ -89,14 +89,14 @@ function print_account_list($accounts, $pager, $user) {
 		// account PI/Owner
 		echo '<td style="text-align:left">';
 
-		if( !$auth->is_user($a['pi']) || $a['pi']==0 || $a['pi']==NULL ){
+		if( !$auth->isUser($a['pi']) || $a['pi']==0 || $a['pi']==NULL ){
 			echo $a['pi_last_name'];
 			if($a['pi_first_name']!='')
 				echo ", " . $a['pi_first_name'];
 			echo " <font size=1>Not Registered</font>";
 		}else{
 			$pi = new User($a['pi']);
-			echo $pi->get_last_name() . ", " . $pi->get_first_name();
+			echo $pi->getLastName() . ", " . $pi->getFirstName();
 		}
 		echo "</td>\n";
 
@@ -104,16 +104,16 @@ function print_account_list($accounts, $pager, $user) {
 
 		// edit account info
 		echo  '<td>';
-		if($cur_account->is_admin($user->get_id()) ||
+		if($cur_account->isAdmin($user->get_id()) ||
 			$user->get_isadmin()) {
 			//echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/account_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . 'account_id=' . $cur['account_id'], 'Edit', '', '','Edit data for' .$cur['name']);
-			echo "<a href=\"javascript:account('m',".$cur_account->get_account_id().");\">Edit</a>";
+			echo "<a href=\"javascript:account('m',".$cur_account->getAccountId().");\">Edit</a>";
 		}
 		echo "</td>\n";
 
 		// edit users
       	echo '<td>';
-		if($cur_account->is_admin($user->get_id()) ||
+		if($cur_account->isAdmin($user->get_id()) ||
 			$user->get_isadmin()) {
 			echo $link->getLink("my_account_users.php?account_id=" . $a['account_id'], 'Users', '', '', 'Edit this accounts users');
 		}
@@ -143,7 +143,6 @@ function print_account_list($accounts, $pager, $user) {
 	echo '</form>';
 
 	// check if the user can create an account
-	$auth = new Auth();
 	if($auth->isAdmin() || $auth->canCreateAccount()){
 		echo "<form onsubmit=\"javascript:account('c','');\">";
 		echo "<input type='submit' name='submit' value='Create' class='button'>";
@@ -152,8 +151,10 @@ function print_account_list($accounts, $pager, $user) {
 }
 
 
-function print_add_account_button() {
-	if(Auth::isAdmin() || Auth::canCreateAccount()){
+function printAddAccountButton() {
+    global $auth;
+    
+	if($auth->isAdmin() || $auth->canCreateAccount()){
 		echo "<input type='button' name='create_account' value='Create New Account' onclick=\"javascript:account('c',NULL);\">";
 	}
 }
@@ -164,36 +165,31 @@ function print_add_account_button() {
 * @param boolean $edit whether this is an edit or not
 * @param object $pager Pager object
 */
-function print_account_edit($rs, $users, $edit=false) {
-	global $conf;
+function printAccountEdit($rs, $users, $edit=false) {
+	global $auth;
+	
 	$start = 0;
 	$end   = 1440;
 	$mins = array(0, 10, 15, 30);
 	$disabled = ($edit == 1) ? 'disabled="disabled"' : '';
-
 
 	if ($edit) {
 		$minH = intval($rs['minRes'] / 60);
 		$minM = intval($rs['minRes'] % 60);
 		$maxH = intval($rs['maxRes'] / 60);
 		$maxM = intval($rs['maxRes'] % 60);
-	}
-	else {
+	} else {
 		$maxH = 24;
 	}
-	$auth = new Auth();
+
 	$user = new User($auth->getCurrentID());
-	if($user->get_type_id() == 3 || $user->get_type_id() == 4 || $auth->isAdmin()){
+	if ($user->getUserTypeId() == 3 || $user->getUserTypeId() == 4 || $auth->isAdmin()) {
 		$isUMD = true;
-	}else{
+	} else {
 		$isUMD = false;
 	}
-	//echo "isumd: ".$isUMD;
-  	$canCreateAccount = false;
   	$canCreateAccount = $auth->canCreateAccount();
- 	//echo "can create: ".$canCreateAccount;
-	  if($canCreateAccount){
-
+	if ($canCreateAccount) {
     ?>
     <span class="required">Items in red are required</span>
 <form name="addAccount" method="post" action="<?php echo $_SERVER['PHP_SELF']?>" onsubmit="javascript: return checkAccount();">
@@ -208,7 +204,7 @@ function print_account_edit($rs, $users, $edit=false) {
         </tr>
 <?php
 	// If the user is not an external user (Only UMD staff, faculty, researcher)
-	if($isUMD) {
+	if ($isUMD) {
 ?>
         <tr>
           <td class="formNames"><span class="required">Account # (KFS #)</span></td>
@@ -234,9 +230,9 @@ function print_account_edit($rs, $users, $edit=false) {
 				<select name="pi" class="textbox">
 					<option value="">-- Select Owner/PI --</option>
 		<?php
-		if (empty($users))
+		if (empty($users)) {
 			echo '<option value="">No Users\'s found</option>';
-		else {
+		} else {
 			for ($i = 0; $i < count($users); $i++)
 				echo '<option value="' . $users[$i]['user_id'] . '"' . (isset($rs['pi']) && $users[$i]['user_id'] == $rs['pi'] ? ' selected="selected"' : '') . '>' . $users[$i]['last_name'] . ", " . $users[$i]['first_name'] . "</option>\n";
 		}
@@ -405,13 +401,11 @@ window.close();">'
 }
 
 
-function print_manage_account_users($account, $users){
-
-	global $link;
-	if ( $account->is_admin(Auth::getCurrentID()) || Auth::isAdmin() ) {
-
-
-	$account_users = $account->get_account_users();
+function printManageAccountUsers($account, $users){
+	global $auth;
+	
+	if ( $account->is_admin($auth->getCurrentID()) || $auth->isAdmin() ) {
+	    $account_users = $account->get_account_users();
 	?>
 <table width="100%"><tr><td class="tableBorder">
 
@@ -443,7 +437,7 @@ function print_manage_account_users($account, $users){
 
 								$pi = new User($account->get_field('pi_id'));
 
-								echo $pi->get_name(true);
+								echo $pi->getFullName(true);
 
 							}
 					?>
@@ -536,7 +530,8 @@ function print_manage_account_users($account, $users){
 * Prints all the buttons and hidden fields
 * @param object $res Reservation object to work with
 */
-function print_account_buttons_and_hidden(&$res) {
+function printAccountButtonsHidden(&$res) {
+    global $auth;
 ?>
 <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr>
@@ -571,7 +566,7 @@ function print_account_buttons_and_hidden(&$res) {
         echo '<input type="hidden" name="machid" value="' . $res->get_machid(). '" />' . "\n"
 			  . '<input type="hidden" name="lab_id" value="' . $res->sched['lab_id'] . '" />' . "\n"
 			  . '<input type="hidden" name="pending" value="' . $res->get_pending(). '" />' . "\n"
-			  . '<input type="hidden" name="user_id" value="' . Auth::getCurrentID() . '" />' . "\n";;
+			  . '<input type="hidden" name="user_id" value="' . $auth->getCurrentID() . '" />' . "\n";;
     }
     else {
         echo '<input type="hidden" name="resid" value="' . $res->get_id() . '" />' . "\n"
@@ -587,8 +582,8 @@ function print_account_buttons_and_hidden(&$res) {
 /**
  *
  */
-function print_account_details(Account $account) {
-	$account_pi = new User($account->get_field('pi_id'));
+function printAccountDetails(Account $account) {
+	$account_pi = new User($account->getField('pi_id'));
 ?>
 <table width="100%"><tr><td class="tableBorder">
 
@@ -599,18 +594,18 @@ function print_account_details(Account $account) {
 					<td class="rowHeaders" width="20%">Account Name:</td>
 					<td class="cellColor0">
 					    <?php
-					    if($account->get_name()!=""){
-                            echo $account->get_name();
+					    if($account->getName()!=""){
+                            echo $account->getName();
 					    } else {
 							echo "<i>Blank</i>";
 						}
 					    ?>
 					</td>
 				</tr>
-				<tr><td class="rowHeaders">Account Owner:</td>	<td class="cellColor1"><?php echo $account_pi->get_name(); ?></td></tr>
-				<tr><td class="rowHeaders">Account ID:</td>		<td class="cellColor0"><?php echo $account->get_field('FRS'); ?></td></tr>
-				<tr><td class="rowHeaders">Account Sub-ID:</td>	<td class="cellColor1"><?php echo $account->get_field('sub_FRS'); ?></td></tr>
-				<tr><td class="rowHeaders">Current Status:</td>	<td class="cellColor0"><?php echo ($account->get_field('status') ? "Active" : "Inactive"); ?></td></tr>
+				<tr><td class="rowHeaders">Account Owner:</td>	<td class="cellColor1"><?php echo $account_pi->getFullName(); ?></td></tr>
+				<tr><td class="rowHeaders">Account ID:</td>		<td class="cellColor0"><?php echo $account->getField('FRS'); ?></td></tr>
+				<tr><td class="rowHeaders">Account Sub-ID:</td>	<td class="cellColor1"><?php echo $account->getField('sub_FRS'); ?></td></tr>
+				<tr><td class="rowHeaders">Current Status:</td>	<td class="cellColor0"><?php echo ($account->getField('status') ? "Active" : "Inactive"); ?></td></tr>
 			</table>
 			</td>
 		</tr>
@@ -621,7 +616,7 @@ function print_account_details(Account $account) {
 
 function printAcctAscLink(&$pager, $order, $text) {
 	$text = translate("Sort by ascending $text");
-	print_acct_asc_desc_link($pager, $order, $text, 'ASC');
+	printAccountAscDescLink($pager, $order, $text, 'ASC');
 }
 
 /**
@@ -633,7 +628,7 @@ function printAcctAscLink(&$pager, $order, $text) {
 */
 function printAcctDescLink(&$pager, $order, $text) {
 	$text = translate("Sort by descending $text");
-	print_acct_asc_desc_link($pager, $order, $text, 'DESC');
+	printAccountAscDescLink($pager, $order, $text, 'DESC');
 }
 
 /**
@@ -646,7 +641,7 @@ function printAcctDescLink(&$pager, $order, $text) {
 * @param string $text link text
 * @param string $vert ascending or descending order
 */
-function print_acct_asc_desc_link(&$pager, $order, $text, $vert) {
+function printAccountAscDescLink(&$pager, $order, $text, $vert) {
 	global $link;
 
 	$page = $pager->getPageNum();

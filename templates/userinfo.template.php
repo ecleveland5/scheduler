@@ -22,33 +22,33 @@ function printUI(User $user) {
 		<table width="100%" border="0" cellspacing="1" cellpadding="0">
           <tr> 
             <td class="rowHeaders" width="25%"><?php echo translate('Name')?></td>
-            <td class="cellColor"><?php echo  $user->get_name() ?></td>
+            <td class="cellColor"><?php echo  $user->getFullName() ?></td>
           </tr>
           <tr> 
             <td class="rowHeaders"><?php echo translate('Member ID')?></td>
-            <td class="cellColor"><?php echo  $user->get_id() ?></td>
+            <td class="cellColor"><?php echo  $user->getId() ?></td>
           </tr>
           <tr>
             <td class="rowHeaders"><?php echo translate('Email')?></td>
-            <td class="cellColor"><?php echo  '<a href="mailto:' . $user->get_email() . '">' . $user->get_email() . '</a>'?></td>
+            <td class="cellColor"><?php echo  '<a href="mailto:' . $user->getEmail() . '">' . $user->getEmail() . '</a>'?></td>
           </tr>
           <tr>
             <td class="rowHeaders"><?php echo translate('Phone')?></td>
-            <td class="cellColor"><?php echo  $user->get_phone() ?></td>
+            <td class="cellColor"><?php echo  $user->getWorkPhone() ?></td>
           </tr>
           <tr>
             <td class="rowHeaders"><?php echo translate('Institution')?></td>
-            <td class="cellColor"><?php echo  $user->get_inst() ?></td>
+            <td class="cellColor"><?php echo  $user->getInstitution() ?></td>
           </tr>
                     <tr>
             <td class="rowHeaders"><?php echo 'User Type';?></td>
-            <td class="cellColor"><?php echo  $user->get_user_type(); ?></td>
+            <td class="cellColor"><?php echo  $user->getUserType(); ?></td>
           </tr>
                     <tr>
           	<td class="rowHeaders"><?php echo "Advisor";?></td>
           	<td class="cellColor">
           		<?php 
-          		$advisor = $user->get_advisor();
+          		$advisor = $user->getAdvisor();
           		if ($advisor !== false && is_array($advisor)) {
           			echo (!empty($advisor['first_name'])) ? $advisor['first_name'] : '';
           			echo (!empty($advisor['last_name'])) ? ' ' . $advisor['last_name'] : '';
@@ -57,13 +57,13 @@ function printUI(User $user) {
           		?>
           <tr>
             <td class="rowHeaders"><?php echo translate('Position')?></td>
-            <td class="cellColor"><?php echo  $user->get_position() ?></td>
+            <td class="cellColor"><?php echo  $user->getPosition() ?></td>
           </tr>
           <tr>
             <td class="rowHeaders" valign="top"><?php echo translate('Permissions')?></td>
             <td class="cellColor">
 				<?php
-				$training = $user->get_perms();
+				$training = $user->getResourcePermissions();
 				foreach ($training as $machid => $name)
 					echo $name . '<br />';
 				?></td>

@@ -42,7 +42,7 @@ if (!$stats->set_lab($lab_id)) {
 else {
 	$stats->load_lab();
 	
-	print_lab_list($stats->get_lab_list(), $stats->lab_id);
+	printLabList($stats->get_lab_list(), $stats->lab_id);
 	
 	$stats->init();
 

@@ -22,7 +22,7 @@
 // EXPERIMENTAL
 
 
-require_once 'DB/common.php';
+require_once 'common.php';
 
 /**
  * Database independent query interface definition for PHP's mysqli

@@ -12,7 +12,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * Include AuthDB class
 */
@@ -37,9 +37,9 @@ include_once(BASE_DIR . '/templates/auth.template.php');
 *  and user verification
 */
 class Auth {
-	private $db;
-	public $is_logged_in;
+	protected $db;
 	private $user_id;
+	public $is_logged_in;
 	public $is_attempt;
 	public $login_msg;
 	public $success;
@@ -66,7 +66,8 @@ class Auth {
 	* @return boolean whether the user is the admin
 	*/
 	public function isAdmin() {
-		return $this->db->isAdmin($this->getCurrentID());
+		$result =  $this->db->isAdmin($this->getCurrentID());
+		return $result['is_admin'];
 	}
 
 	public function canCreateAccount() {
@@ -80,7 +81,7 @@ class Auth {
 	* a valid session set (if they are logged in)
 	* @return boolean whether the user is logged in
 	*/
-    public function is_logged_in():bool {
+    public function isLoggedIn():bool {
 	    if ($this->is_logged_in !== null && $this->is_logged_in !== false) {
 		    return true;
 	    }
@@ -108,23 +109,23 @@ class Auth {
 		global $conf;
 		$msg = '';
 		$id = null;
-		$ok_user = $ok_pass = false;
+		$valid_login = false;
 		$use_logonname = (bool)$conf['app']['useLogonName'];
 		
 		// Look up saved session and authenticate with user's cookie
 		if (!empty($cookie_id) && !empty($_COOKIE[$conf['app']['sessionName']])) {
-			if ($this->db->verifyID($cookie_id) && $_SESSION[$conf['app']['sessionName']] === hash('sha256',$_COOKIE[$conf['app']['sessionName']])) {
-				$ok_user = $ok_pass = true;
+			if ($this->db->verifyId($cookie_id) && $_SESSION[$conf['app']['sessionName']] === hash('sha256',$_COOKIE[$conf['app']['sessionName']])) {
+				$valid_login = true;
 				$id = $cookie_id;
 			} else {
 				
 				// the user's supplied cookie for user id and session hash did not match
-				$ok_user = $ok_pass = false;
 				
 				// Clear out all cookies
-				setcookie($conf['app']['cookieName'], '', time()-3600, '/');
-				setcookie($conf['app']['sessionName'], '', time()-3600, '/');
-				$msg .= translate('That cookie seems to be invalid') . '<br>';
+				setcookie($conf['app']['cookieName'], '', 1, '/', false, true, true);
+				setcookie($conf['app']['sessionName'], '', 1, '/', false, true, true);
+				setcookie('sessionUsername', '', 1, '/', false, true, true);
+				//$msg .= translate('That cookie seems to be invalid') . '<br>';
 			}
 			
 		} else {
@@ -140,14 +141,14 @@ class Auth {
 						if( $id ) {
 							// check if LDAP and local DB are in consistency.
 							$updates = $ldap->getUserData();
-							if( $this->db->check_updates( $id, $updates ) ) {
-								$this->db->update_user( $id, $updates );
+							if( $this->db->checkUpdates( $id, $updates ) ) {
+								$this->db->updateUser( $id, $updates );
 							}
 						} else {
 							$data = $ldap->getUserData();
-							$id = $this->do_register_user( $data );
+							$id = $this->doRegisterUser( $data );
 						}
-						$ok_user = true; $ok_pass = true;
+						$valid_login = true;
 					} else {
 						$msg .= translate('This system requires that you have an email address.');
 					}
@@ -162,35 +163,22 @@ class Auth {
 				
 				// We may be reaching login for the first time
 				// if so, just return false to display login form.
-				if (($uname === null || $pass == null) && $id === null) {
+				if (($uname === null || $pass === null) && $id === null) {
 					return false;
 				}
 				
 				// If we cant find email, set message and flag
-				if ( !$id = $this->db->userExists($uname, $use_logonname) ) {
-					$msg .= translate('We could not find that logon in our database.') . '<br/>';
-					$ok_user = false;
-				} else {
-					$ok_user = true;
-				}
-				
-				// If password is incorrect, set message and flag
-				if ($ok_user && !$this->db->isPassword($uname, $pass, $use_logonname)) {
-					$msg .= translate('That password did not match the one in our database.') . '<br/>';
-					$ok_pass = false;
-				} else {
-					$ok_pass = true;
+				$id = $this->db->userExists($uname, $use_logonname);
+				if ($id !== false) {
+					if ($this->db->isPassword($uname, $pass, $use_logonname)) {
+						$valid_login = true;
+					}
 				}
 			}
 		}
 		
 		// If the login failed, notify the user and quit the app
-		if (!$ok_user || !$ok_pass) {
-			$msg .= translate('You can try');
-			$this->login_msg = $msg;
-			return false;
-			
-		} else {
+		if ($valid_login === true) {
 			
 			$this->is_logged_in = true;
 			$user = new User($id);	// Get user info
@@ -199,20 +187,25 @@ class Auth {
 			// Set cookie_id and first_name.  Expires in 30 days (2592000 seconds)
 			// set the id of user
 			$_SESSION[$conf['app']['cookieName']] = $id;
-			setcookie($conf['app']['cookieName'], $id, $expire, '/');
-
+			setcookie($conf['app']['cookieName'], $id, $expire, '/', false, true, true);
+			
 			// set the session id of user (sha256 of user's id + IP)
 			$sessionHash = hash('sha256', session_id().$_SERVER['REMOTE_ADDR']);
 			
 			$_SESSION[$conf['app']['sessionName']] = $sessionHash;
-			setcookie($conf['app']['sessionName'], $sessionHash, $expire, '/');
-
-			$_SESSION['sessionUsername'] = $user->get_first_name();
-			setcookie('sessionUsername', $user->get_first_name(), $expire, '/');
+			setcookie($conf['app']['sessionName'], $sessionHash, $expire, '/', false, true, true);
 			
-			$user->record_login($sessionHash, $expire);
+			$_SESSION['sessionUsername'] = $user->getFirstName();
+			setcookie('sessionUsername', $user->getFirstName(), $expire, '/', false, true, true);
+			
+			$user->recordLogin($sessionHash, $expire);
 			
 			CmnFns::redirect(urldecode($resume));
+			
+		} else {
+			$msg .= translate('Invalid credentials');
+			$this->login_msg = $msg;
+			return false;
 		}
 	}
 
@@ -223,25 +216,24 @@ class Auth {
 	function doLogout($resume) {
 		global $conf;
 		
-		// Check for valid session
-		if (!$this->is_logged_in()) {
-			$this->print_login_msg();
-		} else {
-			// Destroy all session variables
-			unset($_SESSION[$conf['app']['cookieName']]);
-			unset($_SESSION[$conf['app']['sessionName']]);
-			unset($_SESSION['sessionUsername']);
-			session_unset();
-			session_destroy();
+		// Destroy all session variables
+		unset($_SESSION[$conf['app']['cookieName']]);
+		unset($_SESSION[$conf['app']['sessionName']]);
+		unset($_SESSION['sessionUsername']);
+		session_unset();
+		session_destroy();
 
-			// Clear out all cookies
-			setcookie($conf['app']['cookieName'], '', 1);
-			setcookie($conf['app']['sessionName'], '', 1);
-			setcookie($conf['app']['sessionUsername'], '', 1);
+		// Clear out all cookies
+		setcookie($conf['app']['cookieName'], '', 1);
+		setcookie($conf['app']['sessionName'], '', 1);
+		setcookie($conf['app']['sessionUsername'], '', 1);
 
-			// Refresh page
-			CmnFns::redirect($resume);
-		}
+		// Refresh page
+		//if (!$this->isLoggedIn()) {
+		//	$this->printLoginMsg();
+		//} else {
+			CmnFns::redirect($conf['app']['weburi']);
+		//}
 	}
 
 	/**
@@ -257,15 +249,15 @@ class Auth {
 	function doSignin($user_id, $password, $lab_id, $signaction, $signid=''){
 		$msg = '';
 		if ($user_id == '' && $signid != ''){
-			$user_id = $this->get_signedin_user($signid);
+			$user_id = $this->getSignedInUser($signid);
 		}
 		$user = new User($user_id);
-		$email = $user->get_email();
+		$email = $user->getEmail();
 		$ok_user = false;
 		if (!empty($user_id)) {
 			if ($signaction == 'signin'){
-				if ($this->db->is_signed_in($user_id, $lab_id)){
-					$msg = $user->get_name() . " is currently signed in.<br />";
+				if ($this->db->isSignedIn($user_id, $lab_id)){
+					$msg = $user->getFullName() . " is currently signed in.<br />";
 				}else{
 
 					if ( !$id = $this->db->userExists($email) ) {
@@ -275,11 +267,11 @@ class Auth {
 					}
 					// If password is incorrect, set message and flag
 					if ($ok_user && !$this->db->isPassword($email, $password)) {
-						$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
+						$msg .= 'That password for ' . $user->getFullName() . ' did not match the one in our database.<br />';
 					}else{
 						// log the signin event
-						$this->db->log_signin($user_id, $lab_id);
-						$msg = $user->get_name() . " signed in.";
+						$this->db->logSignIn($user_id, $lab_id);
+						$msg = $user->getFullName() . " signed in.";
 					}
 				}
 			}else if ($signaction == 'signout'){
@@ -287,19 +279,19 @@ class Auth {
 				if ($user_id=='0'){
 					$msg = "No one to sign out.";
 				}else{
-					if (!$this->db->is_signed_in($user_id, $lab_id)){
-						$msg = $user->get_name() . " is not signed in.<br />";
+					if (!$this->db->isSignedIn($user_id, $lab_id)){
+						$msg = $user->getFullName() . " is not signed in.<br />";
 					}else{
 						if ($this->isAdmin()){
-								$this->db->log_signout($signid);
-								$msg = $user->get_name() . " signed out.";
+								$this->db->logSignOut($signid);
+								$msg = $user->getFullName() . " signed out.";
 						}else{
 							if (!$this->db->isPassword($email, $password)) {
-								$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
+								$msg .= 'That password for ' . $user->getFullName() . ' did not match the one in our database.<br />';
 							}else{
 								// log the signout event
-								$this->db->log_signout($signid);
-								$msg = $user->get_name() . " signed out.";
+								$this->db->logSignOut($signid);
+								$msg = $user->getFullName() . " signed out.";
 							}
 						}
 					}
@@ -317,7 +309,7 @@ class Auth {
 	*/
 	function doResourceSignin($useid, $user_id, $password, $equipment_id, $frs, $signaction, $description, $notes, $problems){
 		$user = new User($user_id);
-		$email = $user->get_email();
+		$email = $user->getEmail();
 		$ok_user = false;
 		$msg = '';
 
@@ -329,14 +321,14 @@ class Auth {
 				}
 				// If password is incorrect, set message and flag
 				if ($ok_user && !$this->db->isPassword($email, $password)) {
-					$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
+					$msg .= 'That password for ' . $user->getFullName() . ' did not match the one in our database.<br />';
 				}else{
-					if ($user->has_perm($equipment_id)){
+					if ($user->hasResourcePermission($equipment_id)){
 						// log the signin event
-						$this->db->log_equipment_signin($user_id, $equipment_id, $frs);
-						$msg = $user->get_name() . " signed in.";
+						$this->db->logEquipmentSignIn($user_id, $equipment_id, $frs);
+						$msg = $user->getFullName() . " signed in.";
 					}else{
-						$msg = $user->get_name() . " does not have permission on this resource.";
+						$msg = $user->getFullName() . " does not have permission on this resource.";
 					}
 			}
 		}else if ($signaction == 'signout'){
@@ -344,19 +336,19 @@ class Auth {
 			if ($user_id=='0' || $user_id ==''){
 				$msg = "No one to sign out.";
 			}else{
-				if (!$this->db->is_signed_in_resource($equipment_id, $user_id)){
-					$msg = $user->get_name() . " is not signed in.<br />";
+				if (!$this->db->isSignedInResource($equipment_id, $user_id)){
+					$msg = $user->getFullName() . " is not signed in.<br />";
 				}else{
 					if ($this->isAdmin()){
-							$this->db->log_signout($user_id, $equipment_id);
-							$msg = $user->get_name() . " signed out.";
+							$this->db->logSignOut($user_id, $equipment_id);
+							$msg = $user->getFullName() . " signed out.";
 					}else{
 						if (!$this->db->isPassword($email, $password)) {
-							$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
+							$msg .= 'That password for ' . $user->getFullName() . ' did not match the one in our database.<br />';
 						}else{
 							// log the signout event
-							$this->db->log_equipment_signout($useid, $equipment_id, $description, $notes, $problems);
-							$msg = $user->get_name() . " signed out.";
+							$this->db->logEquipmentSignOut($useid, $equipment_id, $description, $notes, $problems);
+							$msg = $user->getFullName() . " signed out.";
 						}
 					}
 				}
@@ -372,7 +364,7 @@ class Auth {
 	*/
 	function doReservationSignin($user_id, $password, $resid, $frs, $signaction, &$msg){
 		$user = new User($user_id);
-		$email = $user->get_email();
+		$email = $user->getEmail();
 		$ok_user = false;
 		$msg = '';
 		$return = false;
@@ -386,7 +378,7 @@ class Auth {
 
 			// If password is incorrect, set message and flag
 			if ($ok_user && !$this->db->isPassword($email, $password)) {
-				$msg .= 'That password for ' . $user->get_name() . ' did not match the one in our database.<br />';
+				$msg .= 'That password for ' . $user->getFullName() . ' did not match the one in our database.<br />';
 			}else{
 				$return = true;
 			}
@@ -402,12 +394,12 @@ class Auth {
 	* It will also set a cookie if the user wants
 	* @param array $data array of user data
 	*/
-	function do_register_user($data, $current_page='') {
+	function doRegisterUser($data, $current_page='') {
 		global $conf;
 		global $link;
 
 		// Verify user data
-		$msg = $this->check_all_values($data, false);
+		$msg = $this->checkAllValues($data, false);
 
         if ($conf['app']['useReCaptcha']) {
             $privatekey = "6LdHdDUUAAAAADw3SIP2T4L9o8S7llXUV0s_8sv9";
@@ -427,14 +419,14 @@ class Auth {
 		// Register the new member
 		$id = $this->db->insertMember($data);
 
-		$this->db->auto_assign($id);		// Give permission on auto-assigned resources
+		$this->db->autoAssign($id);		// Give permission on auto-assigned resources
 
 		$mailer = new PHPMailer();
 		$mailer->IsHTML(false);
 
 		// Email user informing about successful registration
 		$subject = $conf['ui']['welcome'];
-		$msg = translate_email('register',
+		$msg = translateEmail('register',
 								$data['first_name'], $conf['ui']['welcome'],
 								$data['first_name'], $data['last_name'],
 								(isset($data['logon_name']) ? $data['logon_name'] : $data['email']),
@@ -454,7 +446,7 @@ class Auth {
 		// Email the admin informing about new user
 		if ($conf['app']['emailAdmin']) {
 			$subject = translate('A new user has been added');
-			$msg = translate_email('register_admin',
+			$msg = translateEmail('register_admin',
 								$data['email'],
 								$data['first_name'], $data['last_name'],
 								$data['work_phone'],
@@ -507,15 +499,15 @@ class Auth {
 	* Edits user data
 	* @param array $data array of user data
 	*/
-	function do_edit_user($data) {
+	function doEditUser($data) {
 		global $conf;
 
 		// Verify user data
-		$msg = $this->check_all_values($data, true);
+		$msg = $this->checkAllValues($data, true);
 		if (!empty($msg)) {
 			return $msg;
 		}
-		$this->db->update_user($_SESSION['sessionID'], $data);
+		$this->db->updateUser($_SESSION['sessionID'], $data);
 
 		$adminEmail = strtolower($conf['app']['adminEmail']);
 		// If it is the admin, set session variable
@@ -543,7 +535,7 @@ class Auth {
 	* @param array $data array of data to check
 	* @param boolean $is_edit whether this is an edit or not
 	*/
-	function check_all_values(&$data, $is_edit) {
+	function checkAllValues(&$data, $is_edit) {
 		global $conf;
 		$use_logonname = (bool)$conf['app']['useLogonName'];
 		$msg = '';
@@ -586,11 +578,11 @@ class Auth {
       if ($is_edit) {
       	$user = new User($_SESSION['sessionID']);
         if (!$use_logonname) {
-					if ($this->db->userExists($data['emailaddress']) && ($data['emailaddress'] != $user->get_email()) ) {
+					if ($this->db->userExists($data['emailaddress']) && ($data['emailaddress'] != $user->getEmail()) ) {
 						$msg .= translate('That email is taken already.') . '<br/>';
 					}
 				} else {
-					if ( $this->db->userExists($data['logon_name'], true) && ($data['logon_name'] != $user->get_logon_name()) ) {
+					if ( $this->db->userExists($data['logon_name'], true) && ($data['logon_name'] != $user->getLogonName()) ) {
 						$msg .= translate('That logon name is taken already.') . '<br/>';
 					}
 				}
@@ -653,17 +645,6 @@ class Auth {
 	}
 
 	/**
-	 * DEPRECIATED, use printRegisterForm below
-	 * 
-	* Wrapper function to call template 'print_register_form' function
-	* @param boolean $edit whether this is an edit or a new register
-	* @param array $data values to auto fill
-	*/
-	function print_register_form($edit, $data, $msg = '', $signin='') {
-		print_register_form($edit, $data, $msg, $signin);		// Function in auth.template.php
-	}
-	
-	/**
 	 * Wrapper function to call template 'print_register_form' function
 	 * @param boolean $edit whether this is an edit or a new register
 	 * @param array $data values to auto fill
@@ -721,7 +702,7 @@ class Auth {
 	* Prints a message telling the user to log in
 	* @param boolean $kill whether to end the program or not
 	*/
-	public static function print_login_msg($kill = true) {
+	public static function printLoginMsg($kill = true) {
 		CmnFns::redirect(CmnFns::getScriptURL() . '/');
 	}
 
@@ -729,7 +710,7 @@ class Auth {
 	* Prints out the latest success box
 	* @param none
 	*/
-	function print_success_box() {
+	function printSuccessBox() {
 		CmnFns::do_message_box($this->success);
 	}
 
@@ -738,75 +719,72 @@ class Auth {
 	* and false otherwise
 	* @param $user_id
 	*/
-	function is_user($user_id){
+	function isUser($user_id){
 		$user = new User($user_id);
-
-		return $this->db->userExists($user->get_email());
+		return $this->db->userExists($user->getEmail());
 	}
 
 	/**
 	* Returns array of users
 	*/
-	function get_user_list(){
-		$users = $this->db->get_user_list();
-		return $users;
+	function getUserList():array {
+		return $this->db->getUserList();
 	}
-
+	
 	/**
-	* Returns array of users
-	*/
-	function get_user_perms($userid){
-		$perms = $this->db->get_user_perms($userid);
-		return $perms;
+	 * Returns array of users
+	 * @param $user_id
+	 * @return array
+	 */
+	function getUserPerms($user_id){
+		return $this->db->getUserPerms($user_id);
 	}
 
 	/**
 	* Returns array of signed in users
 	*/
-	function get_signedin_user_list($lab_id='', $order=''){
-		$users = $this->db->get_signedin_user_list($lab_id, $order);
-		return $users;
+	function getSignedInUserList($lab_id='', $order=''){
+		return $this->db->getSignedInUserList($lab_id, $order);
 	}
 
 	/**
 	* Returns array of resources
 	*/
-	function get_equipment_list($lab_id=''){
-		$resources = $this->db->get_equipment_list($lab_id);
-		return $resources;
+	function getEquipmentList($lab_id=''){
+		return $this->db->getEquipmentList($lab_id);
 	}
 
 	/**
 	* Returns array of signed in users signed into resources
 	*/
-	function get_equipment_signedin_user_list($lab_id='', $order=''){
-		$users = $this->db->get_equipment_signedin_user_list($lab_id, $order);
-		return $users;
+	function getEquipmentSignedInUserList($lab_id='', $order=''){
+		return $this->db->getEquipmentSignedInUserList($lab_id, $order);
 	}
-
-	function get_equipment_signed_in_user(){
-
-	}
-
+	
 	/**
-	* Returns array of signed in users signed into resources
-	*/
-	function get_signedin_user($signid=''){
-		$user = $this->db->get_signedin_user($signid);
-		return $user;
+	 * Returns array of signed in users signed into resources
+	 * @param string $user_id
+	 * @return false|mixed|string
+	 */
+	function getSignedInUser($user_id=''){
+		return $this->db->getSignedInUser($user_id);
 	}
 
-	function verifyUserID($userID) {
-		return $this->db->verifyID($userID);
+	function verifyUserID($user_id) {
+		return $this->db->verifyId($user_id);
 	}
 	
 	public function isLabAdmin() {
 		$user_id = $this->getCurrentID();
-		$perms = $this->getUserLabPermissions($user_id);
-		foreach($perms as $perm) {
-			if ($perm['is_admin'] === "1") {
-				return true;
+		try {
+			$perms = $this->getUserLabPermissions($user_id);
+			foreach ($perms as $perm) {
+				if ($perm['is_admin'] === "1") {
+					return true;
+				}
 			}
+		} catch (error $e) {
+		
 		}
 		return false;
 	}
@@ -873,33 +851,33 @@ class Auth {
 				CmnFns::redirect($resume);
 			} else {
 				// login credentials failed
-				$this->printLoginForm($this->login_msg);
+				//$this->printLoginForm($this->login_msg);
 			}
 			
 		} else if (!empty($cookie)) {
 			// authenticate with user provided cookie
-			$saved_sessionHash = $this->db->getSessionHashByUserID($this->user_id);
+			$saved_sessionHash = $this->db->getSessionHashByUserId($this->user_id);
 			
 			$session_id = session_id();
 			
-			if ($session_id)
-			
 			$sessionHash = hash('sha256', $session_id . $_SERVER['REMOTE_ADDR']);
 			
-			if ($this->db->verifyID($cookie) && ($session_cookie === $sessionHash)) {
-				$ok_user = $ok_pass = true;
-				$this->user_id = $cookie;
-				$this->is_logged_in = true;
-			} else {
-				$ok_user = $ok_pass = false;
-				setcookie($conf['app']['cookieName'], '', time() - 3600, '/');    // Clear out all cookies
-				$this->login_msg .= translate('That cookie seems to be invalid') . '<br>';
+			if ($this->db->verifyId($cookie)) {
+				
+				if ($session_cookie === $sessionHash) {
+					$ok_user = $ok_pass = true;
+					$this->user_id = $cookie;
+					$this->is_logged_in = true;
+				} else {
+					$ok_user = $ok_pass = false;
+					setcookie($conf['app']['cookieName'], '', time() - 3600, '/');    // Clear out all cookies
+					$this->login_msg .= translate('That cookie seems to be invalid') . '<br>';
+				}
 			}
-			
 		} else {
 			// not authenticated
 			$this->is_logged_in = false;
+			//$this->printLoginForm($this->login_msg);
 		}
-		
 	}
 }

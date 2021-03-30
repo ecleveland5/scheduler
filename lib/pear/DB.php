@@ -608,11 +608,11 @@ class DB
             $parsed['phptype']  = $str;
             $parsed['dbsyntax'] = $str;
         }
-
+        /*
         if (!count($dsn)) {
             return $parsed;
         }
-
+        */
         // Get (if found): username and password
         // $dsn => username:password@protocol+hostspec/database
         if (($at = strrpos($dsn,'@')) !== false) {

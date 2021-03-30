@@ -19,8 +19,8 @@ include_once('lib/Template.class.php');
 include_once('lib/ResCalendar.class.php');
 
 // Check that the user is logged in
-if (!Auth::is_logged_in()) {
-    Auth::print_login_msg();
+if (!Auth::isLoggedIn()) {
+    Auth::printLoginMsg();
 }
 
 // Print HTML headers
@@ -45,9 +45,9 @@ echo "<?xml version=\"1.0\" encoding=\"$charset\"?" . ">\n";
 $type = MYCALENDARTYPE_SIGNUP;
 $machid = isset($_GET['machid']) ? $_GET['machid'] : null;
 
-$calendar = new ResCalendar(Auth::getCurrentID(), $type, get_calendar_actual_date(), $machid);
+$calendar = new ResCalendar(Auth::getCurrentID(), $type, getCalendarActualDate(), $machid);
 
-$calendar->print_calendar();
+$calendar->printCalendar();
 
 list($e_sec, $e_msec) = explode(' ', microtime());		// End execution timer
 $tot = ((float)$e_sec + (float)$e_msec) - ((float)$s_sec + (float)$s_msec);

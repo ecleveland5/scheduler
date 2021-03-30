@@ -215,7 +215,7 @@
 										//}else{
 										
 										// if the reservation is in the future, past the 'no modification'(24hr) horizon
-										if($reservation->check_horizon(Auth::getCurrentID())) {
+										if($reservation->checkHorizon($auth->getCurrentID())) {
 											echo '<td>' . $link->getlink("javascript: reserve('".RES_TYPE_MODIFY."','','','" . $rs['resid']. "');", translate('Modify')) . '</td>';
 											echo '<td>' . $link->getLink("javascript: reserve('".RES_TYPE_DELETE."','','','" . $rs['resid']. "');", translate('Delete')) . '</td>';
 										}else{

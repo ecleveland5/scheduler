@@ -14,7 +14,7 @@
 /**
 * Base directory of application
 */
-@define('BASE_DIR', dirname(__FILE__) . '/..');
+//@define('BASE_DIR', dirname(__FILE__) . '/..');
 /**
 * ResDB class
 */
@@ -23,8 +23,8 @@ include_once(BASE_DIR . '/templates/account.template.php');
 
 class Account {
 	var $account_id		= null;				//	Properties
-	var $FRS			= null;
-	var $sub_FRS		= null;
+	var $kfs			= null;
+	var $sub_kfs		= null;
 	var $pi_id			= null;				//	Links to user_id
 	var $pi_first_name 	= null;
 	var $pi_last_name 	= null;
@@ -59,7 +59,6 @@ class Account {
 	var $account_type	=	0;
 	var $is_valid		= false;
 	var $users			= null;
-
 	var $errors = array();
 
 	/**
@@ -75,7 +74,7 @@ class Account {
 
 		if (!empty($id) && $id!=0) {
 			$this->account_id = $id;
-			$this->load_by_id();
+			$this->loadById();
 			return true;
 		}else{
 			$this->status = $status;
@@ -86,7 +85,9 @@ class Account {
 	* Loads all account properties from the database
 	* @param none
 	*/
-	function load_by_id() {
+	function loadById() {
+		global $auth;
+		
 		$account = $this->db->get_account_data($this->account_id);	// Get values from DB
 
 		if (!$account) {
@@ -96,8 +97,8 @@ class Account {
 			$this->is_valid = true;
 
 		$this->account_id			= $account['account_id'];
-		$this->FRS					= $account['FRS'];
-		$this->sub_FRS				= $account['sub_FRS'];
+		$this->kfs					= $account['kfs'];
+		$this->sub_kfs				= $account['sub_kfs'];
 		$this->pi_id				= $account['pi'];
 		$this->pi_first_name 		= $account['pi_first_name'];
 		$this->pi_last_name 		= $account['pi_last_name'];
@@ -130,114 +131,105 @@ class Account {
 		$this->reviewed					= $account['reviewed'];
 		$this->reviewed_by				= $account['reviewed_by'];
 		$this->account_type				= $account['account_type'];
-
-		$this->users = $this->db->get_account_users($this->account_id);
-
-		//var_dump($this->users);
-		/*
-		for ($i = 0; $i < count($this->users); $i++) {
-			if ($this->users[$i]['owner'] == 1) {
-				$this->user_id = $this->users[$i]['user_id'];
-				break;
-			}
-		}
-		*/
+		$this->users                    = $this->db->get_account_users($this->account_id);
 	}
 
 	/*
 	*
 	*
 	*/
-	function add_account($accountData) {
-		if(!Auth::isAdmin()){
-			if ( ($accountData['pi']=='') &&
-				  ( (!isset($accountData['pi_last_name']) || ($accountData['pi_last_name']!='')) &&
-				    (!isset($accountData['pi_first_name']) ||($accountData['pi_first_name']!='')) )
+	function addAccount($data) {
+		global $auth;
+		
+		if (!$auth->isAdmin()){
+			if ( ($data['pi']=='') &&
+				  ( (!isset($data['pi_last_name']) || ($data['pi_last_name']!='')) &&
+				    (!isset($data['pi_first_name']) ||($data['pi_first_name']!='')) )
 				 )
 			   {
-				$this->add_error('The organization field cannot be left blank.');
+				$this->addError('The organization field cannot be left blank.');
 			}
 
-			if( (!isset($accountData['organization'])) || ($accountData['organization']=='') ) {
-				$this->add_error('The organization field cannot be left blank.');
+			if ( (!isset($data['organization'])) || ($data['organization']=='') ) {
+				$this->addError('The organization field cannot be left blank.');
 			}
 
-			if( (!isset($accountData['billing_address1'])) || ($accountData['billing_address1']=='') ) {
-				$this->add_error('The billing address field cannot be left blank.');
+			if ( (!isset($data['billing_address1'])) || ($data['billing_address1']=='') ) {
+				$this->addError('The billing address field cannot be left blank.');
 			}
 
-			if( (!isset($accountData['billing_city'])) || ($accountData['billing_city']=='') ) {
-				$this->add_error('The billing city field cannot be left blank.');
+			if ( (!isset($data['billing_city'])) || ($data['billing_city']=='') ) {
+				$this->addError('The billing city field cannot be left blank.');
 			}
 
-			if( (!isset($accountData['billing_state'])) || ($accountData['billing_state']=='') ) {
-				$this->add_error('The billing state field cannot be left blank.');
+			if ( (!isset($data['billing_state'])) || ($data['billing_state']=='') ) {
+				$this->addError('The billing state field cannot be left blank.');
 			}
 
-			if( (!isset($accountData['billing_zip'])) || ($accountData['billing_zip']=='') ) {
-				$this->add_error('The billing zip field cannot be left blank.');
+			if ( (!isset($data['billing_zip'])) || ($data['billing_zip']=='') ) {
+				$this->addError('The billing zip field cannot be left blank.');
 			}
 		}
-		// Since this is an external account, we must create a unique FRS #
-		if($accountData['FRS'] == ""){
-			if(is_numeric($accountData['pi'])){
-				$acc_pi = new User ($accountData['pi']);
-				$pi_last_name = $acc_pi->get_last_name();
-			}else{
-				$pi_last_name = $accountData['pi_last_name'];
+		// Since this is an external account, we must create a unique kfs #
+		if ($data['kfs'] == "") {
+			if (is_numeric($data['pi'])) {
+				$acc_pi = new User ($data['pi']);
+				$pi_last_name = $acc_pi->getLastName();
+			} else {
+				$pi_last_name = $data['pi_last_name'];
 			}
 
-			$FRS = substr($accountData['organization'], 0, 3).'-'.$pi_last_name;
+			$kfs = substr($data['organization'], 0, 3).'-'.$pi_last_name;
 			// must check if taken, if so, add incremental number
-			while(!$this->db->isFRSAvailable($FRS)){
-				$accountData['FRS'] = $FRS;
-				//$this->add_error('The FRS is in use.');
-				//echo '<br><br>The FRS is in use.<br><br>';
+			while(!$this->db->isKFSAvailable($kfs)){
+				$data['kfs'] = $kfs;
+				//$this->add_error('The kfs is in use.');
+				//echo '<br><br>The kfs is in use.<br><br>';
 
 				// get iteration number and increment
-				$frs_parts = explode('-', $FRS);
-				//var_dump($frs_parts);
+				$kfs_parts = explode('-', $kfs);
+				//var_dump($kfs_parts);
 				//echo "<br><br>";
-				if(is_numeric($frs_parts[sizeof($frs_parts)-1])){
-					$i = (int)$frs_parts[sizeof($frs_parts)-1];
+				if(is_numeric($kfs_parts[sizeof($kfs_parts)-1])){
+					$i = (int)$kfs_parts[sizeof($kfs_parts)-1];
 					$i++;
-					$FRS = '';
-					$frs_array = array();
-					for ($x=0; $x < sizeof($frs_parts)-1; $x++) {
-						array_push($frs_array, $frs_parts[$x]);
+					$kfs = '';
+					$kfs_array = array();
+					for ($x=0; $x < sizeof($kfs_parts)-1; $x++) {
+						array_push($kfs_array, $kfs_parts[$x]);
 					}
-					array_push($frs_array, $i);
-					$FRS = implode('-', $frs_array);
+					array_push($kfs_array, $i);
+					$kfs = implode('-', $kfs_array);
 				}else{
-					$FRS .= '-1';
+					$kfs .= '-1';
 				}
 			}
-			//echo $FRS;
-			$accountData['FRS'] = $FRS;
+			//echo $kfs;
+			$data['kfs'] = $kfs;
 		}
 
 
 		//echo "<br><br>";
 		//var_dump($accountData);
 
-		if ($this->has_errors()){			// Print any errors generated above and kill app
-			$this->print_all_errors(true);
+		if ($this->hasErrors()){			// Print any errors generated above and kill app
+			$this->printAllErrors(true);
 		}else{
 
-			$id = $this->db->add_account($accountData);
+			$id = $this->db->add_account($data);
 			$this->account_id = $id;
-			$this->load_by_id();
+			$this->loadById();
 			//add current user to account user admin list
 
-			$this->add_account_user(Auth::getCurrentID(), 1, NULL, NULL);
+			$this->addAccountUser($auth->getCurrentID(), 1, NULL, NULL);
 			//add PI to account user admin list if PI is in user table
 			if ( (is_numeric($this->pi_id)) && ($this->pi_id != NULL) ) {
 
-				$this->add_account_user($this->pi_id, 1, NULL, NULL);
+				$this->addAccountUser($this->pi_id, 1, NULL, NULL);
 			}
 
-			if (!Auth::isAdmin()) {
-                $this->print_account_success('created');
+			if (!$auth->isAdmin()) {
+                $this->printAccountSuccess('created');
             }
 
 		}
@@ -248,33 +240,34 @@ class Account {
 	*
 	*
 	*/
-	function modify_account($account, $newData) {
+	function modifyAccount($account, $data) {
 		// check for invalid data
 		//$this->validateAccountData();
 
-		if ($this->has_errors()){			// Print any errors generated above and kill app
-			$this->print_all_errors(true);
+		if ($this->hasErrors()){			// Print any errors generated above and kill app
+			$this->printAllErrors(true);
 		}else{
 			// update database
-			$this->db->modify_account($account, $newData);
+			$this->db->modify_account($account, $data);
 
-			$this->print_account_success('modified', $dates);
+			$this->printAccountSuccess('modified');
 		}
 	}
-
-	/*
-	*
-	*
-	*/
-	function retire_account($account, $user) {
-		if ($this->has_errors()){			// Print any errors generated above and kill app
-			$this->print_all_errors(true);
+	
+	/**
+	 *
+	 * @param $account
+	 * @param $user
+	 */
+	function retireAccount($account, $user) {
+		if ($this->hasErrors()){			// Print any errors generated above and kill app
+			$this->printAllErrors(true);
 		}else{
-			$this->print_account_success('retired', $dates);
+			$this->printAccountSuccess('retired');
 		}
 	}
 
-	/*
+	/**
 	 * Authorizes a user on an account.
 	 * Adds the user_id and account_id to the account_user table
 	 * @param $user_id
@@ -282,42 +275,40 @@ class Account {
 	 * @param $start_date
 	 * @param $end_date
 	 */
-	function add_account_user($user_id, $is_admin=0, $start_date=NULL, $end_date=NULL) {
+	function addAccountUser($user_id, $is_admin= 0 , $start_date = NULL, $end_date = NULL) {
 		$this->db->add_account_user($this->account_id, $user_id, $is_admin, $start_date, $end_date);
 	}
 
 	/**
-	* Prints a message nofiying the user that their reservation was placed
+	* Prints a message notifying the user that their reservation was placed
 	* @param string $verb action word of what kind of reservation process just occcured
-	* @param array $dates dates that were added or modified.  Deletions are not printed.
 	*/
-	function print_account_success($verb) {
+	function printAccountSuccess($verb) {
 		echo '<script language="JavaScript" type="text/javascript">' . "\n"
 			. 'window.opener.document.location.href = window.opener.document.URL;' . "\n"
 			. '</script>';
 		$date_text = '';
-		for ($i = 0; $i < count($dates); $i++) {
-			$date_text .= CmnFns::formatDate($dates[$i]) . '<br/>';
-		}
 		CmnFns::do_message_box('Your account was successfully ' . $verb
-					//. (($this->type != 'd') ? ' ' . translate('for the follwing dates') . '<br /><br />' : '.')
-					//. $date_text . '<br/>'
-					. '<br/><a href="javascript: window.close();">' . translate('Close') . '</a>'
-					, 'width: 90%;');
+			. '<br/><a href="javascript: window.close();">' . translate('Close') . '</a>', 'width: 90%;');
 	}
 
 	/**
 	* Check if a user has permission to use a account
 	* @param object $user object for this reservations user
 	* @param bool whether to kill the app if the user does not have permission
-	* @return whether user has permission to use resource
+	* @return bool whether user has permission to use resource
 	*/
-	function check_perms(&$user, $kill = true) {
-		if (Auth::isAdmin())                    // Admin always has permission
+	function checkPerms(&$user, $kill = true) {
+		global $auth;
+		$current_id = $auth->getCurrentID();
+		
+		// Admin always has permission
+		if ($auth->isAdmin())
 		   return true;
-
-		if ((Auth::getCurrentID() == null) || ($user->get_id() != Auth::getCurrentID())) {
-		   $has_perm = false;                    // Check user is allowed to modify this reservation
+		
+		// Check user is allowed to modify this reservation
+		if ( ($current_id == null) || ($user->get_id() != $current_id) ) {
+		   $has_perm = false;
 		}
 		else {
 		   $has_perm = $user->has_perm($this->account_id); // Get user permissions
@@ -336,45 +327,29 @@ class Account {
 	* Prints out the account table
 	* @param none
 	*/
-	function print_account($new=FALSE) {
-		global $conf;
+	function printAccount($new = false) {
+		global $auth;
 		$edit = false;
 
-		if (!$new){
+		if (!$new) {
 			$rs = $this->db->get_account_data($this->account_id);
 
-			if ((Auth::isAdmin()) ||
-				($this->is_admin(Auth::getCurrentID()))
-				) {
+			if ( $auth->isAdmin() === true) {
 				$edit = true;
-			};
+			}
 
-			print_account_title($rs);
-			//begin_container();
-			//end_container();
+			//printAccountTitle($rs);
 
-			if($edit){
-				$auth = new Auth();
-				$users = $auth->get_user_list();
-				//print_jscalendar_setup($this, $rs);
-				//begin_account_form();
-				print_account_edit($rs, $users, $edit);
-				print_account_buttons_and_hidden($this);
-				//end_account_form();
-				print_account_jscalendar_setup($this, $rs);
-			}else{
+			if ($edit) {
+				$users = $auth->getUserList();
+				printAccountEdit($rs, $users, $edit);
+				printAccountButtonsHidden($this);
+			} else {
 				echo "Sorry, you do not have permission to view/edit this account.";
 			}
-		}else{
-				$auth = new Auth();
-				$users = $auth->get_user_list();
-				//print_jscalendar_setup($this, $rs);
-				//begin_account_form();
-				print_account_edit(NULL, $users, $edit);
-				//print_account_buttons_and_hidden($this);
-				//end_account_form();
-				//print_account_jscalendar_setup($this, $rs);
-
+		} else {
+				$users = $auth->getUserList();
+				printAccountEdit(NULL, $users, $edit);
 		}
 	}
 
@@ -383,28 +358,28 @@ class Account {
 	 * @param string account id
 	 * @return array of account data
 	 */
-	function get_account_data($pager=NULL){
+	function getAccountData($pager = NULL){
 		return $this->db->get_account_data($this->account_id, $pager);
 	}
 
-	function get_account_id(){
+	function getAccountId(){
 		return $this->account_id;
 	}
 
-	function get_name(){
+	function getName(){
 		return $this->name;
 	}
 
-	function get_account_users(){
+	function getAccountUsers(){
 		return $this->db->get_account_users($this->account_id);
 	}
 
-	function get_account_admins() {
+	function getAccountAdmins() {
 		return $this->db->get_account_admins($this->account_id);
 	}
 
-	function email_account_admins($status) {
-		$admins = $this->get_account_admins();
+	function emailAccountAdmins($status) {
+		$admins = $this->getAccountAdmins();
 		$to = '';
 		foreach ($admins as $admin) {
 			$to .= $admin['email'].", ";
@@ -418,7 +393,7 @@ class Account {
 			<body>
 				<p>Hi, <br />
 				  You are receiving this email because you are listed as an admin user
-				  on the following NanoCenter account: <strong>" . $this->FRS . "</strong>
+				  on the following NanoCenter account: <strong>" . $this->kfs . "</strong>
 				</p>
 
 				<p>The status of this account has changed to
@@ -451,11 +426,11 @@ class Account {
 		mail($to, $subject, $message, $headers);
 	}
 
-	function is_valid(){
+	function isValid(){
 		return $this->is_valid;
 	}
 
-	function is_permitted($user_id){
+	function isPermitted($user_id){
 		for($i = 0; $i < count($this->users); $i++){
 			if(in_array($user_id, $this->users[$i]))
 				return true;
@@ -464,20 +439,19 @@ class Account {
 		//return in_array($user_id, $this->users);
 	}
 
-	function is_admin($user_id){
+	function isAdmin($user_id){
 		return $this->db->get_is_admin($this->account_id, $user_id);
 	}
 
-	function get_field($field){
+	function getField($field){
 		return $this->$field;
 	}
 
 	/**
 	* Whether there were errors processing this reservation or not
-	* @param none
-	* @return if there were errors or not processing this reservation
+	* @return int if there were errors or not processing this reservation
 	*/
-	function has_errors() {
+	function hasErrors() {
 		return count($this->errors) > 0;
 	}
 
@@ -485,18 +459,17 @@ class Account {
 	* Add an error message to the array of errors
 	* @param string $msg message to add
 	*/
-	function add_error($msg) {
+	function addError($msg) {
 		array_push($this->errors, $msg);
 	}
 
 	/**
 	* Return the last error message generated
-	* @param none
-	* @return the last error message
+	* @return string the last error message
 	*/
-	function get_last_error() {
-		if ($this->has_errors())
-			return $this->errors(count($this->errors)-1);
+	function getLastError() {
+		if ($this->hasErrors())
+			return $this->getLastError();
 		else
 			return null;
 	}
@@ -505,8 +478,8 @@ class Account {
 	* Prints out all the error messages in an error box
 	* @param boolean $kill whether to kill the app after printing messages
 	*/
-	function print_all_errors($kill) {
-		if ($this->has_errors()) {
+	function printAllErrors($kill) {
+		if ($this->hasErrors()) {
 			$div = '<hr size="1"/>';
 			CmnFns::do_error_box(
 				'<a href="javascript: history.back();">' . translate('Please go back and correct any errors.') . '</a><br /><br />' . join($div, $this->errors) . '<br /><br /><a href="javascript: history.back();">' . translate('Please go back and correct any errors.') . '</a>'
@@ -519,12 +492,13 @@ class Account {
 	 *
 	 * @return mixed Array of billing or false if not account/system admin
 	 */
-	function get_billing_data() {
-		if($this->is_admin(Auth::getCurrentID()) || Auth::isAdmin()){
-			return $this->db->get_billing_data($this->get_account_id());
+	function getBillingData() {
+		global $auth;
+		
+		if($this->isAdmin($auth->getCurrentID()) || $auth->isAdmin()){
+			return $this->db->get_billing_data($this->getAccountId());
 		}else{
 			return false;
 		}
 	}
 }
-?>

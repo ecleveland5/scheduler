@@ -70,7 +70,7 @@ function print_day_equipment_reservations($reservations, $datestamp, $days, $lab
 	echo '<tr><td class="labDate">&nbsp;</td>';
 	for ($day_count = 0; $day_count < $days; $day_count++) {
 		$datestamps[$day_count] = mktime(0,0,0, $date_vars['mon'], $date_vars['mday'] + $day_count, $date_vars['year']);
-		echo '<td width="' . $col_width . '%" class="labDate"><a href="rescalendar.php?lab_id=' . $lab_id . '&amp;date=' . sprintf('%d-%d-%d', $date_vars['mon'], $date_vars['mday'], $date_vars['year']) . '">' . translate_date('lab_daily', $datestamps[$day_count]) . '</a></td>';
+		echo '<td width="' . $col_width . '%" class="labDate"><a href="rescalendar.php?lab_id=' . $lab_id . '&amp;date=' . sprintf('%d-%d-%d', $date_vars['mon'], $date_vars['mday'], $date_vars['year']) . '">' . translateDate('lab_daily', $datestamps[$day_count]) . '</a></td>';
 	}
 	echo "</tr>\n";
 	
@@ -156,7 +156,7 @@ function print_day_equipment_reservations($reservations, $datestamp, $days, $lab
 					}
 				}
 				$rowspan = intval(($endtime - $starttime)/$time_span);
-				$js = "onmouseover=\"showSummary('details', event, '" . build_reservation_detail_div($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";	
+				$js = "onmouseover=\"showSummary('details', event, '" . buildReservationDetailDiv($res) . "');\" onmouseout=\"hideSummary('details');\" onmousemove=\"moveSummary('details', event);\"";
 				echo "<td valign=\"top\" class=\"MyCalCellColor\" rowspan=\"$rowspan\" $js>&#8226; ";
 				echo "<a href=\"javascript:reserve('" . RES_TYPE_MODIFY . "','','','{$res['resid']}','{$res['lab_id']}');\">{$res['first_name']} {$res['last_name']}</a>";
 				//if (isset($res['parentid'])) echo ' <img src="img/recurring.gif" width="15" height="15" alt="' . translate('Recurring') . '" title="' . translate('Recurring') . '"/>';
@@ -198,7 +198,7 @@ function print_signup_sheet($reservations, $datestamp, $days, $start_time, $end_
 	echo '<tr><td>&nbsp;</td>';
 	for ($day_count = 0; $day_count < $days; $day_count++) {
 		$datestamps[$day_count] = mktime(0,0,0, $date_vars['mon'], $date_vars['mday'] + $day_count, $date_vars['year']);
-		echo '<td width="' . $col_width . '%" align="center"><b>' . $equipment_name . '</b><br/>' . translate_date('lab_daily', $datestamps[$day_count]) . '</td>';
+		echo '<td width="' . $col_width . '%" align="center"><b>' . $equipment_name . '</b><br/>' . translateDate('lab_daily', $datestamps[$day_count]) . '</td>';
 	}
 	echo "</tr>\n";
 	

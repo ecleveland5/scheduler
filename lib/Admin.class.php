@@ -219,7 +219,7 @@ class Admin {
 	 */
 	function manageUserAccounts() {
 		$user = new User($_GET['user_id']);
-		$user_accounts = $user->get_accounts_list();
+		$user_accounts = $user->getAccountsList();
 		$all_accounts = $this->db->get_account_ids();
 		print_manage_users_accounts($user, $user_accounts, $all_accounts);
 	}
@@ -241,7 +241,7 @@ class Admin {
 	function manageAccountUsers() {
 		$account = new Account($_GET['account_id']);	// Account object
 		$users = $this->db->get_user_ids();
-		print_manage_account_users($account, $users);
+		printManageAccountUsers($account, $users);
 		unset($users);
 	}
 
@@ -289,7 +289,7 @@ class Admin {
 		// If this is an edit, get the resource information from database
 		if ($edit) {
 			$acct = new Account($account_id);
-			$rs = $acct->get_account_data();
+			$rs = $acct->getAccountData();
 		}
 
 		if (isset($_SESSION['post'])) {
@@ -297,7 +297,7 @@ class Admin {
 		}
 
 		$auth = new Auth();
-		$users = $auth->get_user_list(3);
+		$users = $auth->getUserList(3);
 		$account_types = $this->db->get_account_types();
 		print_account_admin_edit($rs, $users, $edit, $this->pager, $account_types);
 
@@ -685,7 +685,7 @@ class Admin {
 	function manageUserLabPermissions() {
 		$user_id = filter_input(INPUT_GET, 'user_id', FILTER_SANITIZE_STRING);
 		$user = new User($user_id);
-		$lab_perms = $user->get_lab_permissions();
+		$lab_perms = $user->getLabPermissions();
 		
 		print_manage_user_lab_permissions($lab_perms);
 	}

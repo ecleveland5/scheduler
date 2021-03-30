@@ -29,10 +29,10 @@ CmnFns::do_message_box('Click on the shaded, reserved time boxes to see the deta
 // Begin main table
 $t->startMain();
 
-$s->print_jump_links();
+$s->printJumpLinks();
 echo "<br>";
 $filters = array();
-$s->print_lab($filters);
+$s->printLab($filters);
 
 // Print out links to jump to new date
 //$s->print_jump_links();

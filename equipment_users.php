@@ -23,8 +23,8 @@ $admin = new Admin('equipment_users');
 $t = new Template();
 
 // Make sure user is logged in
-if (!Auth::is_logged_in()) {
-	Auth::print_login_msg();
+if (!Auth::isLoggedIn()) {
+	Auth::printLoginMsg();
 }
 
 if (!Auth::isAdmin()) {
@@ -32,7 +32,7 @@ if (!Auth::isAdmin()) {
         . '<a href="ctrlpnl.php">' . translate('Back to My Control Panel') . '</a>');
 }else if (Auth::isAdmin()){
 	if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && isset($_POST['fn'])) {
-		$t->set_title("Processing User Update");
+		$t->setTitle("Processing User Update");
 		$t->printHTMLHeader();
 		$t->startMain();
 		
@@ -43,7 +43,7 @@ if (!Auth::isAdmin()) {
 		$admin->db->add_equipment_users($machid, $users);
 
 	}else{
-		$t->set_title("Equipment Users");
+		$t->setTitle("Equipment Users");
 		$t->printHTMLHeader();
 		$t->startMain();
 		
