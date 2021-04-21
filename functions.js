@@ -33,18 +33,18 @@ function checkForm(f) {
 }
 
 function verifyEdit() {
-	var msg = "Please fix these errors:\n";
-	var errors = false;
+	let msg = "Please fix these errors:\n";
+	let errors = false;
 	
-	if ( (document.register.email.value != "") && ( document.register.email.value.indexOf('@') == -1) ) {
+	if ( (document.register.email.value !== "") && ( document.register.email.value.indexOf('@') === -1) ) {
 		msg+="-Valid email is required\n";
 		errors = true;
 	}
-	if ( (document.register.password.value != "") && (document.register.password.value.length < 6) ) {
+	if ( (document.register.password.value !== "") && (document.register.password.value.length < 6) ) {
 		msg+="-Min 6 character password is required\n";
 		errors = true;
 	}
-	if ( (document.register.password.value != "") && (document.register.password.value != document.register.password2.value) ) {
+	if ( (document.register.password.value !== "") && (document.register.password.value !== document.register.password2.value) ) {
 		msg+=("-Passwords to not match\n");
 		errors = true;
 	}
@@ -57,10 +57,11 @@ function verifyEdit() {
 }
 
 function checkBrowser() {
-	if ( (navigator.appName.indexOf("Netscape") != -1) && ( parseFloat(navigator.appVersion) <= 4.79 ) ) {
-		newWin = window.open("","message","height=200,width=300");
+	let newWin;
+	if ((navigator.appName.indexOf("Netscape") !== -1) && (parseFloat(navigator.appVersion) <= 4.79)) {
+		newWin = window.open("", "message", "height=200,width=300");
 		newWin.document.writeln("<center><b>This system is optimized for Netscape version 6.0 or higher.<br>" +
-					"Please visit <a href='http://channels.netscape.com/ns/browsers/download.jsp' target='_blank'>Netscape.com</a> to obtain an update.");
+			"Please visit <a href='http://channels.netscape.com/ns/browsers/download.jsp' target='_blank'>Netscape.com</a> to obtain an update.");
 		newWin.document.close();
 	}
 }
@@ -688,7 +689,7 @@ function selectUserForReservation(user_id, first_name, last_name, email) {
     updateResAccountSelect(user_id);
 	setTimeout(function() {
         window.close();
-    }, 500);  // really crappy way to handle getting response back from ajax request
+    }, 5000);  // really crappy way to handle getting response back from ajax request
 }
 
 function updateResAccountSelect(user_id) {

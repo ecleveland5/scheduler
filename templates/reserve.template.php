@@ -88,7 +88,7 @@ function printBasicPanel($res, $rs, $is_private) {
 
 	printSummary($res->summary, $res->type);
 
-	if ($res->signin != ""){
+	if ($res->sign_in != ""){
 		printSignOut();
 	}
 
@@ -317,7 +317,7 @@ function printButtonsAndHidden(&$res) {
   <tr>
     <td>
 <?php
-	$type = $res->get_type();
+	$type = $res->getReservationType();
       // Print buttons depending on type
     echo '<p>';
 	switch($type) {
@@ -360,10 +360,10 @@ function printButtonsAndHidden(&$res) {
 		echo '&nbsp;&nbsp;&nbsp;<input type="button" name="close" value="' . translate('Cancel') . '" class="button" onclick="window.close();" /></p>';
 
 	// print hidden fields
-	if ($res->get_type() == RES_TYPE_ADD) {
-        echo '<input type="hidden" name="machid" value="' . $res->getMachId(). '" />' . "\n"
+	if ($res->getReservationType() === RES_TYPE_ADD) {
+        echo '<input type="hidden" name="machid" value="' . $res->getResourceId(). '" />' . "\n"
 			  . '<input type="hidden" name="lab_id" value="' . $res->lab_data['lab_id'] . '" />' . "\n"
-			  . '<input type="hidden" name="pending" value="' . $res->getPending(). '" />' . "\n"
+			  . '<input type="hidden" name="pending" value="' . $res->getReservationStatus(). '" />' . "\n"
 			  . '<input type="hidden" name="user_id" value="' . $auth->getCurrentID() . '" />' . "\n";;
     }
     else {
