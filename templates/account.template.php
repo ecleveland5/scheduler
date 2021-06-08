@@ -104,8 +104,8 @@ function printAccountList($accounts, $pager, $user) {
 
 		// edit account info
 		echo  '<td>';
-		if($cur_account->isAdmin($user->get_id()) ||
-			$user->get_isadmin()) {
+		if($cur_account->isAdmin($user->getId()) ||
+			$user->getIsAdmin()) {
 			//echo $link->getLink($_SERVER['PHP_SELF'] . '?' . preg_replace("/account_id=[\d\w]*/", "", $_SERVER['QUERY_STRING']) . 'account_id=' . $cur['account_id'], 'Edit', '', '','Edit data for' .$cur['name']);
 			echo "<a href=\"javascript:account('m',".$cur_account->getAccountId().");\">Edit</a>";
 		}
@@ -113,8 +113,8 @@ function printAccountList($accounts, $pager, $user) {
 
 		// edit users
       	echo '<td>';
-		if($cur_account->isAdmin($user->get_id()) ||
-			$user->get_isadmin()) {
+		if($cur_account->isAdmin($user->getId()) ||
+			$user->getIsAdmin()) {
 			echo $link->getLink("my_account_users.php?account_id=" . $a['account_id'], 'Users', '', '', 'Edit this accounts users');
 		}
 		echo "</td>\n";

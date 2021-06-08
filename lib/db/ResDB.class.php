@@ -289,6 +289,7 @@ class ResDB extends DBEngine {
 	* @param int $date timestamp of current date
 	*/
 	function del_res($id, $parentid, $del_recur, $date) {
+		global $auth;
 		$values = array($id);
 		$sql = 'SELECT resid FROM ' . $this->get_table('reservations') . ' WHERE resid=?';
 		//$sql = 'DELETE ru.*, r.*'
@@ -312,7 +313,7 @@ class ResDB extends DBEngine {
 		$del_list = $this->make_del_list($resids);
 		
 		//YYYY-MM-DD HH:MM:SS
-		$sql = 'UPDATE ' . $this->get_table('reservations') . ' SET deleted = 1, deleted_tstamp = "'.date("Y-m-d H:i:s").'", deleted_by = '. AUTH::getCurrentID() .' WHERE resid IN (' . $del_list . ')';
+		$sql = 'UPDATE ' . $this->get_table('reservations') . ' SET deleted = 1, deleted_tstamp = "'.date("Y-m-d H:i:s").'", deleted_by = '. $auth->getCurrentID() .' WHERE resid IN (' . $del_list . ')';
 		/*
 		$sql = 'DELETE FROM ' . $this->get_table('reservations') . ' WHERE resid IN (' . $del_list . ')';
 		*/

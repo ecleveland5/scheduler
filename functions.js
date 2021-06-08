@@ -681,34 +681,35 @@ function changeResCalendar(m, d, y, view, id) {
 }
 
 function selectUserForReservation(user_id, first_name, last_name, email) {
-	var doc = window.opener.document;
+	let doc = window.opener.document;
 	doc.forms[0].user_id.value = user_id;
 	doc.getElementById('name').innerHTML = first_name + " " + last_name.replace(/\\'/g, "'");
 	doc.getElementById('phone').innerHTML = "";
 	doc.getElementById('email').innerHTML = email;
-    updateResAccountSelect(user_id);
+    window.opener.updateResAccountSelect(user_id);
 	setTimeout(function() {
         window.close();
-    }, 5000);  // really crappy way to handle getting response back from ajax request
+    }, 1000);  // really crappy way to handle getting response back from ajax request
 }
 
 function updateResAccountSelect(user_id) {
-    var w = window.opener;
-    var sBox = w.document.getElementById('account_id_box');
+    let w = window;
+    let sBox = w.document.getElementById('account_id_box');
         $.ajax({
             url: 'ajax.php',
             type: 'GET',
+			dataType: 'json',
             data: {
                 a: 'getUserAccounts',
                 user_id: user_id
             },
-            success: function (data, status, xhr) {
-                //w.console.log("success " + data);
+            success: function (data) {
+                w.console.log("success " + data);
                 w.$('#account_id_box')
                     .find('option')
                     .remove()
                     .end();
-                var accounts = JSON.parse(data)
+                let accounts = JSON.parse(data);
                 $.each(accounts, function(k,v) {
                     //[Account # : Sub #] (Owner/PI Last Name, Account Name)
                     if (v.status === '0') {
@@ -717,10 +718,12 @@ function updateResAccountSelect(user_id) {
                         w.$('#account_id_box').append('<option value="'+ v.account_id+'">['+v.FRS+'] ('+v.pi_ln+', '+ v.name+')</option>');
                     }
                 })
+				return true;
             },
             error: function (xhr, status, err) {
                 w.console.log("status: " + status + "; error code: " + err);
-            }
+                return false;
+            },
         });
 }
 
