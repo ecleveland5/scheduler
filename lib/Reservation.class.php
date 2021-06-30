@@ -726,44 +726,32 @@ class Reservation {
      */
     function print_res() {
         global $conf;
-
         $is_private = $conf['app']['privacyMode'] && !Auth::isAdmin();
-
-        if (!Auth::isAdmin() && !$this->is_blackout && intval($this->start_date) < intval(mktime(0,0,0, date('m'), date('d') + $this->lab_data['dayOffset'])) )  {
+        
+        $offset_date = intval(mktime(0,0,0, date('m'), date('d') + $this->lab_data['dayOffset']));
+        if (!Auth::isAdmin() && !$this->is_blackout && intval($this->start_date) < $offset_date)  {
             $this->type = RES_TYPE_VIEW;
         }
-        if (Auth::getCurrentID() != $this->user_id && !Auth::isAdmin()) { $this->type = RES_TYPE_VIEW; };
+        
+        if (Auth::getCurrentID() != $this->user_id && !Auth::isAdmin()) {
+        	$this->type = RES_TYPE_VIEW;
+        }
 
         $rs = $this->db->get_equipment_data($this->mach_id);
-        if ($this->type == RES_TYPE_ADD && $rs['approval'] == 1) {
-            $this->is_pending = true;		// On the initial add, make sure that the is_pending flag is correct
+        if ($this->type == RES_TYPE_ADD) {
+        	$this->id = $this->db->get_new_id();
+        	if ($rs['approval'] == 1) {
+		        $this->is_pending = true;        // On the initial add, make sure that the is_pending flag is correct
+	        }
         }
+        
         print_title($rs);
         begin_reserve_form($this->type == RES_TYPE_ADD, $this->is_blackout);
         begin_container();
-
         print_basic_panel($this, $rs, $is_private);		// Contains resource/user info, time select, summary, repeat boxes
-
-        /*
-		if ($this->is_blackout || $is_private) {
-			print_advanced_panel($this, null, null, false);	// No advanced for either case
-		} else {
-			if (Auth::isAdmin()) {
-			    print_advanced_panel($this,
-                    $this->db->get_table_data('user',
-                        array('first_name','last_name','user_id','email'),
-                        array('last_name','first_name'),
-                        null,
-                        null,
-                        'WHERE `user`.deleted = 0'),
-                    $this->user_id === Auth::getCurrentID() || Auth::isAdmin() && $this->type !== RES_TYPE_VIEW);
-            }
-		}
-        */
         end_container();
         print_buttons_and_hidden($this);
         end_reserve_form();
-        if(Auth::isAdmin())	print_jscalendar_setup($this, $rs);
     }
 
     /**

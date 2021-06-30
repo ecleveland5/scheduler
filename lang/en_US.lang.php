@@ -510,6 +510,7 @@ $strings['Contact'] = 'Contact';
 $strings['Reservation created'] = 'Reservation created';
 $strings['Reservation modified'] = 'Reservation modified';
 $strings['Reservation deleted'] = 'Reservation deleted';
+$strings['Reservation ID'] = 'Reservation ID';
 
 $strings['Reservations by month'] = 'Reservations by month';
 $strings['Reservations by day of the week'] = 'Reservations by day of the week';

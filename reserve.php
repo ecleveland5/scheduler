@@ -19,28 +19,34 @@ include_once('lib/Template.class.php');
 include_once('lib/Equipment.class.php');
 
 global $reservation_type_text;
+global $conf;
 
-$is_blackout = filter_input(INPUT_POST, 'is_blackout');
+$is_blackout = filter_input(INPUT_POST, 'is_blackout', FILTER_SANITIZE_STRING);
 if (is_null($is_blackout)) {
-	$is_blackout = filter_input(INPUT_GET, 'is_blackout');
+	$is_blackout = filter_input(INPUT_GET, 'is_blackout', FILTER_SANITIZE_STRING);
 }
 
-$is_pending = filter_input(INPUT_POST, 'is_pending');
+$is_pending = filter_input(INPUT_POST, 'is_pending', FILTER_SANITIZE_STRING);
 if (is_null($is_pending)) {
-	$is_pending = filter_input(INPUT_GET, 'is_pending');
+	$is_pending = filter_input(INPUT_GET, 'is_pending', FILTER_SANITIZE_STRING);
 }
 
 $reservation_type_text = $is_blackout ? 'Blackout' : 'Reservation';
-$resid = filter_input(INPUT_POST, 'resid');
-if (is_null($resid)) {
-	$resid = filter_input(INPUT_GET, 'resid');
-}
-$fn = filter_input(INPUT_POST, 'fn');
 
-$lab_id = filter_input(INPUT_POST, 'lab_id');
-if (is_null($lab_id)) {
-	$lab_id = filter_input(INPUT_GET, 'lab_id');
+$resid = filter_input(INPUT_POST, 'resid', FILTER_SANITIZE_STRING);
+if (is_null($resid)) {
+	$resid = filter_input(INPUT_GET, 'resid', FILTER_SANITIZE_STRING);
 }
+
+$fn = filter_input(INPUT_POST, 'fn', FILTER_SANITIZE_STRING);
+
+$lab_id = filter_input(INPUT_POST, 'lab_id', FILTER_SANITIZE_STRING);
+if (is_null($lab_id)) {
+	$lab_id = filter_input(INPUT_GET, 'lab_id', FILTER_SANITIZE_STRING);
+}
+
+$read_only = filter_input(INPUT_GET, 'read_only', FILTER_SANITIZE_STRING);
+
 
 if ($is_blackout) {
 	// Make sure user is logged in
@@ -54,7 +60,7 @@ if ($is_blackout) {
 	$res = new Reservation($resid, false, $is_pending, $lab_id);
 }
 
-if ((!isset($_GET['read_only']) || !$_GET['read_only']) && $conf['app']['readOnlyDetails']) {
+if ($read_only && $conf['app']['readOnlyDetails']) {
 	// Make sure user is logged in
 	if (!Auth::is_logged_in()) {
 		Auth::print_login_msg();

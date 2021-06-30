@@ -75,15 +75,18 @@ function print_basic_panel($res, $rs, $is_private) {
 	$user = new User($res->user_id);
 	// will need to change to get list of permitted accounts.
 
-	if (!$res->is_blackout && !$is_private)
-		print_user_info($res->type, $user);	// Print user info
-
-	if ($res->user_id == Auth::getCurrentID() || Auth::isAdmin())
+	if (!$res->is_blackout && !$is_private) {
+		print_user_info($res->type, $user);    // Print user info
+	}
+	
+	if ($res->user_id === Auth::getCurrentID() || Auth::isAdmin()) {
 		print_account_info($res, $user);
-
-	if (!empty($res->id))			// Print created/modified times (if applicable)
-		print_create_modify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email);
-
+	}
+	
+	if (!empty($res->id)) {            // Print created/modified times (if applicable)
+		print_create_modify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email, $res->id);
+	}
+	
 	print_summary($res->summary, $res->type);
 
 	if ($res->signin != ""){
@@ -91,26 +94,27 @@ function print_basic_panel($res, $rs, $is_private) {
 	}
 
 	$user = new User($res->user_id);
-	if ($user->get_isadmin()){
-		if (!empty($res->parentid) && ($res->type == RES_TYPE_MODIFY || $res->type == RES_TYPE_DELETE || $res->type == RES_TYPE_APPROVE))
+	if ($user->get_isadmin()) {
+		if (!empty($res->parentid) && ($res->type == RES_TYPE_MODIFY || $res->type == RES_TYPE_DELETE || $res->type == RES_TYPE_APPROVE)) {
 			print_recur_checkbox($res->parentid);
-
-		if ($res->type == RES_TYPE_MODIFY)
+		}
+		
+		if ($res->type == RES_TYPE_MODIFY) {
 			print_del_checkbox();
-
+		}
 	}
 
 	if ($res->type == RES_TYPE_ADD) {		// Print out repeat reservation box, if applicable
 		divide_table();
 		$user = new User($res->user_id);
 
-		if ($user->get_isadmin()){
+		if ($user->get_isadmin()) {
 			print_repeat_box(date('m', $res->start_date), date('Y', $res->start_date));
 		}
 		unset($user);
-		if( $res->is_pending )
-			 print_pending_approval_msg();
-
+		if ($res->is_pending) {
+			print_pending_approval_msg();
+		}
 	}
 ?>
 			<!-- Content end -->
@@ -742,11 +746,14 @@ function print_account_info($res, $user) {
 			*/
 			?>
 				</select>
-                <br /><br />
-                If the account is labled "Inactive", the <strong>Account Owner/PI</strong> needs to contact a <a href="http://www.nanocenter.umd.edu/staff/staff_list.php" target="_blank">nanocenter member</a> to clear the account.
-                <br /><br />
-                If the accounts dropdown list is empty or the account you wish to charge is missing, you will need to contact the Account Owner/PI to authorize you or create the account if you have permission to do so.  See the
-                <a href="" onclick="javascript: window.opener.document.location.href='http://<?php echo $_SERVER['HTTP_HOST'] . substr($_SERVER['PHP_SELF'], 0, strpos($_SERVER['PHP_SELF'], basename($_SERVER['PHP_SELF'])));?>my_accounts.php'">My Accounts</a> page.
+             <p>
+                 If the account is labled "Inactive", the <strong>Account Owner/PI</strong> needs to contact a <a href="http://www.nanocenter.umd.edu/staff/staff_list.php" target="_blank">nanocenter member</a> to clear the account.
+             </p>
+             <p>
+                 If the accounts dropdown list is empty or the account you wish to charge is missing, you can request account access from the following links:<br>
+                 <a href="https://forms.gle/A9SQKGs7hzEL9k2L9" target="_blank" title="UMD Internal Nanocenter Billing Account Request">UMD Internal Account (KFS)</a><br>
+                 <a href="https://forms.gle/pBjLWgPBhTWj9j3L9" target="_blank" title="External Nanocenter Billing Account Request">External Account</a>
+             </p>
 						</td>
 					</tr>
 				</table>
@@ -852,29 +859,33 @@ function print_signout() {
 * @param int $c created timestamp
 * @param int $m modified stimestamp
 */
-function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '') {
+function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '', $id = '') {
 ?>
     <table width="100%" border="0" cellspacing="0" cellpadding="1">
-    <tr class="tableBorder">
-     <td>
-      <table width="100%" border="0" cellspacing="1" cellpadding="0">
-       <tr>
-       <td class="formNames"><?php echo translate('Created')?></td>
-       <td class="cellColor"><?php echo CmnFns::formatDateTime($c)?></td>
-	   </tr>
-       <tr>
-       <td class="formNames"><?php echo translate('Last Modified')?></td>
-       <td class="cellColor"><?php echo !empty($m) ? CmnFns::formatDateTime($m) : translate('N/A') ?></td>
-       </tr>
-       <tr>
-       <td class="formNames"><?php echo 'Deleted'?></td>
-       <td class="cellColor"><?php echo ($d !== '0000-00-00 00:00:00') ? $d . ' by: <a href="mailto:'.$d_by_email.'">'.$d_by.'</a>'  : translate('N/A') ?></td>
-       </tr>
-      </table>
-     </td>
-    </tr>
-   </table>
-   <p>&nbsp;</p>
+        <tr class="tableBorder">
+            <td>
+                <table width="100%" border="0" cellspacing="1" cellpadding="0">
+                    <tr>
+                        <td class="formNames"><?php echo translate('Reservation ID'); ?></td>
+                        <td class="cellColor"><?php echo $id; ?></td>
+                    </tr>
+                    <tr>
+                        <td class="formNames"><?php echo translate('Created'); ?></td>
+                        <td class="cellColor"><?php echo CmnFns::formatDateTime($c); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="formNames"><?php echo translate('Last Modified'); ?></td>
+                        <td class="cellColor"><?php echo !empty($m) ? CmnFns::formatDateTime($m) : translate('N/A'); ?></td>
+                    </tr>
+                    <tr>
+                        <td class="formNames"><?php echo 'Deleted'; ?></td>
+                        <td class="cellColor"><?php echo ($d !== '0000-00-00 00:00:00') ? $d . ' by: <a href="mailto:'.$d_by_email.'">'.$d_by.'</a>'  : translate('N/A'); ?></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <p>&nbsp;</p>
 <?php
 }
 
@@ -955,7 +966,8 @@ function print_repeat_box($month, $year) {
 	<div id="until" style="position: relative;">
 		<p>
 		<?php echo translate('Repeat until date')?>
-        <input type="date" id="repeat_until" value="" />
+		<div id="_repeat_until" style="float:left;width:86px;font-size:11px;"><?php echo translate('Choose Date')?></div><input type="button" id="btn_choosedate" value="..." />
+		<input type="hidden" id="repeat_until" name="repeat_until" value="" />
 		</p>
 	</div>
 	</td>

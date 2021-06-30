@@ -32,7 +32,7 @@ $t->startMain();
 
 if (isset($_REQUEST['login'])) {
 	
-	$res_sign_in = $auth->doReservationSignin($user->get_id(), $password, $resid, $frs, $signaction, &$msg);
+	$res_sign_in = $auth->doReservationSignin($user->get_id(), $password, $res_id, $frs, $signaction, &$msg);
 
 	if($res_sign_in){
 		//echo $user->get_email() . " " . $password;
