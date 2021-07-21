@@ -152,7 +152,7 @@ class ResDB extends DBEngine {
 	 * @return string $id New reservation id
 	 */
 	function add_res(&$res, $is_parent, $userinfo, $accept_code) {
-		$id = $this->get_new_id();
+		$id = $res->id;
 
 		$values = array (
 					$id,

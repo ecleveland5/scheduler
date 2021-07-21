@@ -867,7 +867,9 @@ function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '', $id 
                 <table width="100%" border="0" cellspacing="1" cellpadding="0">
                     <tr>
                         <td class="formNames"><?php echo translate('Reservation ID'); ?></td>
-                        <td class="cellColor"><?php echo $id; ?></td>
+                        <td class="cellColor"><?php echo $id; ?>
+                            <input type="hidden" name="resid" value="<?php echo $id;?>">
+                        </td>
                     </tr>
                     <tr>
                         <td class="formNames"><?php echo translate('Created'); ?></td>
@@ -940,7 +942,7 @@ function print_repeat_box($month, $year) {
 	    <option value="month_day"><?php echo translate('Months (day)')?></option>
       </select>
     </p>
-	<div id="week_num" style="position: relative; visibility: hidden; overflow: show; display: none;">
+	<div id="week_num" style="position: relative; visibility: hidden; overflow: auto; display: none;">
 	<p>
 	<select name="week_number" class="textbox">
 	  <option value="1"><?php echo translate('First Days')?></option>
