@@ -247,7 +247,7 @@ function get_repeat_dates($initial_ts, $interval, $days, $until, $frequency, $we
 	$res_dates = array();
 	$initial_date = getdate($initial_ts);
 	
-	list($last_m, $last_d, $last_y) = explode('/', $until);
+	list($last_y, $last_m, $last_d) = explode('-', $until);
 	$last_ts = mktime(0,0,0,$last_m, $last_d, $last_y);
 	$last_date = getdate($last_ts);
 	
