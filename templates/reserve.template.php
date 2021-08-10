@@ -67,14 +67,22 @@ function print_basic_panel($res, $rs, $is_private) {
             <td width="330">
 			<!-- Content begin -->
 <?php
+	$user = new User($res->user_id);
+
     // Print resource info
 	print_equipment_data($rs);
 
 	print_time_info($res, $rs, !$res->is_blackout, (isset($rs['allow_multi']) && $rs['allow_multi'] == 1));
 
-	$user = new User($res->user_id);
 	// will need to change to get list of permitted accounts.
-
+	$is_admin = $user->get_isadmin();
+	
+	if ($res->type === RES_TYPE_ADD) {        // Print out repeat reservation box, if applicable
+		if ($is_admin) {
+			print_repeat_box($res->start_date);
+		}
+	}
+	
 	if (!$res->is_blackout && !$is_private) {
 		print_user_info($res->type, $user);    // Print user info
 	}
@@ -83,9 +91,7 @@ function print_basic_panel($res, $rs, $is_private) {
 		print_account_info($res, $user);
 	}
 	
-	if (!empty($res->id)) {            // Print created/modified times (if applicable)
-		print_create_modify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email, $res->id);
-	}
+	print_create_modify($res->created, $res->modified, $res->deleted, $res->deleted_by, $res->deleted_by_email, $res->id);
 	
 	print_summary($res->summary, $res->type);
 
@@ -93,8 +99,7 @@ function print_basic_panel($res, $rs, $is_private) {
 		print_signout();
 	}
 
-	$user = new User($res->user_id);
-	if ($user->get_isadmin()) {
+	if ($is_admin) {
 		if (!empty($res->parentid) && ($res->type == RES_TYPE_MODIFY || $res->type == RES_TYPE_DELETE || $res->type == RES_TYPE_APPROVE)) {
 			print_recur_checkbox($res->parentid);
 		}
@@ -103,18 +108,8 @@ function print_basic_panel($res, $rs, $is_private) {
 			print_del_checkbox();
 		}
 	}
-
-	if ($res->type == RES_TYPE_ADD) {		// Print out repeat reservation box, if applicable
-		divide_table();
-		$user = new User($res->user_id);
-
-		if ($user->get_isadmin()) {
-			print_repeat_box(date('m', $res->start_date), date('Y', $res->start_date));
-		}
-		unset($user);
-		if ($res->is_pending) {
-			print_pending_approval_msg();
-		}
+	if ($res->is_pending) {
+		print_pending_approval_msg();
 	}
 ?>
 			<!-- Content end -->
@@ -881,7 +876,12 @@ function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '', $id 
                     </tr>
                     <tr>
                         <td class="formNames"><?php echo 'Deleted'; ?></td>
-                        <td class="cellColor"><?php echo ($d !== '0000-00-00 00:00:00') ? $d . ' by: <a href="mailto:'.$d_by_email.'">'.$d_by.'</a>'  : translate('N/A'); ?></td>
+                        <td class="cellColor">
+                            <?php
+                                
+                                echo ($d !== '0000-00-00 00:00:00') ? $d . ' by: <a href="mailto:'.$d_by_email.'">'.$d_by.'</a>'  : translate('N/A');
+                            ?>
+                        </td>
                     </tr>
                 </table>
             </td>
@@ -893,11 +893,11 @@ function print_create_modify($c, $m, $d = '', $d_by = '', $d_by_email = '', $id 
 
 /**
 * Prints out a checkbox to modify all recurring reservations associated with this one
-* @param string $parentid id of parent reservation
+* @param string $parent_id id of parent reservation
 */
-function print_recur_checkbox($parentid) {
+function print_recur_checkbox(string $parent_id) {
 	?>
-	<p align="left"><input type="checkbox" name="mod_recur" value="<?php echo $parentid?>" /><?php echo translate('Update all recurring records in group')?></p>
+	<p align="left"><input type="checkbox" name="mod_recur" value="<?php echo $parent_id?>" /><?php echo translate('Update all recurring records in group')?></p>
 	<?php
 }
 
@@ -910,71 +910,71 @@ function print_del_checkbox() {
 /**
 * Prints a box where users can select if they want
 *  to repeat a reservation
-* @param int $month month of current reservation
-* @param int $year year of current reservation
+* @param int $res_date date of current reservation
 */
-function print_repeat_box($month, $year) {
+function print_repeat_box($res_date) {
 	global $days_abbr;
 ?>
-
-<table width="200" border="0" cellspacing="0" cellpadding="0" class="recur_box" id="repeat_table">
-  <tr>
-    <td style="padding: 5px;">
-	 <p style="margin-bottom: 8px;">
-	  <?php echo translate('Repeat every')?><br/>
-	  <select name="frequency" class="textbox">
-	    <option value="1">1</option>
-		<option value="2">2</option>
-		<option value="3">3</option>
-		<option value="4">4</option>
-		<option value="5">5</option>
-		<option value="6">6</option>
-		<option value="7">7</option>
-		<option value="8">8</option>
-		<option value="9">9</option>
-		<option value="10">10</option>
-	  </select>
-      <select name="interval" class="textbox" onchange="javascript: showHideDays(this);">
-	    <option value="none"><?php echo translate('Never')?></option>
-	    <option value="day"><?php echo translate('Days')?></option>
-	    <option value="week"><?php echo translate('Weeks')?></option>
-		<option value="month_date"><?php echo translate('Months (date)')?></option>
-	    <option value="month_day"><?php echo translate('Months (day)')?></option>
-      </select>
-    </p>
-	<div id="week_num" style="position: relative; visibility: hidden; overflow: auto; display: none;">
-	<p>
-	<select name="week_number" class="textbox">
-	  <option value="1"><?php echo translate('First Days')?></option>
-	  <option value="2"><?php echo translate('Second Days')?></option>
-	  <option value="3"><?php echo translate('Third Days')?></option>
-	  <option value="4"><?php echo translate('Fourth Days')?></option>
-	  <option value="last"><?php echo translate('Last Days')?></option>
-	</select>
-	</p>
-	</div>
-	<div id="days" style="position: relative; visibility: hidden; overflow: show; display: none;">
-        <p style="margin-bottom: 8px;">
-		<?php echo translate('Repeat on')?><br/>
-        <input type="checkbox" name="repeat_day[]" value="0" /><?php echo $days_abbr[0]?><br />
-		<input type="checkbox" name="repeat_day[]" value="1" /><?php echo $days_abbr[1]?><br />
-		<input type="checkbox" name="repeat_day[]" value="2" /><?php echo $days_abbr[2]?><br />
-		<input type="checkbox" name="repeat_day[]" value="3" /><?php echo $days_abbr[3]?><br />
-		<input type="checkbox" name="repeat_day[]" value="4" /><?php echo $days_abbr[4]?><br />
-		<input type="checkbox" name="repeat_day[]" value="5" /><?php echo $days_abbr[5]?><br />
-		<input type="checkbox" name="repeat_day[]" value="6" /><?php echo $days_abbr[6]?>
-        </p>
-	</div>
-	<div id="until" style="position: relative;">
-		<p>
-		<?php echo translate('Repeat until date')?>
-		<div id="_repeat_until" style="float:left;width:86px;font-size:11px;"><?php echo translate('Choose Date')?></div><input type="button" id="btn_choosedate" value="..." />
-		<input type="hidden" id="repeat_until" name="repeat_until" value="" />
-		</p>
-	</div>
-	</td>
-  </tr>
-</table>
+    <table width="100%" border="0" cellspacing="0" cellpadding="1" id="repeat_table">
+        <tr class="tableBorder">
+            <td>
+                <table width="100%" border="0" cellspacing="1" cellpadding="0">
+                    <tr>
+                        <td class="formNames" style="width: 10em;">
+                            <?php echo translate('Repeat every')?><br/>
+                        </td>
+                        <td class="cellColor">
+                            <select name="frequency" class="textbox">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                            <select name="interval" class="textbox" onchange="javascript: showHideDays(this);">
+                                <option value="none"><?php echo translate('Never')?></option>
+                                <option value="day"><?php echo translate('Days')?></option>
+                                <option value="week"><?php echo translate('Weeks')?></option>
+                                <option value="month_date"><?php echo translate('Months (date)')?></option>
+                                <option value="month_day"><?php echo translate('Months (day)')?></option>
+                            </select>
+                            <select name="week_number" class="textbox" style="display:none;" id="week_num">
+                                <option value="1"><?php echo translate('First Days')?></option>
+                                <option value="2"><?php echo translate('Second Days')?></option>
+                                <option value="3"><?php echo translate('Third Days')?></option>
+                                <option value="4"><?php echo translate('Fourth Days')?></option>
+                                <option value="last"><?php echo translate('Last Days')?></option>
+                            </select><br>
+                            <div style="display: none;" id="days">
+	                            <?php echo translate('Repeat on')?><br/>
+                                <input type="checkbox" name="repeat_day[]" value="0"><?php echo $days_abbr[0]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="1"><?php echo $days_abbr[1]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="2"><?php echo $days_abbr[2]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="3"><?php echo $days_abbr[3]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="4"><?php echo $days_abbr[4]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="5"><?php echo $days_abbr[5]?><br>
+                                <input type="checkbox" name="repeat_day[]" value="6"><?php echo $days_abbr[6]?>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="formNames">
+                            <?php echo translate('Repeat until date')?>
+                        </td>
+                        <td class="cellColor">
+                            <input type="date" id="repeat_until" name="repeat_until">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <p>&nbsp;</p>
 <?php
 }
 

@@ -69,7 +69,7 @@ if ($read_only && $conf['app']['readOnlyDetails']) {
 
 $t = new Template();
 
-if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && !is_null($fn)) {
+if (strstr($_SERVER['HTTP_REFERER'], $_SERVER['PHP_SELF']) && $fn !== null) {
 	$t->set_title(translate("Processing $reservation_type_text"));
 	$t->printHTMLHeader();
 	$t->startMain();
@@ -100,27 +100,27 @@ function process_reservation(Reservation $res, $fn) {
 	$minRes = 0;        // default min number of minutes a reservation can be.
 	$maxRes = 1440;     // default max number of minutes a reservation can be.
 	$repeat = array();  // array of timestamps for repeated dates
-    $is_pending = filter_input(INPUT_POST, 'pending');
-    $resid = filter_input(INPUT_POST, 'resid');
+    $is_pending = filter_input(INPUT_POST, 'pending', FILTER_SANITIZE_STRING);
+    $resid = filter_input(INPUT_POST, 'resid', FILTER_SANITIZE_STRING);
     if (is_null($resid)) {
-    	$resid = filter_input(INPUT_GET, 'resid');
+    	$resid = filter_input(INPUT_GET, 'resid', FILTER_SANITIZE_STRING);
     }
-    $start_date = filter_input(INPUT_POST, 'start_date');
-    $end_date = filter_input(INPUT_POST, 'end_date');
-    $start_time = filter_input(INPUT_POST, 'startTime');
-    $end_time = filter_input(INPUT_POST, 'endTime');
-	$repeat_day = filter_input(INPUT_POST, 'repeat_day');
-	$week_number = filter_input(INPUT_POST, 'week_number');
-	$repeat_until = filter_input(INPUT_POST, 'repeat_until');
-	$interval = filter_input(INPUT_POST, 'interval');
-	$frequency = filter_input(INPUT_POST, 'frequency');
-	$user_id = filter_input(INPUT_POST, 'user_id');
-	$machid = filter_input(INPUT_POST, 'machid');
-	$summary = filter_input(INPUT_POST, 'summary');
-	$lab_id = filter_input(INPUT_POST, 'lab_id');
-	$account_id = filter_input(INPUT_POST, 'account_id');
-    $del = filter_input(INPUT_POST, 'del');
-    $mod_recur = filter_input(INPUT_POST, 'mod_recur');
+    $start_date = filter_input(INPUT_POST, 'start_date', FILTER_SANITIZE_STRING);
+    $end_date = filter_input(INPUT_POST, 'end_date', FILTER_SANITIZE_STRING);
+    $start_time = filter_input(INPUT_POST, 'startTime', FILTER_SANITIZE_STRING);
+    $end_time = filter_input(INPUT_POST, 'endTime', FILTER_SANITIZE_STRING);
+	$repeat_day = filter_input(INPUT_POST, 'repeat_day', FILTER_SANITIZE_STRING);
+	$week_number = filter_input(INPUT_POST, 'week_number', FILTER_SANITIZE_STRING);
+	$repeat_until = filter_input(INPUT_POST, 'repeat_until', FILTER_SANITIZE_STRING);
+	$interval = filter_input(INPUT_POST, 'interval', FILTER_SANITIZE_STRING);
+	$frequency = filter_input(INPUT_POST, 'frequency', FILTER_SANITIZE_STRING);
+	$user_id = filter_input(INPUT_POST, 'user_id', FILTER_SANITIZE_STRING);
+	$machid = filter_input(INPUT_POST, 'machid', FILTER_SANITIZE_STRING);
+	$summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
+	$lab_id = filter_input(INPUT_POST, 'lab_id', FILTER_SANITIZE_STRING);
+	$account_id = filter_input(INPUT_POST, 'account_id', FILTER_SANITIZE_STRING);
+    $del = filter_input(INPUT_POST, 'del', FILTER_SANITIZE_STRING);
+    $mod_recur = filter_input(INPUT_POST, 'mod_recur', FILTER_SANITIZE_STRING);
 	
     if (!is_null($start_date)) {
 	    $start_date = strtotime($start_date);
@@ -129,7 +129,7 @@ function process_reservation(Reservation $res, $fn) {
         $end_date = strtotime($end_date);
     }
 	
-    if (is_null($resid)) {
+    if ($fn === '') {
 		// New reservation
 		if (!is_null($interval) && $interval !== 'none') {		// Check for reservation repetition
 			if ($start_date === $end_date) {
@@ -149,22 +149,19 @@ function process_reservation(Reservation $res, $fn) {
 		$machid = $res->get_machid();
 	}
 	$resource = new Equipment($machid);
-	$minRes = filter_input(INPUT_POST, 'minRes');
-    $maxRes = filter_input(INPUT_POST, 'maxRes');
+	$minRes = filter_input(INPUT_POST, 'minRes', FILTER_SANITIZE_STRING);
+    $maxRes = filter_input(INPUT_POST, 'maxRes', FILTER_SANITIZE_STRING);
 	if (is_null($minRes)) {
 		$minRes = $resource->get_field('minRes');
 	}
 	if (is_null($maxRes)) {
 		$maxRes = $resource->get_field('maxRes');
 	}
-	
-	$invited_users = (isset($_POST['invited_users'])) ? $_POST['invited_users'] : array();
-	$removed_users = (isset($_POST['removed_users'])) ? $_POST['removed_users'] : array();
 
 	if ($fn == RES_TYPE_ADD)
-		$res->add_res($machid, $invited_users, $user_id, $start_date, $end_date, $start_time, $end_time, $repeat, $minRes, $maxRes, $summary, $lab_id, $account_id);
+		$res->add_res($machid, $user_id, $start_date, $end_date, $start_time, $end_time, $repeat, $minRes, $maxRes, $summary, $lab_id, $account_id);
 	else if ($fn == RES_TYPE_MODIFY)
-		$res->mod_res($user_id, $invited_users, $removed_users, $start_date, $end_date, $start_time, $end_time, !is_null($del), $minRes, $maxRes, !is_null($mod_recur), $account_id, str_replace("\n", "", $summary));
+		$res->mod_res($user_id, $start_date, $end_date, $start_time, $end_time, !is_null($del), $minRes, $maxRes, !is_null($mod_recur), $account_id, str_replace("\n", "", $summary));
 	else if ($fn == RES_TYPE_DELETE)
 		$res->del_res(!is_null($mod_recur));
 	else if ($fn == RES_TYPE_APPROVE) 
@@ -181,15 +178,15 @@ function process_reservation(Reservation $res, $fn) {
 function present_reservation(Reservation $res) {
 	
 	if ($res->get_id() === null) {
-		$res->mach_id 	    = filter_input(INPUT_GET, 'machid');
-		$res->start_date    = filter_input(INPUT_GET, 'start_date');
-		$res->end_date      = filter_input(INPUT_GET, 'start_date');
+		$res->mach_id 	    = filter_input(INPUT_GET, 'machid', FILTER_SANITIZE_STRING);
+		$res->start_date    = filter_input(INPUT_GET, 'start_date', FILTER_SANITIZE_STRING);
+		$res->end_date      = filter_input(INPUT_GET, 'start_date', FILTER_SANITIZE_STRING);
+		$res->is_pending    = filter_input(INPUT_GET, 'pending', FILTER_SANITIZE_STRING);
+		$res->start         = filter_input(INPUT_GET, 'start_time', FILTER_SANITIZE_STRING);
+		$res->end           = filter_input(INPUT_GET, 'end_time', FILTER_SANITIZE_STRING);
 		$res->user_id       = Auth::getCurrentID();
-		$res->is_pending    = filter_input(INPUT_GET, 'pending');
-		$res->start         = filter_input(INPUT_GET, 'start_time');
-		$res->end           = filter_input(INPUT_GET, 'end_time');
 	}
-	$res->set_type(filter_input(INPUT_GET, 'type'));
+	$res->set_type(filter_input(INPUT_GET, 'type', FILTER_SANITIZE_STRING));
 	$res->print_res();
 }
 	
@@ -205,8 +202,8 @@ function getResInfo() {
 	global $reservation_type_text;
 
 	// Determine title and set needed variables
-	$res_info['type'] = filter_input(INPUT_GET, 'type');
-	$res_info['resid'] = filter_input(INPUT_GET, 'resid');
+	$res_info['type'] = filter_input(INPUT_GET, 'type', FILTER_SANITIZE_STRING);
+	$res_info['resid'] = filter_input(INPUT_GET, 'resid', FILTER_SANITIZE_STRING);
 	switch($res_info['type']) {
 		case 'reserve' :
 			$res_info['title'] = "New $reservation_type_text";

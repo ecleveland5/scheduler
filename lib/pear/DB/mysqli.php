@@ -259,7 +259,7 @@ class DB_mysqli extends DB_common
         $ismanip = DB::isManip($query);
         $this->last_query = $query;
         $query = $this->modifyQuery($query);
-		if ($conf['app']['showSQL']) {
+		if ($conf['app']['debugMode']) {
             echo '<br>' . $query . '<br>';
         }
         if ($this->_db) {

@@ -147,11 +147,10 @@ class ResDB extends DBEngine {
 	 * Add a new reservation to the database
 	 * @param Object $res reservation that we are placing
 	 * @param boolean $is_parent if this is the parent reservation of a group of recurring reservations
-	 * @param array $userinfo array of users to invite
 	 * @param string $accept_code acceptance code to be used for reservation accept/decline
 	 * @return string $id New reservation id
 	 */
-	function add_res(&$res, $is_parent, $userinfo, $accept_code) {
+	function add_res(&$res, $is_parent, $accept_code) {
 		$id = $res->id;
 
 		$values = array (
@@ -190,13 +189,7 @@ class ResDB extends DBEngine {
 		$result = $this->db->execute($q, $values);
 		$this->check_for_error($result);
 		
-		$values = null;
-		$values[] = array($id, $res->user_id, 1, 0, 1, 1, null);
-		for ($i = 0; $i < count($userinfo); $i++) {
-			$userid = explode('|',$userinfo[$i]);
-			$values[] = array($id, $userid[0], 0, 1, 0, 0, $accept_code);
-		}
-
+		$values = array($id, $res->user_id, 1, 0, 1, 1, null);
 		$query = 'INSERT INTO ' . $this->get_table('reservation_users') . ' VALUES(?,?,?,?,?,?,?)';
 		$q = $this->db->prepare($query);
 		$result = $this->db->executeMultiple($q, $values);
@@ -212,11 +205,9 @@ class ResDB extends DBEngine {
 	* If this reservation is part of a recurring group, all reservations in the
 	*  group will be modified that havent already passed
 	* @param Object $res reservation that we are modifying
-	* @param array $users_to_add array of userids to invite to this reservation
-	* @param array $users_to_remove array of userids to remove from this reservation
 	* @param string $accept_code acceptance code to be used for reservation accept/decline
 	*/
-	function mod_res(&$res, $users_to_add, $users_to_remove, $accept_code, $account_id) {
+	function mod_res(&$res, $accept_code, $account_id) {
 		$values = array (
 					$res->get_start_date(),
 					$res->get_end_date(),
@@ -254,28 +245,7 @@ class ResDB extends DBEngine {
 		$q = $this->db->prepare($query);
 		$result = $this->db->execute($q, array($res->get_user_id(), $res->get_id()));
 		$this->check_for_error($result);		
-
-		if (!empty($users_to_add)) {
-			$values = array();
-			$id = $res->get_id();
-
-			foreach ($users_to_add as $user_id) { 
-				$values[] = array($id, $user_id, 0, 1, 0, 0, $accept_code);
-			}
-	
-			$query = 'INSERT INTO ' . $this->get_table('reservation_users') . ' VALUES(?,?,?,?,?,?,?)';
-			$q = $this->db->prepare($query);
-			$result = $this->db->executeMultiple($q, $values);
-			$this->check_for_error($result);
-		}
 		
-		if (!empty($users_to_remove)) {
-			$values = array($res->get_id());
-			$query = 'DELETE FROM ' . $this->get_table('reservation_users') . ' WHERE user_id IN (' . $this->make_del_list($users_to_remove) . ') AND resid=?';
-			$q = $this->db->prepare($query);
-			$result = $this->db->execute($q, $values);
-			$this->check_for_error($result);
-		}
 		unset($values, $query);
 	}
 
@@ -590,5 +560,20 @@ class ResDB extends DBEngine {
 
 		$this->check_for_error($result);
 	}
+	
+	/**
+	 * Determines if the supplied reservation id is valid.
+	 * @param string $reservation_id
+	 * @return bool
+	 */
+	public function check_valid_reservation_id(string $reservation_id):bool {
+		$sql = "SELECT COUNT(*) AS 'count' FROM " . $this->get_table('reservations') . " WHERE resid=?";
+		$result = $this->db->query($sql, array($reservation_id));
+		$this->check_for_error($result);
+		$rs = $result->fetchRow();
+		if ($rs[0] > 0) {
+			return true;
+		}
+		return false;
+	}
 }
-?>

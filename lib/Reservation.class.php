@@ -87,17 +87,21 @@ class Reservation {
      */
     function __construct($id = null, $is_blackout = false, $is_pending = false, $lab_id = null) {
 
-        //, $machid = null, $user_id = null, $lab_id = null, $start_date = null, $end_date = null) {
-
         $this->db = new ResDB();
-
-        if (!empty($id)) {
-            $this->id = $id;
+	    $this->id = $id;
+     
+	    if ($id === null || empty($id)) {
+	    	$this->id = $this->db->get_new_id();
+	    }
+	    
+	    if ($this->db->check_valid_reservation_id($id)) {
             $this->load_by_id();
         } else {
+        	$this->load_by_get();
             $this->is_blackout = $is_blackout;
             $this->is_pending = $is_pending;
             $this->lab_id = $lab_id;
+            $this->created = time();
         }
 
         $this->word = $is_blackout ? 'blackout' : 'reservation';
@@ -153,21 +157,15 @@ class Reservation {
     /**
      * Loads the required reservation properties using
      *  what is passed in from the querystring
-     * @param none
      */
-    /*
     function load_by_get() {
-        $this->machid 	= $_GET['machid'];
-        $this->start_date = $_GET['start_date'];
-        $this->end_date = $_GET['start_date'];
-        //$this->user_id = Auth::getCurrentID();
-        $this->lab_id = $_GET['lab_id'];
-        $this->is_pending = $_GET['pending'];
-
-        $this->sched = $this->db->get_lab_data($this->lab_id);
-        $this->users = $this->db->get_res_users($this->id);
+        $this->mach_id 	= filter_input(INPUT_GET, 'machid', FILTER_SANITIZE_STRING);
+        $this->start_date = filter_input(INPUT_GET, 'start_date', FILTER_SANITIZE_STRING);
+        $this->end_date = filter_input(INPUT_GET, 'start_date', FILTER_SANITIZE_STRING);
+        $this->user_id = Auth::getCurrentID();
+        $this->lab_data = $this->db->get_lab_data($this->lab_id);
+        //$this->users = $this->db->get_res_users($this->id);
     }
-    */
 
     /**
      * Checks if the reservation is deletable based on various criteria
@@ -220,7 +218,6 @@ class Reservation {
      *  after verifying that user has permission
      *  and the time is available
      * @param string $mach_id id of resource to reserve
-     * @param array $user_info array of users and their associated properties of this reservation
      * @param string $owner_id id of reservation owner/creator
      * @param int $start_date datestamp of the starting date
      * @param int $end_date datestamp of the ending date
@@ -233,7 +230,7 @@ class Reservation {
      * @param string $lab_id id of lab to make reservation on
      * @param string $account_id id of account to be used for billing
      */
-    function add_res($mach_id, $user_info, $owner_id, $start_date, $end_date, $start, $end, $repeat, $min, $max, $summary, $lab_id, $account_id) {
+    function add_res($mach_id, $owner_id, $start_date, $end_date, $start, $end, $repeat, $min, $max, $summary, $lab_id, $account_id) {
         $this->mach_id		    = $mach_id;
         $this->user_id 		    = $owner_id;
         $this->start_date 	    = $start_date;
@@ -292,7 +289,7 @@ class Reservation {
                 $tmp_valid = true;
 
                 // Send to Database!!!
-                $this->id = $this->db->add_res($this, $is_parent, $user_info, $accept_code);
+                $this->id = $this->db->add_res($this, $is_parent, $accept_code);
 
                 if (!$this->is_blackout) {		// Notify the user if they want (only 1 email)
                     $this->lab_data = $this->db->get_lab_data($this->lab_id);
@@ -348,8 +345,6 @@ class Reservation {
      * Modifies a current reservation, setting new start and end times
      *  or deleting it
      * @param string $ownerid the user_id of the reservation owner
-     * @param array $userinfo array of users and their associated properties of this reservation
-     * @param array $removed_users array of users who will be removed from this reservation
      * @param int $start_date datestamp of the starting date
      * @param int $end_date datestamp of the ending date
      * @param int $start new start time
@@ -360,7 +355,7 @@ class Reservation {
      * @param boolean $mod_recur whether to modify all recurring reservations in this group
      * @param string $summary reservation summary
      */
-    function mod_res($ownerid, $userinfo, $removed_users, $start_date, $end_date, $start, $end, $del, $min, $max, $mod_recur, $account_id, $summary = null) {
+    function mod_res($ownerid, $start_date, $end_date, $start, $end, $del, $min, $max, $mod_recur, $account_id, $summary = null) {
         $recurs = array();
 
         $this->load_by_id();			// Load reservation data
@@ -382,41 +377,7 @@ class Reservation {
             $this->del_res($mod_recur);
             return;
         }
-
-        // Store arrays of users that need to be added and removed
-        $users_to_add = $users_to_remove = $post_users = $unchanged_users = array();
-        $email_to_add = $email_to_remove = array();
-
-        for ($i = 0; $i < count($userinfo); $i++) {
-            $info = explode('|', $userinfo[$i]);
-            $users_to_add[] = $info[0];
-            $email_to_add[] = $userinfo[$i];
-            $post_users[] = $info[0];
-        }
-
-        for ($i = 0; $i < count($this->users); $i++) {
-            if ($this->users[$i]['owner'] == 1 || $this->users[$i]['invited'] != 1) { continue; }	// We dont add or remove the owner or any participating users
-            $users_to_remove[$i] = $userid = $this->users[$i]['user_id'];
-            $email_to_remove[$i] = $this->users[$i]['email'];
-            for ($j = 0; $j < count($post_users); $j++) {
-                if ($userid == $post_users[$j]) {
-                    unset($users_to_remove[$i]);	// This user is still there, so dont remove them
-                    unset($email_to_remove[$i]);
-                    unset($users_to_add[$j]);		// User is already there, so no need to add them
-                    $unchanged_users[] = $email_to_add[$j];	// We need to tell this user about the reservation mod
-                    unset($email_to_add[$j]);
-                    break;
-                }
-            }
-        }
-
-        // Append all of the explicit 'remove from reservation' users
-        for ($i = 0; $i < count($removed_users); $i++) {
-            list($user_id, $email) = explode('|', $removed_users[$i]);
-            $users_to_remove[] = $user_id;
-            $email_to_remove[] = $email;
-        }
-
+        
         if (!$this->is_blackout) {
             $user = new User($this->user_id);		// Set up a User object
             $this->check_perms($user);		    // Check permissions
@@ -447,14 +408,14 @@ class Reservation {
 
                 if ($is_valid) {
                     $tmp_valid = true;          // Only one recurring needs to pass
-                    $this->db->mod_res($this, $users_to_add, $users_to_remove, $accept_code, $account_id);		// And place the reservation
+                    $this->db->mod_res($this, $accept_code, $account_id);		// And place the reservation
                     array_push($dates, $this->start_date);
                     CmnFns::write_log($this->word . ' ' . $this->id . ' modified.  machid:' . $this->mach_id .', dates:' . $this->start_date . ' - ' . $this->end_date . ', start:' . $this->start . ', end:' . $this->end, $this->user_id, $_SERVER['REMOTE_ADDR']);
                 }
             }
         } else {
             if ($this->check_res()) {       // Check overlap
-                $this->db->mod_res($this, $users_to_add, $users_to_remove, $accept_code, $account_id);		// And place the reservation
+                $this->db->mod_res($this, $accept_code, $account_id);		// And place the reservation
                 array_push($dates, $this->start_date);
             }
         }
@@ -1358,4 +1319,3 @@ EOT;
         }
     }
 }
-?>

@@ -72,7 +72,7 @@ function help(file) {
 
 function reserve(type, machid, start_date, resid, lab_id, is_blackout, read_only, pending, start_time, end_time) {  
 	if (is_blackout == null) { is_blackout = 0; }
-	
+	/*
 	if (is_blackout != 1) {
 		w = (type == 'reserve') ? 600 : 520;
 		h = (type == 'modify') ? 610 : 570;
@@ -81,7 +81,11 @@ function reserve(type, machid, start_date, resid, lab_id, is_blackout, read_only
 		w = (type == 'reserve') ? 600 : 425;
 		h = (type == 'modify') ? 460 : 420;
 	}
-	
+	*/
+
+	w = 800;
+	h = 800;
+
 	if (start_date == null) { start_date = ''; }
 	if (resid == null) { resid = ''; }
 	if (lab_id == null) { lab_id = ''; }
